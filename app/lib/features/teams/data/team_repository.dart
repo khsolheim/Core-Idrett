@@ -33,7 +33,7 @@ class TeamRepository {
 
   Future<List<TeamMember>> getTeamMembers(String teamId) async {
     final response = await _client.get('/teams/$teamId/members');
-    final data = response.data['members'] as List;
+    final data = response.data as List;
     return data.map((e) => TeamMember.fromJson(e as Map<String, dynamic>)).toList();
   }
 
