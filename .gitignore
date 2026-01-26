@@ -1,0 +1,34 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Flutter/Dart
+app/.dart_tool/
+app/.packages
+app/.pub-cache/
+app/.pub/
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+
+# Backend Dart
+backend/.dart_tool/
+backend/.packages
+backend/.pub-cache/
+backend/.pub/
+backend/build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Dependencies
+**/node_modules/

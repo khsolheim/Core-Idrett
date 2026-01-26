@@ -1,0 +1,18 @@
+name: core_idrett_backend
+description: Backend server for Core - Idrett sports team management app
+version: 1.0.0
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4
+  http: ^1.2.0
+  bcrypt: ^1.1.3
+  dart_jsonwebtoken: ^2.14.1
+  uuid: ^4.4.0
+
+dev_dependencies:
+  lints: ^5.1.0
+  test: ^1.25.0
