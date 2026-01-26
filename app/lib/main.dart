@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme.dart';
 import 'core/router.dart';
+import 'core/services/error_display_service.dart';
 import 'features/settings/providers/settings_provider.dart';
 
 void main() async {
@@ -30,6 +31,8 @@ class CoreIdrettApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       routerConfig: router,
+      // Global scaffold messenger key for error display service
+      scaffoldMessengerKey: ErrorDisplayService.scaffoldKey,
     );
   }
 }
