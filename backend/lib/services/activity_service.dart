@@ -212,6 +212,12 @@ class ActivityService {
         'location': activity['location'],
         'response_type': activity['response_type'],
         'response_deadline_hours': activity['response_deadline_hours'],
+        'series_info': {
+          'activity_id': activity['id'],
+          'total_instances': 0,
+          'instance_number': 0,
+          'recurrence_type': activity['recurrence_type'],
+        },
       };
     }).toList();
   }
@@ -540,6 +546,12 @@ class ActivityService {
         'no_count': counts['no'],
         'maybe_count': counts['maybe'],
         'is_detached': i['is_detached'] ?? false,
+        'series_info': {
+          'activity_id': activity['id'],
+          'total_instances': 0,
+          'instance_number': 0,
+          'recurrence_type': activity['recurrence_type'],
+        },
       };
     }).toList();
   }
