@@ -37,6 +37,15 @@ final userFinesProvider =
   return repo.getFines(params.teamId, offenderId: params.userId);
 });
 
+// Unpaid approved fines for a specific user (for payment registration)
+final unpaidUserFinesProvider =
+    FutureProvider.family<List<Fine>, ({String teamId, String userId})>((ref, params) async {
+  final repo = ref.watch(finesRepositoryProvider);
+  final fines = await repo.getFines(params.teamId, offenderId: params.userId, status: 'approved');
+  // Filter to only include fines with remaining balance
+  return fines.where((f) => f.remainingAmount > 0).toList();
+});
+
 final fineDetailProvider = FutureProvider.family<Fine, String>((ref, fineId) async {
   final repo = ref.watch(finesRepositoryProvider);
   return repo.getFine(fineId);

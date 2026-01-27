@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/fine.dart';
 import '../providers/fines_provider.dart';
+import 'user_fines_sheet.dart';
 
 class TeamAccountingScreen extends ConsumerWidget {
   final String teamId;
 
   const TeamAccountingScreen({super.key, required this.teamId});
+
+  void _showUserFinesSheet(BuildContext context, UserFinesSummary user) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => UserFinesSheet(
+        user: user,
+        teamId: teamId,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -118,27 +132,39 @@ class TeamAccountingScreen extends ConsumerWidget {
                             '${user.fineCount} bøter · Betalt ${user.totalPaid.toStringAsFixed(0)} kr',
                             style: const TextStyle(fontSize: 12),
                           ),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                '${outstanding.toStringAsFixed(0)} kr',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: outstanding > 0 ? Colors.red : Colors.green,
-                                ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '${outstanding.toStringAsFixed(0)} kr',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: outstanding > 0 ? Colors.red : Colors.green,
+                                    ),
+                                  ),
+                                  Text(
+                                    outstanding > 0 ? 'skylder' : 'alt betalt',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: outstanding > 0 ? Colors.red : Colors.green,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                outstanding > 0 ? 'skylder' : 'alt betalt',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: outstanding > 0 ? Colors.red : Colors.green,
-                                ),
-                              ),
+                              if (outstanding > 0) ...[
+                                const SizedBox(width: 8),
+                                const Icon(Icons.chevron_right, color: Colors.grey),
+                              ],
                             ],
                           ),
+                          onTap: outstanding > 0
+                              ? () => _showUserFinesSheet(context, user)
+                              : null,
                         ),
                       );
                     },
