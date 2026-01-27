@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/team.dart';
 import '../providers/team_provider.dart';
+import '../providers/dashboard_provider.dart';
+import 'widgets/dashboard_widgets.dart';
 
 class TeamDetailScreen extends ConsumerStatefulWidget {
   final String teamId;
@@ -89,47 +91,10 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                 ],
               ),
             ],
-            body: Column(
-              children: [
-                // Quick action buttons
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      _QuickActionButton(
-                        icon: Icons.calendar_today,
-                        label: 'Aktiviteter',
-                        onTap: () => context.push('/teams/${widget.teamId}/activities'),
-                      ),
-                      const SizedBox(width: 12),
-                      _QuickActionButton(
-                        icon: Icons.leaderboard,
-                        label: 'Statistikk',
-                        onTap: () => context.push('/teams/${widget.teamId}/leaderboard'),
-                      ),
-                      const SizedBox(width: 12),
-                      _QuickActionButton(
-                        icon: Icons.account_balance_wallet,
-                        label: 'Bøtekasse',
-                        onTap: () => context.push('/teams/${widget.teamId}/fines'),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                // Members section
-                Expanded(
-                  child: membersAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('Feil: $e')),
-                    data: (members) => _MembersList(
-                      members: members,
-                      teamId: widget.teamId,
-                      currentUserRole: team.userRole,
-                    ),
-                  ),
-                ),
-              ],
+            body: _DashboardBody(
+              teamId: widget.teamId,
+              team: team,
+              membersAsync: membersAsync,
             ),
           );
         },
@@ -293,147 +258,212 @@ class _QuickActionButton extends StatelessWidget {
   }
 }
 
-class _MembersList extends StatelessWidget {
+class _DashboardBody extends ConsumerWidget {
+  final String teamId;
+  final Team team;
+  final AsyncValue<List<TeamMember>> membersAsync;
+
+  const _DashboardBody({
+    required this.teamId,
+    required this.team,
+    required this.membersAsync,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dashboardAsync = ref.watch(dashboardProvider(teamId));
+    final isAdmin = team.userRole == TeamRole.admin;
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(dashboardProvider(teamId));
+        ref.invalidate(teamMembersProvider(teamId));
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Quick action buttons
+          Row(
+            children: [
+              _QuickActionButton(
+                icon: Icons.calendar_today,
+                label: 'Aktiviteter',
+                onTap: () => context.push('/teams/$teamId/activities'),
+              ),
+              const SizedBox(width: 12),
+              _QuickActionButton(
+                icon: Icons.leaderboard,
+                label: 'Statistikk',
+                onTap: () => context.push('/teams/$teamId/leaderboard'),
+              ),
+              const SizedBox(width: 12),
+              _QuickActionButton(
+                icon: Icons.account_balance_wallet,
+                label: 'Botekasse',
+                onTap: () => context.push('/teams/$teamId/fines'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Dashboard widgets
+          dashboardAsync.when(
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            error: (e, _) => Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('Kunne ikke laste dashboard: $e'),
+              ),
+            ),
+            data: (dashboard) => Column(
+              children: [
+                // Next activity
+                NextActivityWidget(
+                  activity: dashboard.nextActivity,
+                  teamId: teamId,
+                ),
+                const SizedBox(height: 12),
+
+                // Messages and Fines in a row
+                Row(
+                  children: [
+                    Expanded(
+                      child: MessagesWidget(
+                        unreadCount: dashboard.unreadMessages,
+                        teamId: teamId,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FinesWidget(
+                        summary: dashboard.finesSummary,
+                        teamId: teamId,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Leaderboard
+                LeaderboardWidget(
+                  entries: dashboard.topLeaderboard,
+                  teamId: teamId,
+                ),
+                const SizedBox(height: 12),
+
+                // Quick links
+                QuickLinksWidget(
+                  teamId: teamId,
+                  isAdmin: isAdmin,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Members section
+          membersAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Feil: $e')),
+            data: (members) => _CollapsibleMembersSection(
+              members: members,
+              teamId: teamId,
+              currentUserRole: team.userRole,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CollapsibleMembersSection extends StatefulWidget {
   final List<TeamMember> members;
   final String teamId;
   final TeamRole? currentUserRole;
 
-  const _MembersList({
+  const _CollapsibleMembersSection({
     required this.members,
     required this.teamId,
     required this.currentUserRole,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final admins = members.where((m) => m.role == TeamRole.admin).toList();
-    final fineBosses = members.where((m) => m.role == TeamRole.fineBoss).toList();
-    final players = members.where((m) => m.role == TeamRole.player).toList();
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(
-          'Medlemmer (${members.length})',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 12),
-        if (admins.isNotEmpty) ...[
-          _RoleHeader(role: 'Administratorer', count: admins.length),
-          ...admins.map((m) => _MemberTile(
-                member: m,
-                teamId: teamId,
-                canManage: currentUserRole == TeamRole.admin,
-              )),
-          const SizedBox(height: 8),
-        ],
-        if (fineBosses.isNotEmpty) ...[
-          _RoleHeader(role: 'Bøtesjefer', count: fineBosses.length),
-          ...fineBosses.map((m) => _MemberTile(
-                member: m,
-                teamId: teamId,
-                canManage: currentUserRole == TeamRole.admin,
-              )),
-          const SizedBox(height: 8),
-        ],
-        if (players.isNotEmpty) ...[
-          _RoleHeader(role: 'Spillere', count: players.length),
-          ...players.map((m) => _MemberTile(
-                member: m,
-                teamId: teamId,
-                canManage: currentUserRole == TeamRole.admin,
-              )),
-        ],
-      ],
-    );
-  }
+  State<_CollapsibleMembersSection> createState() => _CollapsibleMembersSectionState();
 }
 
-class _RoleHeader extends StatelessWidget {
-  final String role;
-  final int count;
-
-  const _RoleHeader({required this.role, required this.count});
+class _CollapsibleMembersSectionState extends State<_CollapsibleMembersSection> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        '$role ($count)',
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w500,
-          fontSize: 13,
-        ),
-      ),
-    );
-  }
-}
+    final theme = Theme.of(context);
+    final displayMembers = _expanded ? widget.members : widget.members.take(3).toList();
 
-class _MemberTile extends ConsumerWidget {
-  final TeamMember member;
-  final String teamId;
-  final bool canManage;
-
-  const _MemberTile({
-    required this.member,
-    required this.teamId,
-    required this.canManage,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: member.userAvatarUrl != null
-              ? NetworkImage(member.userAvatarUrl!)
-              : null,
-          child: member.userAvatarUrl == null
-              ? Text(member.userName.substring(0, 1).toUpperCase())
-              : null,
-        ),
-        title: Text(member.userName),
-        subtitle: Text(member.role.displayName),
-        trailing: canManage && member.role != TeamRole.admin
-            ? PopupMenuButton<TeamRole>(
-                onSelected: (role) => _changeRole(context, ref, role),
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: TeamRole.admin,
-                    child: Text('Gjør til administrator'),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.people, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Medlemmer (${widget.members.length})',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const PopupMenuItem(
-                    value: TeamRole.fineBoss,
-                    child: Text('Gjør til bøtesjef'),
-                  ),
-                  const PopupMenuItem(
-                    value: TeamRole.player,
-                    child: Text('Gjør til spiller'),
+                  const Spacer(),
+                  Icon(
+                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    color: theme.colorScheme.outline,
                   ),
                 ],
-              )
-            : null,
-        onTap: () => context.push('/teams/$teamId/player/${member.userId}'),
+              ),
+            ),
+          ),
+          if (displayMembers.isNotEmpty) const Divider(height: 1),
+          ...displayMembers.map((member) => ListTile(
+                leading: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: member.userAvatarUrl != null
+                      ? NetworkImage(member.userAvatarUrl!)
+                      : null,
+                  child: member.userAvatarUrl == null
+                      ? Text(
+                          member.userName.substring(0, 1).toUpperCase(),
+                          style: const TextStyle(fontSize: 14),
+                        )
+                      : null,
+                ),
+                title: Text(member.userName),
+                subtitle: Text(
+                  member.role.displayName,
+                  style: theme.textTheme.bodySmall,
+                ),
+                trailing: Icon(
+                  Icons.chevron_right,
+                  color: theme.colorScheme.outline,
+                ),
+                onTap: () => context.push('/teams/${widget.teamId}/player/${member.userId}'),
+              )),
+          if (!_expanded && widget.members.length > 3)
+            TextButton(
+              onPressed: () => setState(() => _expanded = true),
+              child: Text('Vis alle ${widget.members.length} medlemmer'),
+            ),
+        ],
       ),
     );
-  }
-
-  void _changeRole(BuildContext context, WidgetRef ref, TeamRole role) async {
-    final success = await ref.read(teamNotifierProvider.notifier).updateMemberRole(
-          teamId: teamId,
-          memberId: member.id,
-          role: role,
-        );
-    if (success && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${member.userName} er nå ${role.displayName.toLowerCase()}')),
-      );
-    }
   }
 }
 
