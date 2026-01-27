@@ -70,6 +70,7 @@ class MiniActivityService {
     String? templateId,
     required String name,
     required String type,
+    int numTeams = 2,
   }) async {
     final id = _uuid.v4();
     await _db.client.insert('mini_activities', {
@@ -78,6 +79,7 @@ class MiniActivityService {
       'template_id': templateId,
       'name': name,
       'type': type,
+      'num_teams': numTeams,
     });
 
     return MiniActivity(
@@ -86,6 +88,7 @@ class MiniActivityService {
       templateId: templateId,
       name: name,
       type: type,
+      numTeams: numTeams,
       createdAt: DateTime.now(),
     );
   }
@@ -137,6 +140,7 @@ class MiniActivityService {
         'name': ma['name'],
         'type': ma['type'],
         'division_method': ma['division_method'],
+        'num_teams': ma['num_teams'] ?? 2,
         'created_at': ma['created_at'],
         'team_count': teamCounts[id] ?? 0,
         'participant_count': participantCounts[id] ?? 0,
@@ -250,6 +254,7 @@ class MiniActivityService {
       'name': miniActivity['name'],
       'type': miniActivity['type'],
       'division_method': miniActivity['division_method'],
+      'num_teams': miniActivity['num_teams'] ?? 2,
       'created_at': miniActivity['created_at'],
       'teams': teams,
       'participants': individualParticipants,
@@ -258,25 +263,56 @@ class MiniActivityService {
 
   // ============ TEAM DIVISION ============
 
+  /// Divide participants into teams using various methods:
+  /// - 'random': Random shuffle, round-robin distribution
+  /// - 'ranked': Snake draft based on player ratings
+  /// - 'age': Sort by age, round-robin distribution
+  /// - 'gmo': "Gamle mot Unge" - oldest half vs youngest half
+  /// - 'cup': Fair distribution for multiple teams (snake draft by rating)
+  /// - 'manual': Teams created manually (no auto-distribution)
   Future<List<MiniActivityTeam>> divideTeams({
     required String miniActivityId,
-    required String method, // 'random', 'ranked', 'age'
+    required String method, // 'random', 'ranked', 'age', 'gmo', 'cup', 'manual'
     required int numberOfTeams,
     required List<String> participantUserIds,
     String teamId = '', // For getting ratings/ages
   }) async {
-    // Update mini-activity with division method
+    // Update mini-activity with division method and number of teams
     await _db.client.update(
       'mini_activities',
-      {'division_method': method},
+      {
+        'division_method': method,
+        'num_teams': numberOfTeams,
+      },
       filters: {'id': 'eq.$miniActivityId'},
     );
+
+    // For manual, just create empty teams
+    if (method == 'manual') {
+      final teams = <MiniActivityTeam>[];
+      final teamNames = _generateTeamNames(numberOfTeams);
+
+      for (int i = 0; i < numberOfTeams; i++) {
+        final newTeamId = _uuid.v4();
+        await _db.client.insert('mini_activity_teams', {
+          'id': newTeamId,
+          'mini_activity_id': miniActivityId,
+          'name': teamNames[i],
+        });
+        teams.add(MiniActivityTeam(
+          id: newTeamId,
+          miniActivityId: miniActivityId,
+          name: teamNames[i],
+        ));
+      }
+      return teams;
+    }
 
     // Get participant data based on method
     List<_ParticipantData> participants = [];
 
-    if (method == 'ranked' && teamId.isNotEmpty) {
-      // Get ratings
+    if ((method == 'ranked' || method == 'cup') && teamId.isNotEmpty) {
+      // Get ratings for ranked/cup methods
       final ratings = await _db.client.select(
         'player_ratings',
         select: 'user_id,rating',
@@ -297,25 +333,71 @@ class MiniActivityService {
           sortValue: ratingMap[userId] ?? 1000.0,
         ));
       }
+    } else if ((method == 'age' || method == 'gmo') && teamId.isNotEmpty) {
+      // Get birth dates for age-based methods
+      final users = await _db.client.select(
+        'users',
+        select: 'id,birth_date',
+        filters: {'id': 'in.(${participantUserIds.join(',')})'},
+      );
+
+      final birthDateMap = <String, DateTime?>{};
+      for (final u in users) {
+        final birthDateStr = u['birth_date'] as String?;
+        birthDateMap[u['id'] as String] = birthDateStr != null
+            ? DateTime.tryParse(birthDateStr)
+            : null;
+      }
+
+      // Sort value: days since birth (higher = older)
+      final now = DateTime.now();
+      for (final userId in participantUserIds) {
+        final birthDate = birthDateMap[userId];
+        final daysOld = birthDate != null
+            ? now.difference(birthDate).inDays.toDouble()
+            : 10000.0; // Default for unknown age (middle-ish)
+        participants.add(_ParticipantData(
+          userId: userId,
+          sortValue: daysOld,
+        ));
+      }
     } else {
-      // For random or age (simplified - using random for now)
+      // For random, use random values
       participants = participantUserIds
           .map((id) => _ParticipantData(userId: id, sortValue: _random.nextDouble()))
           .toList();
     }
 
-    // Sort participants
-    if (method == 'ranked') {
-      // Sort by rating descending
-      participants.sort((a, b) => b.sortValue.compareTo(a.sortValue));
-    } else {
-      // Random shuffle
-      participants.shuffle(_random);
+    // Sort participants based on method
+    switch (method) {
+      case 'ranked':
+      case 'cup':
+        // Sort by rating descending (best first)
+        participants.sort((a, b) => b.sortValue.compareTo(a.sortValue));
+        break;
+      case 'age':
+        // Sort by age descending (oldest first)
+        participants.sort((a, b) => b.sortValue.compareTo(a.sortValue));
+        break;
+      case 'gmo':
+        // Sort by age descending (oldest first)
+        participants.sort((a, b) => b.sortValue.compareTo(a.sortValue));
+        break;
+      case 'random':
+      default:
+        participants.shuffle(_random);
+        break;
     }
 
-    // Create teams
+    // Create teams with appropriate names
     final teams = <MiniActivityTeam>[];
-    final teamNames = _generateTeamNames(numberOfTeams);
+    List<String> teamNames;
+
+    if (method == 'gmo' && numberOfTeams == 2) {
+      teamNames = ['Gamle', 'Unge'];
+    } else {
+      teamNames = _generateTeamNames(numberOfTeams);
+    }
 
     for (int i = 0; i < numberOfTeams; i++) {
       final newTeamId = _uuid.v4();
@@ -331,42 +413,72 @@ class MiniActivityService {
       ));
     }
 
-    // Distribute participants to teams
-    // For ranked: snake draft (1,2,3,3,2,1,1,2,3...)
-    // For random: round robin
-    if (method == 'ranked') {
-      // Snake draft
-      int teamIndex = 0;
-      int direction = 1;
-      for (final participant in participants) {
-        await _addParticipantToTeam(
-          miniActivityId: miniActivityId,
-          teamId: teams[teamIndex].id,
-          userId: participant.userId,
-        );
-
-        teamIndex += direction;
-        if (teamIndex >= numberOfTeams) {
-          teamIndex = numberOfTeams - 1;
-          direction = -1;
-        } else if (teamIndex < 0) {
-          teamIndex = 0;
-          direction = 1;
+    // Distribute participants to teams based on method
+    switch (method) {
+      case 'gmo':
+        // GMO: Split in half - oldest to first team, youngest to second
+        final midpoint = participants.length ~/ 2;
+        for (int i = 0; i < participants.length; i++) {
+          final teamIndex = i < midpoint ? 0 : (numberOfTeams > 1 ? 1 : 0);
+          await _addParticipantToTeam(
+            miniActivityId: miniActivityId,
+            teamId: teams[teamIndex].id,
+            userId: participants[i].userId,
+          );
         }
-      }
-    } else {
-      // Round robin
-      for (int i = 0; i < participants.length; i++) {
-        final teamIndex = i % numberOfTeams;
-        await _addParticipantToTeam(
-          miniActivityId: miniActivityId,
-          teamId: teams[teamIndex].id,
-          userId: participants[i].userId,
-        );
-      }
+        break;
+
+      case 'ranked':
+      case 'cup':
+        // Snake draft for fair distribution
+        int teamIndex = 0;
+        int direction = 1;
+        for (final participant in participants) {
+          await _addParticipantToTeam(
+            miniActivityId: miniActivityId,
+            teamId: teams[teamIndex].id,
+            userId: participant.userId,
+          );
+
+          teamIndex += direction;
+          if (teamIndex >= numberOfTeams) {
+            teamIndex = numberOfTeams - 1;
+            direction = -1;
+          } else if (teamIndex < 0) {
+            teamIndex = 0;
+            direction = 1;
+          }
+        }
+        break;
+
+      case 'age':
+      case 'random':
+      default:
+        // Round robin distribution
+        for (int i = 0; i < participants.length; i++) {
+          final teamIndex = i % numberOfTeams;
+          await _addParticipantToTeam(
+            miniActivityId: miniActivityId,
+            teamId: teams[teamIndex].id,
+            userId: participants[i].userId,
+          );
+        }
+        break;
     }
 
     return teams;
+  }
+
+  /// Move a participant to a different team (for manual adjustments)
+  Future<void> moveParticipantToTeam({
+    required String participantId,
+    required String newTeamId,
+  }) async {
+    await _db.client.update(
+      'mini_activity_participants',
+      {'mini_team_id': newTeamId},
+      filters: {'id': 'eq.$participantId'},
+    );
   }
 
   Future<void> _addParticipantToTeam({

@@ -11,6 +11,7 @@ import '../features/teams/presentation/edit_team_screen.dart';
 import '../features/activities/presentation/activities_screen.dart';
 import '../features/activities/presentation/activity_detail_screen.dart';
 import '../features/activities/presentation/create_activity_screen.dart';
+import '../features/activities/presentation/calendar_screen.dart';
 import '../features/mini_activities/presentation/templates_screen.dart';
 import '../features/mini_activities/presentation/mini_activity_detail_screen.dart';
 import '../features/statistics/presentation/leaderboard_screen.dart';
@@ -22,6 +23,13 @@ import '../features/fines/presentation/fine_boss_screen.dart';
 import '../features/fines/presentation/my_fines_screen.dart';
 import '../features/fines/presentation/team_accounting_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/profile/presentation/edit_profile_screen.dart';
+import '../features/chat/presentation/chat_screen.dart';
+import '../features/documents/presentation/documents_screen.dart';
+import '../features/export/presentation/export_screen.dart';
+import '../features/tests/presentation/tests_screen.dart';
+import '../features/tests/presentation/test_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -67,6 +75,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
+        routes: [
+          GoRoute(
+            path: 'edit',
+            name: 'edit-profile',
+            builder: (context, state) => const EditProfileScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/teams',
@@ -126,6 +146,64 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final userId = state.pathParameters['userId']!;
                   return PlayerProfileScreen(teamId: teamId, userId: userId);
                 },
+              ),
+              GoRoute(
+                path: 'calendar',
+                name: 'calendar',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  return CalendarScreen(teamId: teamId);
+                },
+              ),
+              GoRoute(
+                path: 'chat',
+                name: 'chat',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  return ChatScreen(teamId: teamId);
+                },
+              ),
+              GoRoute(
+                path: 'documents',
+                name: 'documents',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  return DocumentsScreen(teamId: teamId);
+                },
+              ),
+              GoRoute(
+                path: 'export',
+                name: 'export',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  final isAdmin = state.uri.queryParameters['admin'] == 'true';
+                  return ExportScreen(teamId: teamId, isAdmin: isAdmin);
+                },
+              ),
+              GoRoute(
+                path: 'tests',
+                name: 'tests',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  final isAdmin = state.uri.queryParameters['admin'] == 'true';
+                  return TestsScreen(teamId: teamId, isAdmin: isAdmin);
+                },
+                routes: [
+                  GoRoute(
+                    path: ':templateId',
+                    name: 'test-detail',
+                    builder: (context, state) {
+                      final teamId = state.pathParameters['teamId']!;
+                      final templateId = state.pathParameters['templateId']!;
+                      final isAdmin = state.uri.queryParameters['admin'] == 'true';
+                      return TestDetailScreen(
+                        teamId: teamId,
+                        templateId: templateId,
+                        isAdmin: isAdmin,
+                      );
+                    },
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'activities',

@@ -34,11 +34,66 @@ class Team {
   }
 }
 
+/// Custom trainer type defined by each team
+class TrainerType {
+  final String id;
+  final String teamId;
+  final String name;
+  final int displayOrder;
+  final DateTime createdAt;
+
+  TrainerType({
+    required this.id,
+    required this.teamId,
+    required this.name,
+    required this.displayOrder,
+    required this.createdAt,
+  });
+
+  factory TrainerType.fromRow(Map<String, dynamic> row) {
+    return TrainerType(
+      id: row['id'] as String,
+      teamId: row['team_id'] as String,
+      name: row['name'] as String,
+      displayOrder: row['display_order'] as int? ?? 0,
+      createdAt: row['created_at'] as DateTime,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'team_id': teamId,
+      'name': name,
+      'display_order': displayOrder,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+}
+
 class TeamMember {
   final String id;
   final String userId;
   final String teamId;
+
+  /// @deprecated Use isAdmin and isFineBoss flags instead
   final String role;
+
+  /// Whether this member has admin privileges
+  final bool isAdmin;
+
+  /// Whether this member can manage fines (Botesjef)
+  final bool isFineBoss;
+
+  /// Optional trainer type ID (if member is a trainer)
+  final String? trainerTypeId;
+
+  /// Trainer type name (populated via join)
+  final String? trainerTypeName;
+
+  /// Whether this member is active (false = soft deleted)
+  final bool isActive;
+
   final DateTime joinedAt;
 
   TeamMember({
@@ -46,6 +101,11 @@ class TeamMember {
     required this.userId,
     required this.teamId,
     required this.role,
+    required this.isAdmin,
+    required this.isFineBoss,
+    this.trainerTypeId,
+    this.trainerTypeName,
+    required this.isActive,
     required this.joinedAt,
   });
 
@@ -54,7 +114,12 @@ class TeamMember {
       id: row['id'] as String,
       userId: row['user_id'] as String,
       teamId: row['team_id'] as String,
-      role: row['role'] as String,
+      role: row['role'] as String? ?? 'player',
+      isAdmin: row['is_admin'] as bool? ?? false,
+      isFineBoss: row['is_fine_boss'] as bool? ?? false,
+      trainerTypeId: row['trainer_type_id'] as String?,
+      trainerTypeName: row['trainer_type_name'] as String?,
+      isActive: row['is_active'] as bool? ?? true,
       joinedAt: row['joined_at'] as DateTime,
     );
   }
@@ -65,7 +130,29 @@ class TeamMember {
       'user_id': userId,
       'team_id': teamId,
       'role': role,
+      'is_admin': isAdmin,
+      'is_fine_boss': isFineBoss,
+      'trainer_type_id': trainerTypeId,
+      'trainer_type_name': trainerTypeName,
+      'is_active': isActive,
       'joined_at': joinedAt.toIso8601String(),
     };
   }
+
+  /// Determines the legacy role string based on flags
+  /// Admin takes precedence, then fine_boss, then player
+  String get effectiveRole {
+    if (isAdmin) return 'admin';
+    if (isFineBoss) return 'fine_boss';
+    return 'player';
+  }
+
+  /// Check if member has any administrative privileges
+  bool get hasAdminPrivileges => isAdmin;
+
+  /// Check if member can manage fines
+  bool get canManageFines => isAdmin || isFineBoss;
+
+  /// Check if member is a trainer (any type)
+  bool get isTrainer => trainerTypeId != null;
 }

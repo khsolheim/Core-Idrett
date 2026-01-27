@@ -44,7 +44,8 @@ class MiniActivity {
   final String? templateId;
   final String name;
   final String type; // 'individual' or 'team'
-  final String? divisionMethod; // 'random', 'ranked', 'age'
+  final String? divisionMethod; // 'random', 'ranked', 'age', 'gmo', 'cup', 'manual'
+  final int numTeams; // Number of teams for CUP mode (default 2)
   final DateTime createdAt;
 
   MiniActivity({
@@ -54,6 +55,7 @@ class MiniActivity {
     required this.name,
     required this.type,
     this.divisionMethod,
+    this.numTeams = 2,
     required this.createdAt,
   });
 
@@ -65,6 +67,7 @@ class MiniActivity {
       name: row['name'] as String,
       type: row['type'] as String,
       divisionMethod: row['division_method'] as String?,
+      numTeams: row['num_teams'] as int? ?? 2,
       createdAt: row['created_at'] as DateTime,
     );
   }
@@ -77,6 +80,7 @@ class MiniActivity {
       'name': name,
       'type': type,
       'division_method': divisionMethod,
+      'num_teams': numTeams,
       'created_at': createdAt.toIso8601String(),
     };
   }

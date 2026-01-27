@@ -86,4 +86,20 @@ class ActivityRepository {
   Future<void> deleteActivity(String activityId) async {
     await _apiClient.delete('/activities/$activityId');
   }
+
+  Future<List<ActivityInstance>> getInstancesByDateRange(
+    String teamId, {
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final response = await _apiClient.get(
+      '/activities/team/$teamId/instances',
+      queryParameters: {
+        'from': from.toIso8601String().split('T').first,
+        'to': to.toIso8601String().split('T').first,
+      },
+    );
+    final data = response.data as List;
+    return data.map((json) => ActivityInstance.fromJson(json as Map<String, dynamic>)).toList();
+  }
 }

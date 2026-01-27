@@ -19,6 +19,7 @@ class ActivitiesHandler {
     router.get('/team/<teamId>', _getTeamActivities);
     router.post('/team/<teamId>', _createActivity);
     router.get('/team/<teamId>/upcoming', _getUpcomingInstances);
+    router.get('/team/<teamId>/instances', _getInstancesByDateRange);
 
     // Instance routes
     router.get('/instances/<instanceId>', _getInstance);
@@ -132,6 +133,39 @@ class ActivitiesHandler {
       final limit = limitParam != null ? int.tryParse(limitParam) ?? 20 : 20;
 
       final instances = await _activityService.getUpcomingInstances(teamId, limit: limit);
+      return Response.ok(jsonEncode(instances));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _getInstancesByDateRange(Request request, String teamId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      if (!await _isTeamMember(userId, teamId)) {
+        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      }
+
+      final fromParam = request.url.queryParameters['from'];
+      final toParam = request.url.queryParameters['to'];
+
+      if (fromParam == null || toParam == null) {
+        return Response(400, body: jsonEncode({'error': 'Mangler from og to parametere'}));
+      }
+
+      final from = DateTime.parse(fromParam);
+      final to = DateTime.parse(toParam);
+
+      final instances = await _activityService.getInstancesByDateRange(
+        teamId,
+        from: from,
+        to: to,
+        userId: userId,
+      );
       return Response.ok(jsonEncode(instances));
     } catch (e) {
       return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));

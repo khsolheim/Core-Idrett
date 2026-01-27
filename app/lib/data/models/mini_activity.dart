@@ -26,7 +26,10 @@ enum MiniActivityType {
 enum DivisionMethod {
   random,
   ranked,
-  age;
+  age,
+  gmo,
+  cup,
+  manual;
 
   String get displayName {
     switch (this) {
@@ -36,18 +39,34 @@ enum DivisionMethod {
         return 'Etter rating';
       case DivisionMethod.age:
         return 'Etter alder';
+      case DivisionMethod.gmo:
+        return 'Gamle mot unge';
+      case DivisionMethod.cup:
+        return 'Cup (flere lag)';
+      case DivisionMethod.manual:
+        return 'Manuell';
     }
   }
 
   String get description {
     switch (this) {
       case DivisionMethod.random:
-        return 'Spillerne fordeles tilfeldig på lagene';
+        return 'Spillerne fordeles tilfeldig pa lagene';
       case DivisionMethod.ranked:
         return 'Spillerne fordeles etter intern rating (snake draft)';
       case DivisionMethod.age:
         return 'Spillerne fordeles etter alder';
+      case DivisionMethod.gmo:
+        return 'De eldste mot de yngste';
+      case DivisionMethod.cup:
+        return 'Rettferdig fordeling pa flere lag (snake draft)';
+      case DivisionMethod.manual:
+        return 'Du velger selv hvem som skal pa hvert lag';
     }
+  }
+
+  bool get supportsMultipleTeams {
+    return this == DivisionMethod.cup;
   }
 
   static DivisionMethod fromString(String? method) {
@@ -56,6 +75,12 @@ enum DivisionMethod {
         return DivisionMethod.ranked;
       case 'age':
         return DivisionMethod.age;
+      case 'gmo':
+        return DivisionMethod.gmo;
+      case 'cup':
+        return DivisionMethod.cup;
+      case 'manual':
+        return DivisionMethod.manual;
       default:
         return DivisionMethod.random;
     }
@@ -100,6 +125,7 @@ class MiniActivity {
   final String name;
   final MiniActivityType type;
   final DivisionMethod? divisionMethod;
+  final int numTeams; // Number of teams for CUP mode
   final DateTime createdAt;
   final int? teamCount;
   final int? participantCount;
@@ -113,6 +139,7 @@ class MiniActivity {
     required this.name,
     required this.type,
     this.divisionMethod,
+    this.numTeams = 2,
     required this.createdAt,
     this.teamCount,
     this.participantCount,
@@ -144,6 +171,7 @@ class MiniActivity {
       divisionMethod: json['division_method'] != null
           ? DivisionMethod.fromString(json['division_method'] as String?)
           : null,
+      numTeams: json['num_teams'] as int? ?? 2,
       createdAt: DateTime.parse(json['created_at'] as String),
       teamCount: json['team_count'] as int?,
       participantCount: json['participant_count'] as int?,

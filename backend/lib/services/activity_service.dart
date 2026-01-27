@@ -387,9 +387,112 @@ class ActivityService {
         'description': description,
       },
       filters: {'id': 'eq.$activityId'},
-      select: '*',
     );
 
     return Activity.fromRow(result.first);
+  }
+
+  Future<List<Map<String, dynamic>>> getInstancesByDateRange(
+    String teamId, {
+    required DateTime from,
+    required DateTime to,
+    required String userId,
+  }) async {
+    // Get activities for team
+    final activities = await _db.client.select(
+      'activities',
+      filters: {'team_id': 'eq.$teamId'},
+    );
+
+    if (activities.isEmpty) return [];
+
+    // Create activity lookup
+    final activityMap = <String, Map<String, dynamic>>{};
+    final activityIds = <String>[];
+    for (final a in activities) {
+      final id = a['id'] as String;
+      activityMap[id] = a;
+      activityIds.add(id);
+    }
+
+    // Get instances within date range
+    final fromDate = from.toIso8601String().split('T').first;
+    final toDate = to.toIso8601String().split('T').first;
+
+    final instances = await _db.client.select(
+      'activity_instances',
+      filters: {
+        'activity_id': 'in.(${activityIds.join(',')})',
+        'date': 'gte.$fromDate',
+      },
+      order: 'date.asc,start_time.asc',
+    );
+
+    // Filter by to date manually (since we need both gte and lte)
+    final filteredInstances = instances.where((i) {
+      final date = i['date'] as String;
+      return date.compareTo(toDate) <= 0;
+    }).toList();
+
+    // Get user responses for these instances
+    final instanceIds = filteredInstances.map((i) => i['id'] as String).toList();
+    final responses = instanceIds.isNotEmpty
+        ? await _db.client.select(
+            'activity_responses',
+            filters: {
+              'instance_id': 'in.(${instanceIds.join(',')})',
+              'user_id': 'eq.$userId',
+            },
+          )
+        : <Map<String, dynamic>>[];
+
+    // Create response lookup
+    final responseMap = <String, String?>{};
+    for (final r in responses) {
+      responseMap[r['instance_id'] as String] = r['response'] as String?;
+    }
+
+    // Get response counts for all instances
+    final allResponses = instanceIds.isNotEmpty
+        ? await _db.client.select(
+            'activity_responses',
+            filters: {
+              'instance_id': 'in.(${instanceIds.join(',')})',
+            },
+          )
+        : <Map<String, dynamic>>[];
+
+    // Count responses per instance
+    final responseCounts = <String, Map<String, int>>{};
+    for (final r in allResponses) {
+      final iId = r['instance_id'] as String;
+      final resp = r['response'] as String?;
+      responseCounts[iId] ??= {'yes': 0, 'no': 0, 'maybe': 0};
+      if (resp != null && responseCounts[iId]!.containsKey(resp)) {
+        responseCounts[iId]![resp] = (responseCounts[iId]![resp] ?? 0) + 1;
+      }
+    }
+
+    return filteredInstances.map((i) {
+      final activity = activityMap[i['activity_id']] ?? {};
+      final iId = i['id'] as String;
+      final counts = responseCounts[iId] ?? {'yes': 0, 'no': 0, 'maybe': 0};
+      return {
+        'id': iId,
+        'activity_id': i['activity_id'],
+        'date': i['date'],
+        'start_time': i['start_time'],
+        'end_time': i['end_time'],
+        'status': i['status'],
+        'title': activity['title'],
+        'type': activity['type'],
+        'location': activity['location'],
+        'response_type': activity['response_type'],
+        'user_response': responseMap[iId],
+        'yes_count': counts['yes'],
+        'no_count': counts['no'],
+        'maybe_count': counts['maybe'],
+      };
+    }).toList();
   }
 }

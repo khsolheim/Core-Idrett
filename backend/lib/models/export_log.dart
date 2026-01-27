@@ -1,0 +1,93 @@
+class ExportLog {
+  final String id;
+  final String teamId;
+  final String userId;
+  final String exportType;
+  final String fileFormat;
+  final Map<String, dynamic>? parameters;
+  final DateTime createdAt;
+
+  // Joined data
+  final String? userName;
+
+  ExportLog({
+    required this.id,
+    required this.teamId,
+    required this.userId,
+    required this.exportType,
+    required this.fileFormat,
+    this.parameters,
+    required this.createdAt,
+    this.userName,
+  });
+
+  factory ExportLog.fromMap(Map<String, dynamic> map) {
+    return ExportLog(
+      id: map['id'] as String,
+      teamId: map['team_id'] as String,
+      userId: map['user_id'] as String,
+      exportType: map['export_type'] as String,
+      fileFormat: map['file_format'] as String,
+      parameters: map['parameters'] as Map<String, dynamic>?,
+      createdAt: DateTime.parse(map['created_at'] as String),
+      userName: map['user_name'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'team_id': teamId,
+    'user_id': userId,
+    'export_type': exportType,
+    'file_format': fileFormat,
+    'parameters': parameters,
+    'created_at': createdAt.toIso8601String(),
+    'user_name': userName,
+  };
+}
+
+/// Export types
+class ExportType {
+  static const String leaderboard = 'leaderboard';
+  static const String attendance = 'attendance';
+  static const String fines = 'fines';
+  static const String activities = 'activities';
+  static const String members = 'members';
+
+  static List<String> get all => [
+    leaderboard,
+    attendance,
+    fines,
+    activities,
+    members,
+  ];
+
+  static String displayName(String type) {
+    switch (type) {
+      case leaderboard: return 'Poengtabell';
+      case attendance: return 'Oppmote';
+      case fines: return 'Boter';
+      case activities: return 'Aktiviteter';
+      case members: return 'Medlemmer';
+      default: return type;
+    }
+  }
+}
+
+/// Export file formats
+class ExportFormat {
+  static const String csv = 'csv';
+  static const String xlsx = 'xlsx';
+  static const String pdf = 'pdf';
+
+  static List<String> get all => [csv, xlsx, pdf];
+
+  static String displayName(String format) {
+    switch (format) {
+      case csv: return 'CSV';
+      case xlsx: return 'Excel';
+      case pdf: return 'PDF';
+      default: return format.toUpperCase();
+    }
+  }
+}

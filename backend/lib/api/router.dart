@@ -7,12 +7,26 @@ import '../services/activity_service.dart';
 import '../services/mini_activity_service.dart';
 import '../services/statistics_service.dart';
 import '../services/fine_service.dart';
+import '../services/season_service.dart';
+import '../services/leaderboard_service.dart';
+import '../services/test_service.dart';
+import '../services/notification_service.dart';
+import '../services/message_service.dart';
+import '../services/document_service.dart';
+import '../services/export_service.dart';
 import 'auth_handler.dart';
 import 'teams_handler.dart';
 import 'activities_handler.dart';
 import 'mini_activities_handler.dart';
 import 'statistics_handler.dart';
 import 'fines_handler.dart';
+import 'seasons_handler.dart';
+import 'leaderboards_handler.dart';
+import 'tests_handler.dart';
+import 'notifications_handler.dart';
+import 'messages_handler.dart';
+import 'documents_handler.dart';
+import 'exports_handler.dart';
 
 Router createRouter(Database db) {
   final authService = AuthService(db);
@@ -21,6 +35,13 @@ Router createRouter(Database db) {
   final miniActivityService = MiniActivityService(db);
   final statisticsService = StatisticsService(db);
   final fineService = FineService(db);
+  final seasonService = SeasonService(db);
+  final leaderboardService = LeaderboardService(db);
+  final testService = TestService(db);
+  final notificationService = NotificationService(db);
+  final messageService = MessageService(db);
+  final documentService = DocumentService(db);
+  final exportService = ExportService(db);
 
   final router = Router();
 
@@ -47,6 +68,34 @@ Router createRouter(Database db) {
   // Fines routes
   final finesHandler = FinesHandler(fineService);
   router.mount('/fines', finesHandler.router.call);
+
+  // Season routes
+  final seasonsHandler = SeasonsHandler(seasonService, authService, teamService);
+  router.mount('/seasons', seasonsHandler.router.call);
+
+  // Leaderboard routes
+  final leaderboardsHandler = LeaderboardsHandler(leaderboardService, authService, teamService);
+  router.mount('/leaderboards', leaderboardsHandler.router.call);
+
+  // Test routes
+  final testsHandler = TestsHandler(testService, authService, teamService);
+  router.mount('/tests', testsHandler.router.call);
+
+  // Notification routes
+  final notificationsHandler = NotificationsHandler(notificationService, authService);
+  router.mount('/notifications', notificationsHandler.router.call);
+
+  // Message routes
+  final messagesHandler = MessagesHandler(messageService, authService, teamService);
+  router.mount('/messages', messagesHandler.router.call);
+
+  // Document routes
+  final documentsHandler = DocumentsHandler(documentService, teamService);
+  router.mount('/documents', documentsHandler.router.call);
+
+  // Export routes
+  final exportsHandler = ExportsHandler(exportService, teamService);
+  router.mount('/exports', exportsHandler.router.call);
 
   // Health check
   router.get('/health', (request) {

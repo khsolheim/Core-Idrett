@@ -60,9 +60,26 @@ dependencies:
   # Network connectivity monitoring
   connectivity_plus: ^6.0.0
 
+  # Calendar widget
+  table_calendar: ^3.1.2
+
+  # File picker for document uploads
+  file_picker: ^8.0.0
+
+  # Share files
+  share_plus: ^10.0.0
+
+  # File system access
+  path_provider: ^2.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  # Mocking framework for tests
+  mocktail: ^1.0.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

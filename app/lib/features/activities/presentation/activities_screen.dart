@@ -19,9 +19,9 @@ class ActivitiesScreen extends ConsumerWidget {
         title: const Text('Aktiviteter'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.list),
-            onPressed: () => context.pushNamed('activity-list', pathParameters: {'teamId': teamId}),
-            tooltip: 'Alle aktiviteter',
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => context.pushNamed('calendar', pathParameters: {'teamId': teamId}),
+            tooltip: 'Kalender',
           ),
         ],
       ),

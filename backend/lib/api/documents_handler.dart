@@ -2,16 +2,14 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/document_service.dart';
-import '../services/auth_service.dart';
 import '../services/team_service.dart';
 import '../models/document.dart';
 
 class DocumentsHandler {
   final DocumentService _documentService;
-  final AuthService _authService;
   final TeamService _teamService;
 
-  DocumentsHandler(this._documentService, this._authService, this._teamService);
+  DocumentsHandler(this._documentService, this._teamService);
 
   Router get router {
     final router = Router();

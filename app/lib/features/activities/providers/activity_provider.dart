@@ -144,3 +144,15 @@ class InstanceStatusNotifier extends StateNotifier<AsyncValue<void>> {
 final instanceStatusProvider = StateNotifierProvider<InstanceStatusNotifier, AsyncValue<void>>((ref) {
   return InstanceStatusNotifier(ref.watch(activityRepositoryProvider), ref);
 });
+
+// Provider for calendar instances by month
+final calendarInstancesProvider = FutureProvider.family<
+    List<ActivityInstance>,
+    ({String teamId, DateTime from, DateTime to})>((ref, params) async {
+  final repository = ref.watch(activityRepositoryProvider);
+  return repository.getInstancesByDateRange(
+    params.teamId,
+    from: params.from,
+    to: params.to,
+  );
+});

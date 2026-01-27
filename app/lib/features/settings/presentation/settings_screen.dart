@@ -216,21 +216,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Velg sprak'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: AppLocale.values.map((locale) {
-            return RadioListTile<AppLocale>(
-              value: locale,
-              groupValue: currentLocale,
-              title: Text(locale.displayName),
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(localeProvider.notifier).setLocale(value);
-                  Navigator.pop(context);
-                }
-              },
-            );
-          }).toList(),
+        content: RadioGroup<AppLocale>(
+          groupValue: currentLocale,
+          onChanged: (value) {
+            if (value != null) {
+              ref.read(localeProvider.notifier).setLocale(value);
+              Navigator.pop(context);
+            }
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: AppLocale.values.map((locale) {
+              return RadioListTile<AppLocale>(
+                value: locale,
+                title: Text(locale.displayName),
+              );
+            }).toList(),
+          ),
         ),
         actions: [
           TextButton(
