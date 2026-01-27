@@ -115,6 +115,7 @@ class NotificationService {
       'new_activity': true,
       'activity_reminder': true,
       'activity_cancelled': true,
+      'activity_updated': true,
       'new_fine': true,
       'fine_decision': true,
       'team_message': true,
@@ -129,6 +130,7 @@ class NotificationService {
     bool? newActivity,
     bool? activityReminder,
     bool? activityCancelled,
+    bool? activityUpdated,
     bool? newFine,
     bool? fineDecision,
     bool? teamMessage,
@@ -140,6 +142,7 @@ class NotificationService {
     if (newActivity != null) updates['new_activity'] = newActivity;
     if (activityReminder != null) updates['activity_reminder'] = activityReminder;
     if (activityCancelled != null) updates['activity_cancelled'] = activityCancelled;
+    if (activityUpdated != null) updates['activity_updated'] = activityUpdated;
     if (newFine != null) updates['new_fine'] = newFine;
     if (fineDecision != null) updates['fine_decision'] = fineDecision;
     if (teamMessage != null) updates['team_message'] = teamMessage;
@@ -352,6 +355,88 @@ class NotificationService {
         ...?data,
       },
     };
+  }
+
+  // ============ ACTIVITY NOTIFICATION HELPERS ============
+
+  /// Notify team members about activity update (single instance)
+  Future<FcmSendResult> notifyActivityUpdated({
+    required List<String> userIds,
+    required String teamId,
+    required String activityTitle,
+    required String date,
+    String? time,
+  }) async {
+    final timeStr = time != null ? ' kl $time' : '';
+    return notifyUsers(
+      userIds: userIds,
+      title: 'Aktivitet endret',
+      body: '$activityTitle $date$timeStr er endret',
+      type: NotificationType.activityUpdated,
+      teamId: teamId,
+      data: {
+        'team_id': teamId,
+      },
+    );
+  }
+
+  /// Notify team members about bulk activity update
+  Future<FcmSendResult> notifyActivitiesUpdated({
+    required List<String> userIds,
+    required String teamId,
+    required String activityTitle,
+    required int count,
+    required String fromDate,
+  }) async {
+    return notifyUsers(
+      userIds: userIds,
+      title: 'Aktiviteter endret',
+      body: '$count $activityTitle fra $fromDate er endret',
+      type: NotificationType.activityUpdated,
+      teamId: teamId,
+      data: {
+        'team_id': teamId,
+      },
+    );
+  }
+
+  /// Notify team members about activity deletion (single instance)
+  Future<FcmSendResult> notifyActivityDeleted({
+    required List<String> userIds,
+    required String teamId,
+    required String activityTitle,
+    required String date,
+  }) async {
+    return notifyUsers(
+      userIds: userIds,
+      title: 'Aktivitet avlyst',
+      body: '$activityTitle $date er avlyst',
+      type: NotificationType.activityCancelled,
+      teamId: teamId,
+      data: {
+        'team_id': teamId,
+      },
+    );
+  }
+
+  /// Notify team members about bulk activity deletion
+  Future<FcmSendResult> notifyActivitiesDeleted({
+    required List<String> userIds,
+    required String teamId,
+    required String activityTitle,
+    required int count,
+    required String fromDate,
+  }) async {
+    return notifyUsers(
+      userIds: userIds,
+      title: 'Aktiviteter avlyst',
+      body: '$count $activityTitle fra $fromDate er avlyst',
+      type: NotificationType.activityCancelled,
+      teamId: teamId,
+      data: {
+        'team_id': teamId,
+      },
+    );
   }
 }
 

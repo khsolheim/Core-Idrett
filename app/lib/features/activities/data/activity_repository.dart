@@ -102,4 +102,49 @@ class ActivityRepository {
     final data = response.data as List;
     return data.map((json) => ActivityInstance.fromJson(json as Map<String, dynamic>)).toList();
   }
+
+  /// Edit an activity instance with the specified scope
+  Future<InstanceOperationResult> editInstance({
+    required String instanceId,
+    required EditScope scope,
+    String? title,
+    String? location,
+    String? description,
+    String? startTime,
+    String? endTime,
+    DateTime? date,
+  }) async {
+    final data = <String, dynamic>{
+      'edit_scope': scope.toApiString(),
+    };
+
+    if (title != null) data['title'] = title;
+    if (location != null) data['location'] = location;
+    if (description != null) data['description'] = description;
+    if (startTime != null) data['start_time'] = startTime;
+    if (endTime != null) data['end_time'] = endTime;
+    if (date != null && scope == EditScope.single) {
+      data['date'] = date.toIso8601String().split('T').first;
+    }
+
+    final response = await _apiClient.patch(
+      '/activities/instances/$instanceId',
+      data: data,
+    );
+    return InstanceOperationResult.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  /// Delete an activity instance with the specified scope
+  Future<InstanceOperationResult> deleteInstance({
+    required String instanceId,
+    required EditScope scope,
+  }) async {
+    final response = await _apiClient.delete(
+      '/activities/instances/$instanceId',
+      data: {
+        'delete_scope': scope.toApiString(),
+      },
+    );
+    return InstanceOperationResult.fromJson(response.data as Map<String, dynamic>);
+  }
 }

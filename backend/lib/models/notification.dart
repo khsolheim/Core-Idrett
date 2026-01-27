@@ -43,6 +43,7 @@ class NotificationPreferences {
   final bool newActivity;
   final bool activityReminder;
   final bool activityCancelled;
+  final bool activityUpdated;
   final bool newFine;
   final bool fineDecision;
   final bool teamMessage;
@@ -54,6 +55,7 @@ class NotificationPreferences {
     required this.newActivity,
     required this.activityReminder,
     required this.activityCancelled,
+    required this.activityUpdated,
     required this.newFine,
     required this.fineDecision,
     required this.teamMessage,
@@ -67,6 +69,7 @@ class NotificationPreferences {
       newActivity: row['new_activity'] as bool? ?? true,
       activityReminder: row['activity_reminder'] as bool? ?? true,
       activityCancelled: row['activity_cancelled'] as bool? ?? true,
+      activityUpdated: row['activity_updated'] as bool? ?? true,
       newFine: row['new_fine'] as bool? ?? true,
       fineDecision: row['fine_decision'] as bool? ?? true,
       teamMessage: row['team_message'] as bool? ?? true,
@@ -80,6 +83,7 @@ class NotificationPreferences {
         'new_activity': newActivity,
         'activity_reminder': activityReminder,
         'activity_cancelled': activityCancelled,
+        'activity_updated': activityUpdated,
         'new_fine': newFine,
         'fine_decision': fineDecision,
         'team_message': teamMessage,
@@ -89,6 +93,7 @@ class NotificationPreferences {
     bool? newActivity,
     bool? activityReminder,
     bool? activityCancelled,
+    bool? activityUpdated,
     bool? newFine,
     bool? fineDecision,
     bool? teamMessage,
@@ -100,6 +105,7 @@ class NotificationPreferences {
       newActivity: newActivity ?? this.newActivity,
       activityReminder: activityReminder ?? this.activityReminder,
       activityCancelled: activityCancelled ?? this.activityCancelled,
+      activityUpdated: activityUpdated ?? this.activityUpdated,
       newFine: newFine ?? this.newFine,
       fineDecision: fineDecision ?? this.fineDecision,
       teamMessage: teamMessage ?? this.teamMessage,
@@ -111,6 +117,7 @@ enum NotificationType {
   newActivity,
   activityReminder,
   activityCancelled,
+  activityUpdated,
   newFine,
   fineDecision,
   teamMessage;
@@ -123,6 +130,8 @@ enum NotificationType {
         return 'activity_reminder';
       case NotificationType.activityCancelled:
         return 'activity_cancelled';
+      case NotificationType.activityUpdated:
+        return 'activity_updated';
       case NotificationType.newFine:
         return 'new_fine';
       case NotificationType.fineDecision:

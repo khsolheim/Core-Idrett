@@ -189,6 +189,69 @@ enum UserResponse {
   String toApiString() => name;
 }
 
+/// Scope for editing/deleting activity instances in a series
+enum EditScope {
+  single,
+  thisAndFuture;
+
+  String get displayName {
+    switch (this) {
+      case EditScope.single:
+        return 'Kun denne';
+      case EditScope.thisAndFuture:
+        return 'Denne og fremtidige';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case EditScope.single:
+        return 'Bare denne aktiviteten endres';
+      case EditScope.thisAndFuture:
+        return 'Denne og alle fremtidige aktiviteter i serien endres';
+    }
+  }
+
+  String toApiString() {
+    switch (this) {
+      case EditScope.single:
+        return 'single';
+      case EditScope.thisAndFuture:
+        return 'this_and_future';
+    }
+  }
+}
+
+/// Information about an instance's position in a series
+class SeriesInfo {
+  final String activityId;
+  final int totalInstances;
+  final int instanceNumber;
+  final RecurrenceType recurrenceType;
+
+  SeriesInfo({
+    required this.activityId,
+    required this.totalInstances,
+    required this.instanceNumber,
+    required this.recurrenceType,
+  });
+
+  factory SeriesInfo.fromJson(Map<String, dynamic> json) {
+    return SeriesInfo(
+      activityId: json['activity_id'] as String,
+      totalInstances: json['total_instances'] as int,
+      instanceNumber: json['instance_number'] as int,
+      recurrenceType: RecurrenceType.fromString(json['recurrence_type'] as String? ?? 'once'),
+    );
+  }
+
+  /// Whether this instance is part of a recurring series
+  bool get isPartOfSeries => recurrenceType != RecurrenceType.once;
+
+  /// Display string like "3 av 10"
+  String get positionText => '$instanceNumber av $totalInstances';
+}
+
 class Activity {
   final String id;
   final String teamId;
@@ -259,6 +322,19 @@ class ActivityInstance {
   final int? noCount;
   final int? maybeCount;
 
+  // Series management fields
+  final bool isDetached;
+  final SeriesInfo? seriesInfo;
+  final String? createdBy;
+
+  // Raw override values (for edit form)
+  final String? titleOverride;
+  final String? locationOverride;
+  final String? descriptionOverride;
+  final String? startTimeOverride;
+  final String? endTimeOverride;
+  final String? dateOverride;
+
   ActivityInstance({
     required this.id,
     required this.activityId,
@@ -279,6 +355,15 @@ class ActivityInstance {
     this.yesCount,
     this.noCount,
     this.maybeCount,
+    this.isDetached = false,
+    this.seriesInfo,
+    this.createdBy,
+    this.titleOverride,
+    this.locationOverride,
+    this.descriptionOverride,
+    this.startTimeOverride,
+    this.endTimeOverride,
+    this.dateOverride,
   });
 
   factory ActivityInstance.fromJson(Map<String, dynamic> json) {
@@ -287,6 +372,11 @@ class ActivityInstance {
       responses = (json['responses'] as List)
           .map((r) => ActivityResponseItem.fromJson(r as Map<String, dynamic>))
           .toList();
+    }
+
+    SeriesInfo? seriesInfo;
+    if (json['series_info'] != null) {
+      seriesInfo = SeriesInfo.fromJson(json['series_info'] as Map<String, dynamic>);
     }
 
     return ActivityInstance(
@@ -311,6 +401,15 @@ class ActivityInstance {
       yesCount: json['yes_count'] as int?,
       noCount: json['no_count'] as int?,
       maybeCount: json['maybe_count'] as int?,
+      isDetached: json['is_detached'] as bool? ?? false,
+      seriesInfo: seriesInfo,
+      createdBy: json['created_by'] as String?,
+      titleOverride: json['title_override'] as String?,
+      locationOverride: json['location_override'] as String?,
+      descriptionOverride: json['description_override'] as String?,
+      startTimeOverride: json['start_time_override'] as String?,
+      endTimeOverride: json['end_time_override'] as String?,
+      dateOverride: json['date_override'] as String?,
     );
   }
 
@@ -319,6 +418,18 @@ class ActivityInstance {
     if (endTime == null) return startTime!;
     return '$startTime - $endTime';
   }
+
+  /// Whether this instance is part of a recurring series
+  bool get isPartOfSeries => seriesInfo?.isPartOfSeries ?? false;
+
+  /// Whether this instance has any overrides from the parent activity
+  bool get hasOverrides =>
+      titleOverride != null ||
+      locationOverride != null ||
+      descriptionOverride != null ||
+      startTimeOverride != null ||
+      endTimeOverride != null ||
+      dateOverride != null;
 }
 
 class ActivityResponseItem {
@@ -349,6 +460,27 @@ class ActivityResponseItem {
       respondedAt: DateTime.parse(json['responded_at'] as String),
       userName: json['user_name'] as String?,
       userAvatarUrl: json['user_avatar_url'] as String?,
+    );
+  }
+}
+
+/// Result of an instance edit or delete operation
+class InstanceOperationResult {
+  final int affectedCount;
+  final List<String> affectedInstanceIds;
+  final String activityId;
+
+  InstanceOperationResult({
+    required this.affectedCount,
+    required this.affectedInstanceIds,
+    required this.activityId,
+  });
+
+  factory InstanceOperationResult.fromJson(Map<String, dynamic> json) {
+    return InstanceOperationResult(
+      affectedCount: (json['updated_count'] ?? json['deleted_count']) as int,
+      affectedInstanceIds: (json['affected_instance_ids'] as List).cast<String>(),
+      activityId: json['activity_id'] as String,
     );
   }
 }

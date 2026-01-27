@@ -25,6 +25,8 @@ class ActivitiesHandler {
     router.get('/instances/<instanceId>', _getInstance);
     router.post('/instances/<instanceId>/respond', _respond);
     router.patch('/instances/<instanceId>/status', _updateInstanceStatus);
+    router.patch('/instances/<instanceId>', _editInstance);
+    router.delete('/instances/<instanceId>', _deleteInstance);
 
     // Activity routes
     router.patch('/<activityId>', _updateActivity);
@@ -332,6 +334,141 @@ class ActivitiesHandler {
 
       return Response.ok(jsonEncode(activity.toJson()));
     } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  /// Check if user can edit/delete an instance (admin OR activity creator)
+  Future<bool> _canManageInstance(String userId, String teamId, String? createdBy) async {
+    final team = await _teamService.getTeamById(teamId, userId);
+    if (team == null) return false;
+
+    // Admin can always manage
+    if (team['user_role'] == 'admin') return true;
+
+    // Creator can manage their own activities
+    return createdBy != null && createdBy == userId;
+  }
+
+  Future<Response> _editInstance(Request request, String instanceId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      // Get instance info for authorization
+      final instanceInfo = await _activityService.getInstanceInfo(instanceId);
+      if (instanceInfo == null) {
+        return Response(404, body: jsonEncode({'error': 'Aktivitet ikke funnet'}));
+      }
+
+      final teamId = instanceInfo['team_id'] as String;
+      final createdBy = instanceInfo['created_by'] as String?;
+
+      // Check authorization
+      if (!await _canManageInstance(userId, teamId, createdBy)) {
+        return Response(403, body: jsonEncode({
+          'error': 'Du har ikke tilgang til å redigere denne aktiviteten'
+        }));
+      }
+
+      final body = await request.readAsString();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      final editScope = data['edit_scope'] as String?;
+      if (editScope == null || !['single', 'this_and_future'].contains(editScope)) {
+        return Response(400, body: jsonEncode({
+          'error': 'Mangler eller ugyldig edit_scope (single | this_and_future)'
+        }));
+      }
+
+      Map<String, dynamic> result;
+
+      if (editScope == 'single') {
+        result = await _activityService.editSingleInstance(
+          instanceId: instanceId,
+          userId: userId,
+          title: data['title'] as String?,
+          location: data['location'] as String?,
+          description: data['description'] as String?,
+          startTime: data['start_time'] as String?,
+          endTime: data['end_time'] as String?,
+          date: data['date'] != null ? DateTime.parse(data['date'] as String) : null,
+        );
+      } else {
+        result = await _activityService.editFutureInstances(
+          instanceId: instanceId,
+          userId: userId,
+          title: data['title'] as String?,
+          location: data['location'] as String?,
+          description: data['description'] as String?,
+          startTime: data['start_time'] as String?,
+          endTime: data['end_time'] as String?,
+        );
+      }
+
+      return Response.ok(jsonEncode(result));
+    } catch (e) {
+      if (e.toString().contains('Cannot')) {
+        return Response(400, body: jsonEncode({'error': e.toString()}));
+      }
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _deleteInstance(Request request, String instanceId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      // Get instance info for authorization
+      final instanceInfo = await _activityService.getInstanceInfo(instanceId);
+      if (instanceInfo == null) {
+        return Response(404, body: jsonEncode({'error': 'Aktivitet ikke funnet'}));
+      }
+
+      final teamId = instanceInfo['team_id'] as String;
+      final createdBy = instanceInfo['created_by'] as String?;
+
+      // Check authorization
+      if (!await _canManageInstance(userId, teamId, createdBy)) {
+        return Response(403, body: jsonEncode({
+          'error': 'Du har ikke tilgang til å slette denne aktiviteten'
+        }));
+      }
+
+      final body = await request.readAsString();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      final deleteScope = data['delete_scope'] as String?;
+      if (deleteScope == null || !['single', 'this_and_future'].contains(deleteScope)) {
+        return Response(400, body: jsonEncode({
+          'error': 'Mangler eller ugyldig delete_scope (single | this_and_future)'
+        }));
+      }
+
+      Map<String, dynamic> result;
+
+      if (deleteScope == 'single') {
+        result = await _activityService.deleteSingleInstance(
+          instanceId: instanceId,
+          userId: userId,
+        );
+      } else {
+        result = await _activityService.deleteFutureInstances(
+          instanceId: instanceId,
+          userId: userId,
+        );
+      }
+
+      return Response.ok(jsonEncode(result));
+    } catch (e) {
+      if (e.toString().contains('Cannot delete past')) {
+        return Response(400, body: jsonEncode({'error': 'Kan ikke slette aktiviteter i fortiden'}));
+      }
       return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
     }
   }

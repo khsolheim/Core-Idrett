@@ -262,7 +262,7 @@ class ApiClient {
     return _handleRequest(() => _dio.patch(path, data: data));
   }
 
-  Future<Response> delete(String path) {
-    return _handleRequest(() => _dio.delete(path));
+  Future<Response> delete(String path, {dynamic data}) {
+    return _handleRequest(() => _dio.delete(path, data: data));
   }
 }

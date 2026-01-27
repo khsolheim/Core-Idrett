@@ -156,3 +156,96 @@ final calendarInstancesProvider = FutureProvider.family<
     to: params.to,
   );
 });
+
+// StateNotifier for editing instances
+class EditInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationResult?>> {
+  final ActivityRepository _repository;
+  final Ref _ref;
+
+  EditInstanceNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+
+  Future<InstanceOperationResult?> editInstance({
+    required String instanceId,
+    required String teamId,
+    required EditScope scope,
+    String? title,
+    String? location,
+    String? description,
+    String? startTime,
+    String? endTime,
+    DateTime? date,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repository.editInstance(
+        instanceId: instanceId,
+        scope: scope,
+        title: title,
+        location: location,
+        description: description,
+        startTime: startTime,
+        endTime: endTime,
+        date: date,
+      );
+      // Invalidate relevant providers to refresh data
+      _ref.invalidate(instanceDetailProvider(instanceId));
+      _ref.invalidate(upcomingInstancesProvider(teamId));
+      _ref.invalidate(teamActivitiesProvider(teamId));
+      // Also invalidate any affected instances
+      for (final affectedId in result.affectedInstanceIds) {
+        _ref.invalidate(instanceDetailProvider(affectedId));
+      }
+      state = AsyncValue.data(result);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  void reset() {
+    state = const AsyncValue.data(null);
+  }
+}
+
+final editInstanceProvider = StateNotifierProvider<EditInstanceNotifier, AsyncValue<InstanceOperationResult?>>((ref) {
+  return EditInstanceNotifier(ref.watch(activityRepositoryProvider), ref);
+});
+
+// StateNotifier for deleting instances
+class DeleteInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationResult?>> {
+  final ActivityRepository _repository;
+  final Ref _ref;
+
+  DeleteInstanceNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+
+  Future<InstanceOperationResult?> deleteInstance({
+    required String instanceId,
+    required String teamId,
+    required EditScope scope,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repository.deleteInstance(
+        instanceId: instanceId,
+        scope: scope,
+      );
+      // Invalidate relevant providers to refresh data
+      _ref.invalidate(upcomingInstancesProvider(teamId));
+      _ref.invalidate(teamActivitiesProvider(teamId));
+      state = AsyncValue.data(result);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  void reset() {
+    state = const AsyncValue.data(null);
+  }
+}
+
+final deleteInstanceProvider = StateNotifierProvider<DeleteInstanceNotifier, AsyncValue<InstanceOperationResult?>>((ref) {
+  return DeleteInstanceNotifier(ref.watch(activityRepositoryProvider), ref);
+});

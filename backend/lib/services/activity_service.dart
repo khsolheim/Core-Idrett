@@ -280,18 +280,44 @@ class ActivityService {
     final noCount = responseList.where((r) => r['response'] == 'no').length;
     final maybeCount = responseList.where((r) => r['response'] == 'maybe').length;
 
+    // Get series info: count total instances and find position
+    final allInstancesInSeries = await _db.client.select(
+      'activity_instances',
+      select: 'id,date',
+      filters: {'activity_id': 'eq.${instance['activity_id']}'},
+      order: 'date.asc',
+    );
+
+    final totalInstances = allInstancesInSeries.length;
+    final instanceNumber = allInstancesInSeries
+            .indexWhere((i) => i['id'] == instance['id']) +
+        1;
+
+    // Use effective values (override if exists, otherwise activity value)
+    final effectiveTitle =
+        instance['title_override'] ?? activity['title'];
+    final effectiveLocation =
+        instance['location_override'] ?? activity['location'];
+    final effectiveDescription =
+        instance['description_override'] ?? activity['description'];
+    final effectiveStartTime =
+        instance['start_time_override'] ?? instance['start_time'];
+    final effectiveEndTime =
+        instance['end_time_override'] ?? instance['end_time'];
+    final effectiveDate = instance['date_override'] ?? instance['date'];
+
     return {
       'id': instance['id'],
       'activity_id': instance['activity_id'],
       'team_id': activity['team_id'],
-      'date': instance['date'],
-      'start_time': instance['start_time'],
-      'end_time': instance['end_time'],
+      'date': effectiveDate,
+      'start_time': effectiveStartTime,
+      'end_time': effectiveEndTime,
       'status': instance['status'],
-      'title': activity['title'],
+      'title': effectiveTitle,
       'type': activity['type'],
-      'location': activity['location'],
-      'description': activity['description'],
+      'location': effectiveLocation,
+      'description': effectiveDescription,
       'response_type': activity['response_type'],
       'response_deadline_hours': activity['response_deadline_hours'],
       'responses': responseList,
@@ -299,6 +325,21 @@ class ActivityService {
       'yes_count': yesCount,
       'no_count': noCount,
       'maybe_count': maybeCount,
+      'is_detached': instance['is_detached'] ?? false,
+      'created_by': activity['created_by'],
+      'series_info': {
+        'activity_id': activity['id'],
+        'total_instances': totalInstances,
+        'instance_number': instanceNumber,
+        'recurrence_type': activity['recurrence_type'],
+      },
+      // Include raw override values for edit form
+      'title_override': instance['title_override'],
+      'location_override': instance['location_override'],
+      'description_override': instance['description_override'],
+      'start_time_override': instance['start_time_override'],
+      'end_time_override': instance['end_time_override'],
+      'date_override': instance['date_override'],
     };
   }
 
@@ -477,22 +518,347 @@ class ActivityService {
       final activity = activityMap[i['activity_id']] ?? {};
       final iId = i['id'] as String;
       final counts = responseCounts[iId] ?? {'yes': 0, 'no': 0, 'maybe': 0};
+      // Use effective values
+      final effectiveTitle = i['title_override'] ?? activity['title'];
+      final effectiveLocation = i['location_override'] ?? activity['location'];
+      final effectiveStartTime = i['start_time_override'] ?? i['start_time'];
+      final effectiveEndTime = i['end_time_override'] ?? i['end_time'];
+      final effectiveDate = i['date_override'] ?? i['date'];
       return {
         'id': iId,
         'activity_id': i['activity_id'],
-        'date': i['date'],
-        'start_time': i['start_time'],
-        'end_time': i['end_time'],
+        'date': effectiveDate,
+        'start_time': effectiveStartTime,
+        'end_time': effectiveEndTime,
         'status': i['status'],
-        'title': activity['title'],
+        'title': effectiveTitle,
         'type': activity['type'],
-        'location': activity['location'],
+        'location': effectiveLocation,
         'response_type': activity['response_type'],
         'user_response': responseMap[iId],
         'yes_count': counts['yes'],
         'no_count': counts['no'],
         'maybe_count': counts['maybe'],
+        'is_detached': i['is_detached'] ?? false,
       };
     }).toList();
+  }
+
+  // ============ SERIES MANAGEMENT ============
+
+  /// Edit a single instance (detaches it from the series)
+  Future<Map<String, dynamic>> editSingleInstance({
+    required String instanceId,
+    required String userId,
+    String? title,
+    String? location,
+    String? description,
+    String? startTime,
+    String? endTime,
+    DateTime? date,
+  }) async {
+    // Get current instance to validate
+    final instances = await _db.client.select(
+      'activity_instances',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    if (instances.isEmpty) {
+      throw Exception('Instance not found');
+    }
+
+    final instance = instances.first;
+
+    // Build update map with overrides
+    final updates = <String, dynamic>{
+      'is_detached': true,
+      'edited_at': DateTime.now().toIso8601String(),
+      'edited_by': userId,
+    };
+
+    if (title != null) updates['title_override'] = title;
+    if (location != null) updates['location_override'] = location;
+    if (description != null) updates['description_override'] = description;
+    if (startTime != null) updates['start_time_override'] = startTime;
+    if (endTime != null) updates['end_time_override'] = endTime;
+    if (date != null) {
+      updates['date_override'] = date.toIso8601String().split('T').first;
+    }
+
+    await _db.client.update(
+      'activity_instances',
+      updates,
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    // Reset responses for this instance
+    await resetResponses([instanceId]);
+
+    return {
+      'updated_count': 1,
+      'affected_instance_ids': [instanceId],
+      'activity_id': instance['activity_id'],
+    };
+  }
+
+  /// Edit this instance and all future instances in the series
+  Future<Map<String, dynamic>> editFutureInstances({
+    required String instanceId,
+    required String userId,
+    String? title,
+    String? location,
+    String? description,
+    String? startTime,
+    String? endTime,
+  }) async {
+    // Get the instance to find the series and date
+    final instances = await _db.client.select(
+      'activity_instances',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    if (instances.isEmpty) {
+      throw Exception('Instance not found');
+    }
+
+    final instance = instances.first;
+    final activityId = instance['activity_id'] as String;
+    final instanceDate = instance['date'] as String;
+
+    // Update template fields on the parent activity if provided
+    if (title != null || location != null || description != null) {
+      final activityUpdates = <String, dynamic>{};
+      if (title != null) activityUpdates['title'] = title;
+      if (location != null) activityUpdates['location'] = location;
+      if (description != null) activityUpdates['description'] = description;
+
+      await _db.client.update(
+        'activities',
+        activityUpdates,
+        filters: {'id': 'eq.$activityId'},
+      );
+    }
+
+    // Find all future instances (from this date onwards) that are not detached
+    final futureInstances = await _db.client.select(
+      'activity_instances',
+      select: 'id',
+      filters: {
+        'activity_id': 'eq.$activityId',
+        'date': 'gte.$instanceDate',
+        'is_detached': 'eq.false',
+      },
+    );
+
+    final affectedIds = futureInstances.map((i) => i['id'] as String).toList();
+
+    if (affectedIds.isEmpty) {
+      return {
+        'updated_count': 0,
+        'affected_instance_ids': <String>[],
+        'activity_id': activityId,
+      };
+    }
+
+    // Update time fields on all affected instances
+    if (startTime != null || endTime != null) {
+      final timeUpdates = <String, dynamic>{
+        'edited_at': DateTime.now().toIso8601String(),
+        'edited_by': userId,
+      };
+      if (startTime != null) timeUpdates['start_time'] = startTime;
+      if (endTime != null) timeUpdates['end_time'] = endTime;
+
+      // Clear any overrides since we're setting the base values
+      timeUpdates['start_time_override'] = null;
+      timeUpdates['end_time_override'] = null;
+
+      await _db.client.update(
+        'activity_instances',
+        timeUpdates,
+        filters: {'id': 'in.(${affectedIds.join(',')})'},
+      );
+    }
+
+    // Also clear title/location/description overrides on non-detached instances
+    // since the parent activity was updated
+    if (title != null || location != null || description != null) {
+      final clearOverrides = <String, dynamic>{};
+      if (title != null) clearOverrides['title_override'] = null;
+      if (location != null) clearOverrides['location_override'] = null;
+      if (description != null) clearOverrides['description_override'] = null;
+
+      await _db.client.update(
+        'activity_instances',
+        clearOverrides,
+        filters: {'id': 'in.(${affectedIds.join(',')})'},
+      );
+    }
+
+    // Reset responses for all affected instances
+    await resetResponses(affectedIds);
+
+    return {
+      'updated_count': affectedIds.length,
+      'affected_instance_ids': affectedIds,
+      'activity_id': activityId,
+    };
+  }
+
+  /// Delete a single instance
+  Future<Map<String, dynamic>> deleteSingleInstance({
+    required String instanceId,
+    required String userId,
+  }) async {
+    // Get instance to validate and get activity_id
+    final instances = await _db.client.select(
+      'activity_instances',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    if (instances.isEmpty) {
+      throw Exception('Instance not found');
+    }
+
+    final instance = instances.first;
+    final instanceDate = DateTime.parse(instance['date'] as String);
+    final today = DateTime.now();
+
+    // Verify date is not in the past
+    if (instanceDate.isBefore(DateTime(today.year, today.month, today.day))) {
+      throw Exception('Cannot delete past instances');
+    }
+
+    final activityId = instance['activity_id'] as String;
+
+    // Delete the instance (CASCADE will delete responses)
+    await _db.client.delete(
+      'activity_instances',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    return {
+      'deleted_count': 1,
+      'affected_instance_ids': [instanceId],
+      'activity_id': activityId,
+    };
+  }
+
+  /// Delete this instance and all future instances in the series
+  Future<Map<String, dynamic>> deleteFutureInstances({
+    required String instanceId,
+    required String userId,
+  }) async {
+    // Get the instance to find the series and date
+    final instances = await _db.client.select(
+      'activity_instances',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    if (instances.isEmpty) {
+      throw Exception('Instance not found');
+    }
+
+    final instance = instances.first;
+    final activityId = instance['activity_id'] as String;
+    final instanceDate = instance['date'] as String;
+    final today = DateTime.now().toIso8601String().split('T').first;
+
+    // Verify the start date is not in the past
+    if (instanceDate.compareTo(today) < 0) {
+      throw Exception('Cannot delete past instances');
+    }
+
+    // Find all future instances
+    final futureInstances = await _db.client.select(
+      'activity_instances',
+      select: 'id,date',
+      filters: {
+        'activity_id': 'eq.$activityId',
+        'date': 'gte.$instanceDate',
+      },
+    );
+
+    // Verify none are in the past
+    for (final i in futureInstances) {
+      final date = i['date'] as String;
+      if (date.compareTo(today) < 0) {
+        throw Exception('Cannot delete past instances');
+      }
+    }
+
+    final affectedIds = futureInstances.map((i) => i['id'] as String).toList();
+
+    if (affectedIds.isEmpty) {
+      return {
+        'deleted_count': 0,
+        'affected_instance_ids': <String>[],
+        'activity_id': activityId,
+      };
+    }
+
+    // Delete all future instances (CASCADE will delete responses)
+    await _db.client.delete(
+      'activity_instances',
+      filters: {'id': 'in.(${affectedIds.join(',')})'},
+    );
+
+    return {
+      'deleted_count': affectedIds.length,
+      'affected_instance_ids': affectedIds,
+      'activity_id': activityId,
+    };
+  }
+
+  /// Reset responses for given instance IDs
+  Future<void> resetResponses(List<String> instanceIds) async {
+    if (instanceIds.isEmpty) return;
+
+    await _db.client.update(
+      'activity_responses',
+      {
+        'response': null,
+        'comment': null,
+        'responded_at': DateTime.now().toIso8601String(),
+      },
+      filters: {'instance_id': 'in.(${instanceIds.join(',')})'},
+    );
+  }
+
+  /// Get instance info for authorization checks
+  Future<Map<String, dynamic>?> getInstanceInfo(String instanceId) async {
+    final instances = await _db.client.select(
+      'activity_instances',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    if (instances.isEmpty) return null;
+    final instance = instances.first;
+
+    final activities = await _db.client.select(
+      'activities',
+      filters: {'id': 'eq.${instance['activity_id']}'},
+    );
+
+    if (activities.isEmpty) return null;
+    final activity = activities.first;
+
+    return {
+      'instance_id': instanceId,
+      'activity_id': activity['id'],
+      'team_id': activity['team_id'],
+      'created_by': activity['created_by'],
+      'date': instance['date'],
+    };
+  }
+
+  /// Get team members to notify about activity changes
+  Future<List<String>> getTeamMemberIds(String teamId) async {
+    final members = await _db.client.select(
+      'team_members',
+      select: 'user_id',
+      filters: {'team_id': 'eq.$teamId'},
+    );
+    return members.map((m) => m['user_id'] as String).toList();
   }
 }

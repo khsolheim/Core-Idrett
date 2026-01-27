@@ -11,7 +11,9 @@ import '../features/teams/presentation/edit_team_screen.dart';
 import '../features/activities/presentation/activities_screen.dart';
 import '../features/activities/presentation/activity_detail_screen.dart';
 import '../features/activities/presentation/create_activity_screen.dart';
+import '../features/activities/presentation/edit_instance_screen.dart';
 import '../features/activities/presentation/calendar_screen.dart';
+import '../data/models/activity.dart';
 import '../features/mini_activities/presentation/templates_screen.dart';
 import '../features/mini_activities/presentation/mini_activity_detail_screen.dart';
 import '../features/statistics/presentation/leaderboard_screen.dart';
@@ -233,6 +235,21 @@ final routerProvider = Provider<GoRouter>((ref) {
                       );
                     },
                     routes: [
+                      GoRoute(
+                        path: 'edit',
+                        name: 'edit-instance',
+                        builder: (context, state) {
+                          final teamId = state.pathParameters['teamId']!;
+                          final instanceId = state.pathParameters['instanceId']!;
+                          final extra = state.extra as Map<String, dynamic>?;
+                          final scope = extra?['scope'] as EditScope? ?? EditScope.single;
+                          return EditInstanceScreen(
+                            teamId: teamId,
+                            instanceId: instanceId,
+                            scope: scope,
+                          );
+                        },
+                      ),
                       GoRoute(
                         path: 'mini/:miniActivityId',
                         name: 'mini-activity-detail',
