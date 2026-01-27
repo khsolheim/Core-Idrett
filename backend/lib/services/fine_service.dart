@@ -605,7 +605,7 @@ class FineService {
       if (summaries.containsKey(offenderId)) {
         summaries[offenderId]!.fineCount++;
         // Only count approved/appealed fines as owed (not pending or rejected)
-        if (status == 'approved' || status == 'appealed') {
+        if (status == 'approved' || status == 'appealed' || status == 'paid') {
           summaries[offenderId]!.totalFines += amount;
           summaries[offenderId]!.totalPaid += paymentsByFine[fineId] ?? 0;
         }
