@@ -93,6 +93,9 @@ class Team {
   /// Whether the current user can manage fines
   final bool userIsFineBoss;
 
+  /// Whether the current user is a coach (can manage activities)
+  final bool userIsCoach;
+
   /// Current user's trainer type (if any)
   final TrainerType? userTrainerType;
 
@@ -105,6 +108,7 @@ class Team {
     this.userRole,
     this.userIsAdmin = false,
     this.userIsFineBoss = false,
+    this.userIsCoach = false,
     this.userTrainerType,
   });
 
@@ -129,6 +133,7 @@ class Team {
           (json['user_role'] == 'admin'),
       userIsFineBoss: json['user_is_fine_boss'] as bool? ??
           (json['user_role'] == 'fine_boss' || json['user_role'] == 'admin'),
+      userIsCoach: json['user_is_coach'] as bool? ?? false,
       userTrainerType: trainerType,
     );
   }
@@ -148,6 +153,9 @@ class Team {
 
   /// Check if current user can manage fines
   bool get canManageFines => userIsAdmin || userIsFineBoss;
+
+  /// Check if current user can manage activities (admin or coach)
+  bool get canManageActivities => userIsAdmin || userIsCoach;
 
   /// Check if current user is a trainer
   bool get isTrainer => userTrainerType != null;
@@ -170,6 +178,9 @@ class TeamMember {
   /// Whether this member can manage fines (Botesjef)
   final bool isFineBoss;
 
+  /// Whether this member has coach privileges (can manage activities)
+  final bool isCoach;
+
   /// Trainer type (if member is a trainer)
   final TrainerType? trainerType;
 
@@ -188,6 +199,7 @@ class TeamMember {
     required this.role,
     this.isAdmin = false,
     this.isFineBoss = false,
+    this.isCoach = false,
     this.trainerType,
     this.isActive = true,
     required this.joinedAt,
@@ -213,6 +225,7 @@ class TeamMember {
     final legacyRole = json['role'] as String? ?? 'player';
     final isAdmin = json['is_admin'] as bool? ?? (legacyRole == 'admin');
     final isFineBoss = json['is_fine_boss'] as bool? ?? (legacyRole == 'fine_boss');
+    final isCoach = json['is_coach'] as bool? ?? false;
 
     return TeamMember(
       id: json['id'] as String,
@@ -226,6 +239,7 @@ class TeamMember {
       role: TeamRole.fromString(legacyRole),
       isAdmin: isAdmin,
       isFineBoss: isFineBoss,
+      isCoach: isCoach,
       trainerType: trainerType,
       isActive: json['is_active'] as bool? ?? true,
       joinedAt: DateTime.parse(json['joined_at'] as String),
@@ -243,6 +257,7 @@ class TeamMember {
       'role': role.toApiString(),
       'is_admin': isAdmin,
       'is_fine_boss': isFineBoss,
+      'is_coach': isCoach,
       'trainer_type': trainerType?.toJson(),
       'is_active': isActive,
       'joined_at': joinedAt.toIso8601String(),
@@ -255,6 +270,9 @@ class TeamMember {
   /// Check if member can manage fines
   bool get canManageFines => isAdmin || isFineBoss;
 
+  /// Check if member can manage activities (admin or coach)
+  bool get canManageActivities => isAdmin || isCoach;
+
   /// Check if member is a trainer (any type)
   bool get isTrainer => trainerType != null;
 
@@ -262,6 +280,7 @@ class TeamMember {
   String get roleDisplayName {
     final roles = <String>[];
     if (isAdmin) roles.add('Administrator');
+    if (isCoach && !isAdmin) roles.add('Trener');
     if (isFineBoss && !isAdmin) roles.add('Botesjef');
     if (trainerType != null) roles.add(trainerType!.name);
     if (roles.isEmpty) roles.add('Medlem');
@@ -272,6 +291,7 @@ class TeamMember {
   TeamMember copyWith({
     bool? isAdmin,
     bool? isFineBoss,
+    bool? isCoach,
     TrainerType? trainerType,
     bool clearTrainerType = false,
     bool? isActive,
@@ -286,6 +306,7 @@ class TeamMember {
       role: role,
       isAdmin: isAdmin ?? this.isAdmin,
       isFineBoss: isFineBoss ?? this.isFineBoss,
+      isCoach: isCoach ?? this.isCoach,
       trainerType: clearTrainerType ? null : (trainerType ?? this.trainerType),
       isActive: isActive ?? this.isActive,
       joinedAt: joinedAt,
@@ -299,6 +320,8 @@ class TeamSettings {
   final int winPoints;
   final int drawPoints;
   final int lossPoints;
+  final double appealFee;
+  final double gameDayMultiplier;
 
   TeamSettings({
     required this.teamId,
@@ -306,6 +329,8 @@ class TeamSettings {
     required this.winPoints,
     required this.drawPoints,
     required this.lossPoints,
+    this.appealFee = 0,
+    this.gameDayMultiplier = 1.0,
   });
 
   factory TeamSettings.fromJson(Map<String, dynamic> json) {
@@ -315,6 +340,8 @@ class TeamSettings {
       winPoints: json['win_points'] as int? ?? 3,
       drawPoints: json['draw_points'] as int? ?? 1,
       lossPoints: json['loss_points'] as int? ?? 0,
+      appealFee: (json['appeal_fee'] as num?)?.toDouble() ?? 0,
+      gameDayMultiplier: (json['game_day_multiplier'] as num?)?.toDouble() ?? 1.0,
     );
   }
 
@@ -325,6 +352,8 @@ class TeamSettings {
       'win_points': winPoints,
       'draw_points': drawPoints,
       'loss_points': lossPoints,
+      'appeal_fee': appealFee,
+      'game_day_multiplier': gameDayMultiplier,
     };
   }
 
@@ -333,6 +362,8 @@ class TeamSettings {
     int? winPoints,
     int? drawPoints,
     int? lossPoints,
+    double? appealFee,
+    double? gameDayMultiplier,
   }) {
     return TeamSettings(
       teamId: teamId,
@@ -340,6 +371,8 @@ class TeamSettings {
       winPoints: winPoints ?? this.winPoints,
       drawPoints: drawPoints ?? this.drawPoints,
       lossPoints: lossPoints ?? this.lossPoints,
+      appealFee: appealFee ?? this.appealFee,
+      gameDayMultiplier: gameDayMultiplier ?? this.gameDayMultiplier,
     );
   }
 }

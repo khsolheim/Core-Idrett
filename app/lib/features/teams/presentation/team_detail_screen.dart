@@ -183,14 +183,6 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Aktivitetsmaler'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/teams/${widget.teamId}/templates');
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.event_available),
               title: const Text('Oppmøte'),
               onTap: () {
@@ -198,7 +190,17 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                 context.push('/teams/${widget.teamId}/attendance');
               },
             ),
-            if (team.userRole == TeamRole.admin) ...[
+            if (team.userIsAdmin) ...[
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.sports_esports),
+                title: const Text('Mini-aktivitet maler'),
+                subtitle: const Text('Maler for raske konkurranser'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/teams/${widget.teamId}/templates');
+                },
+              ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.edit),
@@ -374,6 +376,7 @@ class _DashboardBody extends ConsumerWidget {
               members: members,
               teamId: teamId,
               currentUserRole: team.userRole,
+              isAdmin: isAdmin,
             ),
           ),
         ],
@@ -382,22 +385,24 @@ class _DashboardBody extends ConsumerWidget {
   }
 }
 
-class _CollapsibleMembersSection extends StatefulWidget {
+class _CollapsibleMembersSection extends ConsumerStatefulWidget {
   final List<TeamMember> members;
   final String teamId;
   final TeamRole? currentUserRole;
+  final bool isAdmin;
 
   const _CollapsibleMembersSection({
     required this.members,
     required this.teamId,
     required this.currentUserRole,
+    required this.isAdmin,
   });
 
   @override
-  State<_CollapsibleMembersSection> createState() => _CollapsibleMembersSectionState();
+  ConsumerState<_CollapsibleMembersSection> createState() => _CollapsibleMembersSectionState();
 }
 
-class _CollapsibleMembersSectionState extends State<_CollapsibleMembersSection> {
+class _CollapsibleMembersSectionState extends ConsumerState<_CollapsibleMembersSection> {
   bool _expanded = false;
 
   @override
@@ -447,13 +452,21 @@ class _CollapsibleMembersSectionState extends State<_CollapsibleMembersSection> 
                 ),
                 title: Text(member.userName),
                 subtitle: Text(
-                  member.role.displayName,
+                  member.roleDisplayName,
                   style: theme.textTheme.bodySmall,
                 ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: theme.colorScheme.outline,
-                ),
+                trailing: widget.isAdmin
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.more_vert,
+                          color: theme.colorScheme.outline,
+                        ),
+                        onPressed: () => _showMemberOptions(context, member),
+                      )
+                    : Icon(
+                        Icons.chevron_right,
+                        color: theme.colorScheme.outline,
+                      ),
                 onTap: () => context.push('/teams/${widget.teamId}/player/${member.userId}'),
               )),
           if (!_expanded && widget.members.length > 3)
@@ -462,6 +475,163 @@ class _CollapsibleMembersSectionState extends State<_CollapsibleMembersSection> 
               child: Text('Vis alle ${widget.members.length} medlemmer'),
             ),
         ],
+      ),
+    );
+  }
+
+  void _showMemberOptions(BuildContext context, TeamMember member) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => _MemberOptionsSheet(
+        member: member,
+        teamId: widget.teamId,
+      ),
+    );
+  }
+}
+
+class _MemberOptionsSheet extends ConsumerStatefulWidget {
+  final TeamMember member;
+  final String teamId;
+
+  const _MemberOptionsSheet({
+    required this.member,
+    required this.teamId,
+  });
+
+  @override
+  ConsumerState<_MemberOptionsSheet> createState() => _MemberOptionsSheetState();
+}
+
+class _MemberOptionsSheetState extends ConsumerState<_MemberOptionsSheet> {
+  late bool _isAdmin;
+  late bool _isCoach;
+  late bool _isFineBoss;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isAdmin = widget.member.isAdmin;
+    _isCoach = widget.member.isCoach;
+    _isFineBoss = widget.member.isFineBoss;
+  }
+
+  Future<void> _saveChanges() async {
+    // Only save if something changed
+    if (_isAdmin == widget.member.isAdmin &&
+        _isCoach == widget.member.isCoach &&
+        _isFineBoss == widget.member.isFineBoss) {
+      Navigator.pop(context);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final success = await ref.read(teamNotifierProvider.notifier).updateMemberPermissions(
+          teamId: widget.teamId,
+          memberId: widget.member.id,
+          isAdmin: _isAdmin != widget.member.isAdmin ? _isAdmin : null,
+          isCoach: _isCoach != widget.member.isCoach ? _isCoach : null,
+          isFineBoss: _isFineBoss != widget.member.isFineBoss ? _isFineBoss : null,
+        );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      Navigator.pop(context);
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tilganger oppdatert')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kunne ikke oppdatere tilganger')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundImage: widget.member.userAvatarUrl != null
+                      ? NetworkImage(widget.member.userAvatarUrl!)
+                      : null,
+                  child: widget.member.userAvatarUrl == null
+                      ? Text(widget.member.userName.substring(0, 1).toUpperCase())
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.member.userName,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      Text(
+                        'Administrer tilganger',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SwitchListTile(
+              value: _isAdmin,
+              onChanged: (value) => setState(() => _isAdmin = value),
+              title: const Text('Administrator'),
+              subtitle: const Text('Full tilgang til alle funksjoner'),
+              secondary: const Icon(Icons.admin_panel_settings),
+            ),
+            SwitchListTile(
+              value: _isCoach,
+              onChanged: (value) => setState(() => _isCoach = value),
+              title: const Text('Trener'),
+              subtitle: const Text('Kan opprette og administrere aktiviteter'),
+              secondary: const Icon(Icons.sports),
+            ),
+            SwitchListTile(
+              value: _isFineBoss,
+              onChanged: (value) => setState(() => _isFineBoss = value),
+              title: const Text('Botesjef'),
+              subtitle: const Text('Kan administrere bøter'),
+              secondary: const Icon(Icons.account_balance_wallet),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isLoading ? null : _saveChanges,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Lagre endringer'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

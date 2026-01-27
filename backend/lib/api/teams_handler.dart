@@ -272,6 +272,7 @@ class TeamsHandler {
 
       final isAdmin = data['is_admin'] as bool?;
       final isFineBoss = data['is_fine_boss'] as bool?;
+      final isCoach = data['is_coach'] as bool?;
       final trainerTypeId = data['trainer_type_id'] as String?;
       final clearTrainerType = data.containsKey('trainer_type_id') && trainerTypeId == null;
 
@@ -279,6 +280,7 @@ class TeamsHandler {
         memberId: memberId,
         isAdmin: isAdmin,
         isFineBoss: isFineBoss,
+        isCoach: isCoach,
         trainerTypeId: trainerTypeId,
         clearTrainerType: clearTrainerType,
       );
@@ -460,6 +462,8 @@ class TeamsHandler {
         winPoints: data['win_points'] as int?,
         drawPoints: data['draw_points'] as int?,
         lossPoints: data['loss_points'] as int?,
+        appealFee: data['appeal_fee'] != null ? (data['appeal_fee'] as num).toDouble() : null,
+        gameDayMultiplier: data['game_day_multiplier'] != null ? (data['game_day_multiplier'] as num).toDouble() : null,
       );
 
       return Response.ok(jsonEncode(settings));

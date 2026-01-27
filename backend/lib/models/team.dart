@@ -85,6 +85,9 @@ class TeamMember {
   /// Whether this member can manage fines (Botesjef)
   final bool isFineBoss;
 
+  /// Whether this member has coach privileges (can manage activities)
+  final bool isCoach;
+
   /// Optional trainer type ID (if member is a trainer)
   final String? trainerTypeId;
 
@@ -103,6 +106,7 @@ class TeamMember {
     required this.role,
     required this.isAdmin,
     required this.isFineBoss,
+    required this.isCoach,
     this.trainerTypeId,
     this.trainerTypeName,
     required this.isActive,
@@ -117,6 +121,7 @@ class TeamMember {
       role: row['role'] as String? ?? 'player',
       isAdmin: row['is_admin'] as bool? ?? false,
       isFineBoss: row['is_fine_boss'] as bool? ?? false,
+      isCoach: row['is_coach'] as bool? ?? false,
       trainerTypeId: row['trainer_type_id'] as String?,
       trainerTypeName: row['trainer_type_name'] as String?,
       isActive: row['is_active'] as bool? ?? true,
@@ -132,6 +137,7 @@ class TeamMember {
       'role': role,
       'is_admin': isAdmin,
       'is_fine_boss': isFineBoss,
+      'is_coach': isCoach,
       'trainer_type_id': trainerTypeId,
       'trainer_type_name': trainerTypeName,
       'is_active': isActive,
@@ -155,4 +161,7 @@ class TeamMember {
 
   /// Check if member is a trainer (any type)
   bool get isTrainer => trainerTypeId != null;
+
+  /// Check if member can manage activities (admin or coach)
+  bool get canManageActivities => isAdmin || isCoach;
 }

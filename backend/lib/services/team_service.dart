@@ -28,7 +28,7 @@ class TeamService {
     // Get team memberships for user (only active)
     final memberships = await _db.client.select(
       'team_members',
-      select: 'team_id,role,is_admin,is_fine_boss,trainer_type_id,is_active',
+      select: 'team_id,role,is_admin,is_fine_boss,is_coach,trainer_type_id,is_active',
       filters: {
         'user_id': 'eq.$userId',
         'is_active': 'eq.true',
@@ -86,6 +86,7 @@ class TeamService {
         // New fields
         'user_is_admin': membership['is_admin'] ?? false,
         'user_is_fine_boss': membership['is_fine_boss'] ?? false,
+        'user_is_coach': membership['is_coach'] ?? false,
         'user_trainer_type': trainerType,
       };
     }).toList();
@@ -154,7 +155,7 @@ class TeamService {
     // Check if user is active member
     final membership = await _db.client.select(
       'team_members',
-      select: 'role,is_admin,is_fine_boss,trainer_type_id,is_active',
+      select: 'role,is_admin,is_fine_boss,is_coach,trainer_type_id,is_active',
       filters: {
         'team_id': 'eq.$teamId',
         'user_id': 'eq.$userId',
@@ -199,6 +200,7 @@ class TeamService {
       // New fields
       'user_is_admin': memberData['is_admin'] ?? false,
       'user_is_fine_boss': memberData['is_fine_boss'] ?? false,
+      'user_is_coach': memberData['is_coach'] ?? false,
       'user_trainer_type': trainerType,
     };
   }
@@ -258,6 +260,7 @@ class TeamService {
         'role': m['role'] ?? 'player',
         'is_admin': m['is_admin'] ?? false,
         'is_fine_boss': m['is_fine_boss'] ?? false,
+        'is_coach': m['is_coach'] ?? false,
         'trainer_type_id': trainerTypeId,
         'trainer_type_name': trainerType?['name'],
         'trainer_type': trainerType,
@@ -373,6 +376,7 @@ class TeamService {
     required String memberId,
     bool? isAdmin,
     bool? isFineBoss,
+    bool? isCoach,
     String? trainerTypeId,
     bool clearTrainerType = false,
   }) async {
@@ -400,6 +404,10 @@ class TeamService {
           updates['role'] = 'fine_boss';
         }
       }
+    }
+
+    if (isCoach != null) {
+      updates['is_coach'] = isCoach;
     }
 
     if (clearTrainerType) {
@@ -499,10 +507,17 @@ class TeamService {
         'win_points': 3,
         'draw_points': 1,
         'loss_points': 0,
+        'appeal_fee': 0.0,
+        'game_day_multiplier': 1.0,
       };
     }
 
-    return result.first;
+    // Ensure appeal_fee and game_day_multiplier have default values
+    final settings = result.first;
+    settings['appeal_fee'] ??= 0.0;
+    settings['game_day_multiplier'] ??= 1.0;
+
+    return settings;
   }
 
   Future<Map<String, dynamic>> updateTeamSettings({
@@ -511,6 +526,8 @@ class TeamService {
     int? winPoints,
     int? drawPoints,
     int? lossPoints,
+    double? appealFee,
+    double? gameDayMultiplier,
   }) async {
     // Check if settings exist
     final existing = await _db.client.select(
@@ -523,6 +540,8 @@ class TeamService {
     if (winPoints != null) settings['win_points'] = winPoints;
     if (drawPoints != null) settings['draw_points'] = drawPoints;
     if (lossPoints != null) settings['loss_points'] = lossPoints;
+    if (appealFee != null) settings['appeal_fee'] = appealFee;
+    if (gameDayMultiplier != null) settings['game_day_multiplier'] = gameDayMultiplier;
 
     if (existing.isEmpty) {
       // Insert new settings
@@ -550,36 +569,42 @@ class TeamService {
   // ============ Dashboard ============
 
   Future<Map<String, dynamic>> getDashboardData(String teamId, String userId) async {
-    final now = DateTime.now().toIso8601String();
-
     // Get next upcoming activity
     Map<String, dynamic>? nextActivity;
     try {
-      final activities = await _db.client.select(
+      // Get today's date in YYYY-MM-DD format for comparison
+      final today = DateTime.now().toIso8601String().split('T').first;
+
+      // Query activity_instances with join to activities for team filtering
+      final instances = await _db.client.select(
         'activity_instances',
+        select: '*,activities!inner(team_id,title,type,location,description)',
         filters: {
-          'team_id': 'eq.$teamId',
-          'start_time': 'gte.$now',
+          'activities.team_id': 'eq.$teamId',
+          'date': 'gte.$today',
+          'status': 'eq.scheduled',
         },
-        order: 'start_time.asc',
+        order: 'date.asc,start_time.asc',
         limit: 1,
       );
 
-      if (activities.isNotEmpty) {
-        final activity = activities.first;
-        // Get template name for title
-        if (activity['template_id'] != null) {
-          final templates = await _db.client.select(
-            'activity_templates',
-            select: 'name,type',
-            filters: {'id': 'eq.${activity['template_id']}'},
-          );
-          if (templates.isNotEmpty) {
-            activity['title'] = activity['title'] ?? templates.first['name'];
-            activity['type'] = activity['type'] ?? templates.first['type'];
-          }
-        }
-        nextActivity = activity;
+      if (instances.isNotEmpty) {
+        final instance = instances.first;
+        final activity = instance['activities'] as Map<String, dynamic>?;
+
+        // Build the response with activity details
+        nextActivity = {
+          'id': instance['id'],
+          'activity_id': instance['activity_id'],
+          'date': instance['date'],
+          'start_time': instance['start_time'],
+          'end_time': instance['end_time'],
+          'status': instance['status'],
+          'title': instance['title_override'] ?? activity?['title'],
+          'type': activity?['type'],
+          'location': instance['location_override'] ?? activity?['location'],
+          'description': instance['description_override'] ?? activity?['description'],
+        };
       }
     } catch (e) {
       // Ignore errors, return null for next activity

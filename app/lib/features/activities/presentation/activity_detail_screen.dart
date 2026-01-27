@@ -9,6 +9,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/activity_provider.dart';
 import 'widgets/series_action_dialog.dart';
+import 'widgets/mini_activities_section.dart';
 
 class ActivityDetailScreen extends ConsumerWidget {
   final String teamId;
@@ -45,6 +46,8 @@ class ActivityDetailScreen extends ConsumerWidget {
         data: (instance) => _ActivityDetailContent(
           instance: instance,
           teamId: teamId,
+          team: teamAsync.valueOrNull,
+          user: userAsync.valueOrNull,
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -191,10 +194,14 @@ class ActivityDetailScreen extends ConsumerWidget {
 class _ActivityDetailContent extends ConsumerStatefulWidget {
   final ActivityInstance instance;
   final String teamId;
+  final Team? team;
+  final User? user;
 
   const _ActivityDetailContent({
     required this.instance,
     required this.teamId,
+    this.team,
+    this.user,
   });
 
   @override
@@ -366,10 +373,30 @@ class _ActivityDetailContentState extends ConsumerState<_ActivityDetailContent> 
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Mini-activities section
+            MiniActivitiesSection(
+              instanceId: instance.id,
+              teamId: widget.teamId,
+              canCreate: _canManageMiniActivities(widget.team, widget.user, instance),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  /// Determine if user can create/manage mini-activities
+  bool _canManageMiniActivities(Team? team, User? user, ActivityInstance instance) {
+    if (team == null || user == null) return false;
+    // Admin can always manage
+    if (team.userIsAdmin) return true;
+    // Coach can manage
+    if (team.userIsCoach) return true;
+    // Creator of the activity can manage
+    if (instance.createdBy == user.id) return true;
+    return false;
   }
 }
 

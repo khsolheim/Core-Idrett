@@ -14,7 +14,7 @@ class TemplatesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Aktivitetsmaler'),
+        title: const Text('Mini-aktivitet maler'),
       ),
       body: templatesAsync.when(
         data: (templates) {

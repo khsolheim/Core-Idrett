@@ -84,6 +84,7 @@ class TeamRepository {
     required String memberId,
     bool? isAdmin,
     bool? isFineBoss,
+    bool? isCoach,
     String? trainerTypeId,
     bool clearTrainerType = false,
   }) async {
@@ -92,6 +93,7 @@ class TeamRepository {
       data: {
         if (isAdmin != null) 'is_admin': isAdmin,
         if (isFineBoss != null) 'is_fine_boss': isFineBoss,
+        if (isCoach != null) 'is_coach': isCoach,
         if (clearTrainerType)
           'trainer_type_id': null
         else if (trainerTypeId != null)
@@ -151,6 +153,8 @@ class TeamRepository {
     int? winPoints,
     int? drawPoints,
     int? lossPoints,
+    double? appealFee,
+    double? gameDayMultiplier,
   }) async {
     final response = await _client.patch(
       '/teams/$teamId/settings',
@@ -159,6 +163,8 @@ class TeamRepository {
         if (winPoints != null) 'win_points': winPoints,
         if (drawPoints != null) 'draw_points': drawPoints,
         if (lossPoints != null) 'loss_points': lossPoints,
+        if (appealFee != null) 'appeal_fee': appealFee,
+        if (gameDayMultiplier != null) 'game_day_multiplier': gameDayMultiplier,
       },
     );
     return TeamSettings.fromJson(response.data as Map<String, dynamic>);

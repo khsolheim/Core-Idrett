@@ -102,6 +102,7 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
     required String memberId,
     bool? isAdmin,
     bool? isFineBoss,
+    bool? isCoach,
     String? trainerTypeId,
     bool clearTrainerType = false,
   }) async {
@@ -111,6 +112,7 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
         memberId: memberId,
         isAdmin: isAdmin,
         isFineBoss: isFineBoss,
+        isCoach: isCoach,
         trainerTypeId: trainerTypeId,
         clearTrainerType: clearTrainerType,
       );
@@ -206,6 +208,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
     int? winPoints,
     int? drawPoints,
     int? lossPoints,
+    double? appealFee,
+    double? gameDayMultiplier,
   }) async {
     try {
       final settings = await _repo.updateTeamSettings(
@@ -214,6 +218,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
         winPoints: winPoints,
         drawPoints: drawPoints,
         lossPoints: lossPoints,
+        appealFee: appealFee,
+        gameDayMultiplier: gameDayMultiplier,
       );
       _ref.invalidate(teamSettingsProvider(teamId));
       return settings;
