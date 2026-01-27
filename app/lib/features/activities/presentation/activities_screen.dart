@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/activity.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../teams/providers/team_provider.dart';
 import '../providers/activity_provider.dart';
+import 'widgets/series_action_dialog.dart';
 
 class ActivitiesScreen extends ConsumerWidget {
   final String teamId;
@@ -110,6 +113,18 @@ class _ActivityInstanceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('EEEE d. MMMM', 'nb_NO');
     final theme = Theme.of(context);
+    final teamAsync = ref.watch(teamDetailProvider(teamId));
+    final userAsync = ref.watch(authStateProvider);
+
+    // Check if user can manage this activity
+    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    final userId = userAsync.valueOrNull?.id;
+    final isCreator = userId != null && instance.createdBy == userId;
+    final canManage = isAdmin || isCreator;
+
+    // Don't show menu for cancelled or past activities
+    final isPast = instance.date.isBefore(DateTime.now().subtract(const Duration(days: 1)));
+    final showMenu = canManage && instance.status != InstanceStatus.cancelled && !isPast;
 
     IconData typeIcon;
     switch (instance.type) {
@@ -191,7 +206,12 @@ class _ActivityInstanceCard extends ConsumerWidget {
                     ),
                   ),
                   if (responseIcon != null)
-                    Icon(responseIcon, color: responseColor, size: 28),
+                    Padding(
+                      padding: EdgeInsets.only(right: showMenu ? 0 : 0),
+                      child: Icon(responseIcon, color: responseColor, size: 28),
+                    ),
+                  if (showMenu)
+                    _buildMenuButton(context, ref),
                 ],
               ),
               if (instance.startTime != null || instance.location != null) ...[
@@ -259,6 +279,108 @@ class _ActivityInstanceCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildMenuButton(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert),
+      onSelected: (action) => _handleMenuAction(context, ref, action),
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'edit',
+          child: ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Rediger'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: Icon(Icons.delete),
+            title: Text('Slett'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleMenuAction(
+    BuildContext context,
+    WidgetRef ref,
+    String action,
+  ) async {
+    final isPartOfSeries = instance.isPartOfSeries;
+
+    if (action == 'edit') {
+      EditScope scope = EditScope.single;
+
+      // If part of a series, ask which scope
+      if (isPartOfSeries) {
+        final selectedScope = await SeriesActionDialog.show(
+          context: context,
+          isDelete: false,
+          seriesInfo: instance.seriesInfo,
+        );
+        if (selectedScope == null) return; // Cancelled
+        scope = selectedScope;
+      }
+
+      // Navigate to edit screen
+      if (context.mounted) {
+        context.push(
+          '/teams/$teamId/activities/${instance.id}/edit',
+          extra: {'scope': scope},
+        );
+      }
+    } else if (action == 'delete') {
+      EditScope scope = EditScope.single;
+
+      // If part of a series, ask which scope
+      if (isPartOfSeries) {
+        final selectedScope = await SeriesActionDialog.show(
+          context: context,
+          isDelete: true,
+          seriesInfo: instance.seriesInfo,
+        );
+        if (selectedScope == null) return; // Cancelled
+        scope = selectedScope;
+      }
+
+      // Show confirmation dialog
+      if (context.mounted) {
+        final confirmed = await DeleteConfirmationDialog.show(
+          context: context,
+          scope: scope,
+        );
+        if (!confirmed) return;
+
+        // Perform delete
+        final result = await ref.read(deleteInstanceProvider.notifier).deleteInstance(
+              instanceId: instance.id,
+              teamId: teamId,
+              scope: scope,
+            );
+
+        if (context.mounted) {
+          if (result != null) {
+            final message = scope == EditScope.single
+                ? 'Aktivitet slettet'
+                : '${result.affectedCount} aktiviteter slettet';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+            // Refresh the list
+            ref.invalidate(upcomingInstancesProvider(teamId));
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Kunne ikke slette aktivitet')),
+            );
+          }
+        }
+      }
+    }
   }
 }
 
