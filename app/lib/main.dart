@@ -1,14 +1,27 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme.dart';
 import 'core/router.dart';
 import 'core/services/error_display_service.dart';
+import 'core/services/supabase_service.dart';
 import 'features/settings/providers/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('nb_NO', null);
+
+  // Initialize Supabase for realtime features (non-blocking)
+  try {
+    await SupabaseService.initialize();
+  } catch (e) {
+    // Log but don't fail - realtime features will be disabled
+    if (kDebugMode) {
+      print('Supabase initialization failed: $e');
+    }
+  }
+
   runApp(
     const ProviderScope(
       child: CoreIdrettApp(),

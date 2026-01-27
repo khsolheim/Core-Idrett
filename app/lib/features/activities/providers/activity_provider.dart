@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../data/models/activity.dart';
 import '../data/activity_repository.dart';
 
@@ -248,4 +250,38 @@ class DeleteInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationR
 
 final deleteInstanceProvider = StateNotifierProvider<DeleteInstanceNotifier, AsyncValue<InstanceOperationResult?>>((ref) {
   return DeleteInstanceNotifier(ref.watch(activityRepositoryProvider), ref);
+});
+
+/// Provider for realtime activity response updates
+/// Watch this provider to enable realtime updates for a specific team
+final activityResponsesRealtimeProvider = Provider.family<void, String>((ref, teamId) {
+  final supabaseService = ref.watch(supabaseServiceProvider);
+
+  if (!supabaseService.isInitialized) {
+    // Supabase not initialized, realtime updates disabled
+    return;
+  }
+
+  // Debounce timer to avoid too frequent invalidations
+  Timer? debounceTimer;
+
+  final channel = supabaseService.subscribeToActivityResponses(
+    teamId: teamId,
+    onUpdate: () {
+      // Debounce to avoid rapid-fire updates
+      debounceTimer?.cancel();
+      debounceTimer = Timer(const Duration(milliseconds: 500), () {
+        // Invalidate providers to trigger refresh
+        ref.invalidate(upcomingInstancesProvider(teamId));
+      });
+    },
+  );
+
+  // Cleanup subscription when provider is disposed
+  ref.onDispose(() {
+    debounceTimer?.cancel();
+    if (channel != null) {
+      supabaseService.unsubscribe(channel);
+    }
+  });
 });

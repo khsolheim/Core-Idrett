@@ -17,6 +17,9 @@ class ActivitiesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final upcomingAsync = ref.watch(upcomingInstancesProvider(teamId));
 
+    // Enable realtime updates for activity responses
+    ref.watch(activityResponsesRealtimeProvider(teamId));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Aktiviteter'),

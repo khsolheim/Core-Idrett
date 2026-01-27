@@ -198,20 +198,56 @@ class ActivityService {
       limit: limit,
     );
 
+    // Get instance IDs for response count lookup
+    final instanceIds = instances.map((i) => i['id'] as String).toList();
+
+    // Get all responses for these instances
+    final allResponses = instanceIds.isNotEmpty
+        ? await _db.client.select(
+            'activity_responses',
+            filters: {
+              'instance_id': 'in.(${instanceIds.join(',')})',
+            },
+          )
+        : <Map<String, dynamic>>[];
+
+    // Count responses per instance
+    final responseCounts = <String, Map<String, int>>{};
+    for (final r in allResponses) {
+      final iId = r['instance_id'] as String;
+      final resp = r['response'] as String?;
+      responseCounts[iId] ??= {'yes': 0, 'no': 0, 'maybe': 0};
+      if (resp != null && responseCounts[iId]!.containsKey(resp)) {
+        responseCounts[iId]![resp] = (responseCounts[iId]![resp] ?? 0) + 1;
+      }
+    }
+
     return instances.map((i) {
       final activity = activityMap[i['activity_id']] ?? {};
+      final iId = i['id'] as String;
+      final counts = responseCounts[iId] ?? {'yes': 0, 'no': 0, 'maybe': 0};
+      // Use effective values (override if exists, otherwise activity value)
+      final effectiveTitle = i['title_override'] ?? activity['title'];
+      final effectiveLocation = i['location_override'] ?? activity['location'];
+      final effectiveStartTime = i['start_time_override'] ?? i['start_time'];
+      final effectiveEndTime = i['end_time_override'] ?? i['end_time'];
+      final effectiveDate = i['date_override'] ?? i['date'];
       return {
-        'id': i['id'],
+        'id': iId,
         'activity_id': i['activity_id'],
-        'date': i['date'],
-        'start_time': i['start_time'],
-        'end_time': i['end_time'],
+        'date': effectiveDate,
+        'start_time': effectiveStartTime,
+        'end_time': effectiveEndTime,
         'status': i['status'],
-        'title': activity['title'],
+        'title': effectiveTitle,
         'type': activity['type'],
-        'location': activity['location'],
+        'location': effectiveLocation,
         'response_type': activity['response_type'],
         'response_deadline_hours': activity['response_deadline_hours'],
+        'yes_count': counts['yes'],
+        'no_count': counts['no'],
+        'maybe_count': counts['maybe'],
+        'is_detached': i['is_detached'] ?? false,
         'series_info': {
           'activity_id': activity['id'],
           'total_instances': 0,

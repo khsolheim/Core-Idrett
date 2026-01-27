@@ -72,6 +72,9 @@ dependencies:
   # File system access
   path_provider: ^2.1.0
 
+  # Supabase for realtime updates
+  supabase_flutter: ^2.8.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
