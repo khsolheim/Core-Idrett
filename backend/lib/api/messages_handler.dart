@@ -23,6 +23,9 @@ class MessagesHandler {
     router.post('/teams/<teamId>/read', _markAsRead);
     router.get('/teams/<teamId>/unread', _getUnreadCount);
 
+    // All conversations (team + DMs combined)
+    router.get('/all-conversations', _getAllConversations);
+
     // Direct messages (new)
     router.get('/conversations', _getConversations);
     router.get('/direct/<recipientId>', _getDirectMessages);
@@ -203,6 +206,31 @@ class MessagesHandler {
 
       final count = await _messageService.getUnreadCount(userId, teamId);
       return Response.ok(jsonEncode({'unread_count': count}));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  // ============ All Conversations Handler ============
+
+  Future<Response> _getAllConversations(Request request) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final teamId = request.url.queryParameters['team_id'];
+      if (teamId == null) {
+        return Response(400, body: jsonEncode({'error': 'team_id er pakrevd'}));
+      }
+
+      if (!await _isTeamMember(userId, teamId)) {
+        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      }
+
+      final conversations = await _messageService.getAllConversations(userId, teamId);
+      return Response.ok(jsonEncode({'conversations': conversations}));
     } catch (e) {
       return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
     }

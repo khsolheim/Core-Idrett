@@ -27,9 +27,7 @@ import '../features/fines/presentation/team_accounting_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/edit_profile_screen.dart';
-import '../features/chat/presentation/chat_screen.dart';
-import '../features/chat/presentation/conversations_screen.dart';
-import '../features/chat/presentation/direct_message_screen.dart';
+import '../features/chat/presentation/unified_chat_screen.dart';
 import '../features/documents/presentation/documents_screen.dart';
 import '../features/export/presentation/export_screen.dart';
 import '../features/tests/presentation/tests_screen.dart';
@@ -164,30 +162,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                 name: 'chat',
                 builder: (context, state) {
                   final teamId = state.pathParameters['teamId']!;
-                  return ChatScreen(teamId: teamId);
+                  return UnifiedChatScreen(teamId: teamId);
                 },
-              ),
-              GoRoute(
-                path: 'conversations',
-                name: 'conversations',
-                builder: (context, state) {
-                  final teamId = state.pathParameters['teamId']!;
-                  return ConversationsScreen(teamId: teamId);
-                },
-                routes: [
-                  GoRoute(
-                    path: ':recipientId',
-                    name: 'direct-message',
-                    builder: (context, state) {
-                      final teamId = state.pathParameters['teamId']!;
-                      final recipientId = state.pathParameters['recipientId']!;
-                      return DirectMessageScreen(
-                        teamId: teamId,
-                        recipientId: recipientId,
-                      );
-                    },
-                  ),
-                ],
               ),
               GoRoute(
                 path: 'documents',

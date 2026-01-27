@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:core_idrett/features/chat/presentation/chat_screen.dart';
+import 'package:core_idrett/features/chat/presentation/unified_chat_screen.dart';
+import 'package:core_idrett/data/models/conversation.dart';
 
 import '../../helpers/test_app.dart';
 import '../../helpers/test_data.dart';
@@ -21,130 +22,123 @@ void main() {
     resetAllTestFactories();
   });
 
-  group('ChatScreen', () {
-    // Note: ChatScreen uses ConsumerStatefulWidget with complex state.
+  group('UnifiedChatScreen', () {
+    // Note: UnifiedChatScreen uses ConsumerStatefulWidget with complex state.
     // We test error states and basic rendering which work reliably.
 
-    testWidgets('renders app bar with title', (tester) async {
+    testWidgets('renders app bar with title on narrow screen', (tester) async {
+      // Set narrow screen size for mobile layout
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
       scenario.setupLoggedIn();
-      when(() => scenario.mocks.chatRepository.getMessages(
-            'team-1',
-            limit: any(named: 'limit'),
-            before: any(named: 'before'),
-            after: any(named: 'after'),
-          )).thenThrow(Exception('Network error'));
+      when(() => scenario.mocks.chatRepository.getAllConversations('team-1'))
+          .thenAnswer((_) async => []);
 
       await tester.pumpWidget(
         createTestWidget(
-          const ChatScreen(teamId: 'team-1'),
+          const UnifiedChatScreen(teamId: 'team-1'),
           overrides: scenario.overrides,
         ),
       );
       await tester.pumpAndSettle();
 
+      // Narrow layout shows AppBar with title 'Chat'
+      expect(find.byType(AppBar), findsOneWidget);
       expect(find.text('Chat'), findsOneWidget);
     });
 
-    testWidgets('shows refresh button in app bar', (tester) async {
+    testWidgets('shows search field', (tester) async {
       scenario.setupLoggedIn();
-      when(() => scenario.mocks.chatRepository.getMessages(
-            'team-1',
-            limit: any(named: 'limit'),
-            before: any(named: 'before'),
-            after: any(named: 'after'),
-          )).thenThrow(Exception('Network error'));
+      when(() => scenario.mocks.chatRepository.getAllConversations('team-1'))
+          .thenAnswer((_) async => []);
 
       await tester.pumpWidget(
         createTestWidget(
-          const ChatScreen(teamId: 'team-1'),
+          const UnifiedChatScreen(teamId: 'team-1'),
           overrides: scenario.overrides,
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.refresh), findsOneWidget);
-    });
-
-    testWidgets('shows message input field', (tester) async {
-      scenario.setupLoggedIn();
-      when(() => scenario.mocks.chatRepository.getMessages(
-            'team-1',
-            limit: any(named: 'limit'),
-            before: any(named: 'before'),
-            after: any(named: 'after'),
-          )).thenThrow(Exception('Network error'));
-
-      await tester.pumpWidget(
-        createTestWidget(
-          const ChatScreen(teamId: 'team-1'),
-          overrides: scenario.overrides,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('Skriv en melding...'), findsOneWidget);
-    });
-
-    testWidgets('shows send button', (tester) async {
-      scenario.setupLoggedIn();
-      when(() => scenario.mocks.chatRepository.getMessages(
-            'team-1',
-            limit: any(named: 'limit'),
-            before: any(named: 'before'),
-            after: any(named: 'after'),
-          )).thenThrow(Exception('Network error'));
-
-      await tester.pumpWidget(
-        createTestWidget(
-          const ChatScreen(teamId: 'team-1'),
-          overrides: scenario.overrides,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.send), findsOneWidget);
+      expect(find.byIcon(Icons.search), findsOneWidget);
     });
 
     testWidgets('shows error state when loading fails', (tester) async {
       scenario.setupLoggedIn();
-      when(() => scenario.mocks.chatRepository.getMessages(
-            'team-1',
-            limit: any(named: 'limit'),
-            before: any(named: 'before'),
-            after: any(named: 'after'),
-          )).thenThrow(Exception('Network error'));
+      when(() => scenario.mocks.chatRepository.getAllConversations('team-1'))
+          .thenThrow(Exception('Network error'));
 
       await tester.pumpWidget(
         createTestWidget(
-          const ChatScreen(teamId: 'team-1'),
+          const UnifiedChatScreen(teamId: 'team-1'),
           overrides: scenario.overrides,
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.textContaining('Kunne ikke laste meldinger'), findsOneWidget);
+      expect(find.textContaining('Kunne ikke laste samtaler'), findsOneWidget);
     });
 
     testWidgets('shows retry button on error', (tester) async {
       scenario.setupLoggedIn();
-      when(() => scenario.mocks.chatRepository.getMessages(
-            'team-1',
-            limit: any(named: 'limit'),
-            before: any(named: 'before'),
-            after: any(named: 'after'),
-          )).thenThrow(Exception('Network error'));
+      when(() => scenario.mocks.chatRepository.getAllConversations('team-1'))
+          .thenThrow(Exception('Network error'));
 
       await tester.pumpWidget(
         createTestWidget(
-          const ChatScreen(teamId: 'team-1'),
+          const UnifiedChatScreen(teamId: 'team-1'),
           overrides: scenario.overrides,
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Prov igjen'), findsOneWidget);
+    });
+
+    testWidgets('shows FAB for new conversation', (tester) async {
+      scenario.setupLoggedIn();
+      when(() => scenario.mocks.chatRepository.getAllConversations('team-1'))
+          .thenAnswer((_) async => []);
+
+      await tester.pumpWidget(
+        createTestWidget(
+          const UnifiedChatScreen(teamId: 'team-1'),
+          overrides: scenario.overrides,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(find.byIcon(Icons.add), findsOneWidget);
+    });
+
+    testWidgets('shows conversation list when data loads', (tester) async {
+      scenario.setupLoggedIn();
+      when(() => scenario.mocks.chatRepository.getAllConversations('team-1'))
+          .thenAnswer((_) async => [
+                ChatConversation(
+                  type: ConversationType.team,
+                  teamId: 'team-1',
+                  name: 'Lag-chat',
+                  unreadCount: 2,
+                  lastMessage: 'Hei alle sammen!',
+                  lastMessageAt: DateTime.now(),
+                ),
+              ]);
+
+      await tester.pumpWidget(
+        createTestWidget(
+          const UnifiedChatScreen(teamId: 'team-1'),
+          overrides: scenario.overrides,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lag-chat'), findsOneWidget);
+      expect(find.text('Hei alle sammen!'), findsOneWidget);
     });
   });
 }

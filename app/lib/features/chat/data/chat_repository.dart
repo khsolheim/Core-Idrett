@@ -70,6 +70,17 @@ class ChatRepository {
     return response.data['unread_count'] as int;
   }
 
+  // ============ Unified Conversations ============
+
+  Future<List<ChatConversation>> getAllConversations(String teamId) async {
+    final response = await _client.get(
+      '/messages/all-conversations',
+      queryParameters: {'team_id': teamId},
+    );
+    final data = response.data['conversations'] as List;
+    return data.map((c) => ChatConversation.fromJson(c as Map<String, dynamic>)).toList();
+  }
+
   // ============ Direct Message Methods ============
 
   Future<List<Conversation>> getConversations() async {
