@@ -12,6 +12,11 @@ class AuthRepository {
 
   AuthRepository(this._apiClient);
 
+  /// Set callback for when token expires (called by AuthNotifier)
+  void setOnTokenExpired(void Function() callback) {
+    _apiClient.onTokenExpired = callback;
+  }
+
   Future<AuthResult> register({
     required String email,
     required String password,

@@ -10,7 +10,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   final AuthRepository _repository;
 
   AuthNotifier(this._repository) : super(const AsyncValue.loading()) {
+    _repository.setOnTokenExpired(_handleTokenExpiration);
     _init();
+  }
+
+  /// Handle token expiration - clears auth state to trigger redirect to login
+  void _handleTokenExpiration() {
+    // Token is already cleared by ApiClient, just update state
+    state = const AsyncValue.data(null);
   }
 
   Future<void> _init() async {
