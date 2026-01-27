@@ -512,7 +512,8 @@ class FineService {
       if (status == 'paid') {
         paidCount++;
       }
-      if (status != 'rejected') {
+      // Only count approved/appealed fines in total (not pending or rejected)
+      if (status == 'approved' || status == 'appealed') {
         totalFines += amount;
       }
     }
@@ -603,10 +604,11 @@ class FineService {
 
       if (summaries.containsKey(offenderId)) {
         summaries[offenderId]!.fineCount++;
-        if (status != 'rejected') {
+        // Only count approved/appealed fines as owed (not pending or rejected)
+        if (status == 'approved' || status == 'appealed') {
           summaries[offenderId]!.totalFines += amount;
+          summaries[offenderId]!.totalPaid += paymentsByFine[fineId] ?? 0;
         }
-        summaries[offenderId]!.totalPaid += paymentsByFine[fineId] ?? 0;
       }
     }
 
