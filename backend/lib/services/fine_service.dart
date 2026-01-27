@@ -1,14 +1,12 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/fine.dart';
-import 'team_service.dart';
 
 class FineService {
   final Database _db;
-  final TeamService _teamService;
   final _uuid = const Uuid();
 
-  FineService(this._db, this._teamService);
+  FineService(this._db);
 
   // Fine Rules
   Future<List<FineRule>> getFineRules(String teamId, {bool? activeOnly}) async {
@@ -246,17 +244,8 @@ class FineService {
     required double amount,
     String? description,
     String? evidenceUrl,
-    bool isGameDay = false,
   }) async {
     final id = _uuid.v4();
-
-    // Apply game day multiplier if applicable
-    double finalAmount = amount;
-    if (isGameDay) {
-      final settings = await _teamService.getTeamSettings(teamId);
-      final multiplier = (settings['game_day_multiplier'] as num?)?.toDouble() ?? 1.0;
-      finalAmount = amount * multiplier;
-    }
 
     await _db.client.insert('fines', {
       'id': id,
@@ -264,10 +253,9 @@ class FineService {
       'offender_id': offenderId,
       'reporter_id': reporterId,
       'rule_id': ruleId,
-      'amount': finalAmount,
+      'amount': amount,
       'description': description,
       'evidence_url': evidenceUrl,
-      'is_game_day': isGameDay,
     });
 
     return (await getFine(id))!;
@@ -335,8 +323,7 @@ class FineService {
       filters: {'id': 'eq.$fineId'},
     );
 
-    final status = existing.first['status'] as String?;
-    if (existing.isEmpty || (status != 'approved' && status != 'pending')) {
+    if (existing.isEmpty || existing.first['status'] != 'approved') {
       return null;
     }
 
@@ -431,13 +418,11 @@ class FineService {
   }
 
   Future<List<FineAppeal>> getPendingAppeals(String teamId) async {
-    // Get fines with status 'appealed' for team
+    // Get fines for team
     final fines = await _db.client.select(
       'fines',
-      filters: {
-        'team_id': 'eq.$teamId',
-        'status': 'eq.appealed',
-      },
+      select: 'id',
+      filters: {'team_id': 'eq.$teamId'},
     );
 
     if (fines.isEmpty) return [];
@@ -454,66 +439,7 @@ class FineService {
       order: 'created_at.asc',
     );
 
-    if (appeals.isEmpty) return [];
-
-    // Get all user IDs (offenders and reporters)
-    final offenderIds = fines.map((f) => f['offender_id'] as String).toSet().toList();
-    final reporterIds = fines.map((f) => f['reporter_id'] as String?).whereType<String>().toSet().toList();
-    final allUserIds = {...offenderIds, ...reporterIds}.toList();
-
-    // Get users
-    final users = allUserIds.isNotEmpty
-        ? await _db.client.select(
-            'users',
-            select: 'id,name,avatar_url',
-            filters: {'id': 'in.(${allUserIds.join(',')})'},
-          )
-        : <Map<String, dynamic>>[];
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
-
-    // Get rules
-    final ruleIds = fines.map((f) => f['rule_id'] as String?).whereType<String>().toSet().toList();
-    final rules = ruleIds.isNotEmpty
-        ? await _db.client.select(
-            'fine_rules',
-            select: 'id,name',
-            filters: {'id': 'in.(${ruleIds.join(',')})'},
-          )
-        : <Map<String, dynamic>>[];
-
-    final ruleMap = <String, Map<String, dynamic>>{};
-    for (final r in rules) {
-      ruleMap[r['id'] as String] = r;
-    }
-
-    // Build fine map with joined data
-    final fineMap = <String, Map<String, dynamic>>{};
-    for (final f in fines) {
-      final offender = userMap[f['offender_id']] ?? {};
-      final reporter = f['reporter_id'] != null ? userMap[f['reporter_id']] ?? {} : {};
-      final rule = f['rule_id'] != null ? ruleMap[f['rule_id']] ?? {} : {};
-
-      fineMap[f['id'] as String] = {
-        ...f,
-        'offender_name': offender['name'],
-        'offender_avatar_url': offender['avatar_url'],
-        'reporter_name': reporter['name'],
-        'rule_name': rule['name'],
-      };
-    }
-
-    // Build appeals with embedded fine data
-    return appeals.map((row) {
-      final fineId = row['fine_id'] as String;
-      return FineAppeal.fromJson({
-        ...row,
-        'fine': fineMap[fineId],
-      });
-    }).toList();
+    return appeals.map((row) => FineAppeal.fromJson(row)).toList();
   }
 
   // Payments
@@ -586,8 +512,8 @@ class FineService {
       if (status == 'paid') {
         paidCount++;
       }
-      // Count approved, appealed, and paid fines in total (not pending or rejected)
-      if (status == 'approved' || status == 'appealed' || status == 'paid') {
+      // Only count approved/appealed fines in total (not pending or rejected)
+      if (status == 'approved' || status == 'appealed') {
         totalFines += amount;
       }
     }
