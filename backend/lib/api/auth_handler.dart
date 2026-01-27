@@ -16,6 +16,8 @@ class AuthHandler {
     router.post('/invite/<code>', _registerWithInvite);
     router.get('/me', _getCurrentUser);
     router.patch('/profile', _updateProfile);
+    router.post('/change-password', _changePassword);
+    router.delete('/account', _deleteAccount);
 
     return router;
   }
@@ -164,6 +166,66 @@ class AuthHandler {
       }
 
       return Response.ok(jsonEncode(updatedUser.toJson()));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+    }
+  }
+
+  Future<Response> _changePassword(Request request) async {
+    try {
+      final authHeader = request.headers['authorization'];
+      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final token = authHeader.substring(7);
+      final user = await _authService.getUserFromToken(token);
+
+      if (user == null) {
+        return Response(401, body: jsonEncode({'error': 'Ugyldig token'}));
+      }
+
+      final body = await request.readAsString();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      final currentPassword = data['current_password'] as String?;
+      final newPassword = data['new_password'] as String?;
+
+      if (currentPassword == null || newPassword == null) {
+        return Response(400, body: jsonEncode({'error': 'Mangler pakrevde felt'}));
+      }
+
+      await _authService.changePassword(
+        userId: user.id,
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+      return Response.ok(jsonEncode({'message': 'Passord endret'}));
+    } on AuthException catch (e) {
+      return Response(400, body: jsonEncode({'error': e.message}));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+    }
+  }
+
+  Future<Response> _deleteAccount(Request request) async {
+    try {
+      final authHeader = request.headers['authorization'];
+      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final token = authHeader.substring(7);
+      final user = await _authService.getUserFromToken(token);
+
+      if (user == null) {
+        return Response(401, body: jsonEncode({'error': 'Ugyldig token'}));
+      }
+
+      await _authService.deleteAccount(user.id);
+
+      return Response.ok(jsonEncode({'message': 'Konto slettet'}));
     } catch (e) {
       return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
     }

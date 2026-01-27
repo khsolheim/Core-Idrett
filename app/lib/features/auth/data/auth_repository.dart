@@ -77,6 +77,21 @@ class AuthRepository {
     });
     return User.fromJson(response.data as Map<String, dynamic>);
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _apiClient.post('/auth/change-password', data: {
+      'current_password': currentPassword,
+      'new_password': newPassword,
+    });
+  }
+
+  Future<void> deleteAccount() async {
+    await _apiClient.delete('/auth/account');
+    await _apiClient.clearToken();
+  }
 }
 
 class AuthResult {

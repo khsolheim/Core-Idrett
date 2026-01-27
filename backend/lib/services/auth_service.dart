@@ -144,6 +144,38 @@ class AuthService {
     }
   }
 
+  Future<void> changePassword({
+    required String userId,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    // Get user and verify current password
+    final result = await _db.client.select(
+      'users',
+      select: 'password_hash',
+      filters: {'id': 'eq.$userId'},
+    );
+
+    if (result.isEmpty) {
+      throw AuthException('Bruker ikke funnet');
+    }
+
+    final passwordHash = result.first['password_hash'] as String;
+
+    if (!BCrypt.checkpw(currentPassword, passwordHash)) {
+      throw AuthException('Feil navaerende passord');
+    }
+
+    // Hash new password and update
+    final newPasswordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+    await _db.client.update(
+      'users',
+      {'password_hash': newPasswordHash},
+      filters: {'id': 'eq.$userId'},
+    );
+  }
+
   Future<User?> updateProfile({
     required String userId,
     String? name,
@@ -159,7 +191,6 @@ class AuthService {
       'users',
       updates,
       filters: {'id': 'eq.$userId'},
-      select: '*',
     );
 
     if (result.isEmpty) return null;
@@ -171,6 +202,39 @@ class AuthService {
       name: row['name'] as String,
       avatarUrl: row['avatar_url'] as String?,
       createdAt: DateTime.parse(row['created_at'] as String),
+    );
+  }
+
+  Future<void> deleteAccount(String userId) async {
+    // Delete in order: related data first, then user
+    // team_members
+    await _db.client.delete(
+      'team_members',
+      filters: {'user_id': 'eq.$userId'},
+    );
+
+    // fines (where user is the one who received the fine)
+    await _db.client.delete(
+      'fines',
+      filters: {'user_id': 'eq.$userId'},
+    );
+
+    // activities (where user created them)
+    await _db.client.delete(
+      'activities',
+      filters: {'created_by': 'eq.$userId'},
+    );
+
+    // messages
+    await _db.client.delete(
+      'messages',
+      filters: {'user_id': 'eq.$userId'},
+    );
+
+    // Finally delete the user
+    await _db.client.delete(
+      'users',
+      filters: {'id': 'eq.$userId'},
     );
   }
 
