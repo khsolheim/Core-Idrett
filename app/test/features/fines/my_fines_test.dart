@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:core_idrett/features/fines/presentation/my_fines_screen.dart';
-import 'package:core_idrett/data/models/fine.dart';
 
 import '../../helpers/test_app.dart';
 import '../../helpers/test_data.dart';

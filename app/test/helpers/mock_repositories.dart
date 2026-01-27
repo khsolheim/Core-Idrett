@@ -10,7 +10,6 @@ import 'package:core_idrett/data/models/team.dart';
 import 'package:core_idrett/data/models/activity.dart';
 import 'package:core_idrett/data/models/fine.dart';
 import 'package:core_idrett/data/models/message.dart';
-import 'package:core_idrett/data/models/fine.dart';
 import 'package:core_idrett/features/auth/data/auth_repository.dart';
 import 'package:core_idrett/features/teams/data/team_repository.dart';
 import 'package:core_idrett/features/teams/providers/team_provider.dart';

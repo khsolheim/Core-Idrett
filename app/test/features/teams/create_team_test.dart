@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:core_idrett/features/teams/presentation/create_team_screen.dart';
-import 'package:core_idrett/data/models/team.dart';
 
 import '../../helpers/test_app.dart';
 import '../../helpers/test_data.dart';
