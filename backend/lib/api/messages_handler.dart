@@ -15,12 +15,20 @@ class MessagesHandler {
   Router get router {
     final router = Router();
 
+    // Team messages (existing)
     router.get('/teams/<teamId>', _getMessages);
     router.post('/teams/<teamId>', _sendMessage);
     router.patch('/<messageId>', _editMessage);
     router.delete('/<messageId>', _deleteMessage);
     router.post('/teams/<teamId>/read', _markAsRead);
     router.get('/teams/<teamId>/unread', _getUnreadCount);
+
+    // Direct messages (new)
+    router.get('/conversations', _getConversations);
+    router.get('/direct/<recipientId>', _getDirectMessages);
+    router.post('/direct/<recipientId>', _sendDirectMessage);
+    router.post('/direct/<recipientId>/read', _markDirectAsRead);
+    router.get('/direct/<recipientId>/unread', _getDirectUnreadCount);
 
     return router;
   }
@@ -194,6 +202,104 @@ class MessagesHandler {
       }
 
       final count = await _messageService.getUnreadCount(userId, teamId);
+      return Response.ok(jsonEncode({'unread_count': count}));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  // ============ Direct Message Handlers ============
+
+  Future<Response> _getConversations(Request request) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final conversations = await _messageService.getConversations(userId);
+      return Response.ok(jsonEncode({'conversations': conversations}));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _getDirectMessages(Request request, String recipientId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final limitParam = request.url.queryParameters['limit'];
+      final before = request.url.queryParameters['before'];
+      final after = request.url.queryParameters['after'];
+      final limit = limitParam != null ? int.tryParse(limitParam) ?? 50 : 50;
+
+      final messages = await _messageService.getDirectMessages(
+        userId,
+        recipientId,
+        limit: limit,
+        before: before,
+        after: after,
+      );
+
+      return Response.ok(jsonEncode({'messages': messages}));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _sendDirectMessage(Request request, String recipientId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final body = await request.readAsString();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      final content = data['content'] as String?;
+      if (content == null || content.trim().isEmpty) {
+        return Response(400, body: jsonEncode({'error': 'Meldingen kan ikke vare tom'}));
+      }
+
+      final message = await _messageService.sendDirectMessage(
+        userId: userId,
+        recipientId: recipientId,
+        content: content.trim(),
+        replyToId: data['reply_to_id'] as String?,
+      );
+
+      return Response.ok(jsonEncode(message));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _markDirectAsRead(Request request, String recipientId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      await _messageService.markDirectAsRead(userId, recipientId);
+      return Response.ok(jsonEncode({'success': true}));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _getDirectUnreadCount(Request request, String recipientId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final count = await _messageService.getDirectUnreadCount(userId, recipientId);
       return Response.ok(jsonEncode({'unread_count': count}));
     } catch (e) {
       return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));

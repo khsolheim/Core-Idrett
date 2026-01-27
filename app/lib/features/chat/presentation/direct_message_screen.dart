@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/message.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../providers/chat_provider.dart';
+import '../../teams/providers/team_provider.dart';
+import '../providers/direct_message_provider.dart';
 
-class ChatScreen extends ConsumerStatefulWidget {
+class DirectMessageScreen extends ConsumerStatefulWidget {
   final String teamId;
+  final String recipientId;
 
-  const ChatScreen({super.key, required this.teamId});
+  const DirectMessageScreen({
+    super.key,
+    required this.teamId,
+    required this.recipientId,
+  });
 
   @override
-  ConsumerState<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<DirectMessageScreen> createState() => _DirectMessageScreenState();
 }
 
-class _ChatScreenState extends ConsumerState<ChatScreen> {
+class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   Message? _replyingTo;
@@ -26,7 +31,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.initState();
     // Mark messages as read when entering chat
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(chatNotifierProvider(widget.teamId).notifier).markAsRead();
+      ref.read(directMessageNotifierProvider(widget.recipientId).notifier).markAsRead();
     });
   }
 
@@ -42,7 +47,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (content.isEmpty) return;
 
     if (_editingMessage != null) {
-      ref.read(chatNotifierProvider(widget.teamId).notifier).editMessage(
+      ref.read(directMessageNotifierProvider(widget.recipientId).notifier).editMessage(
             _editingMessage!.id,
             content,
           );
@@ -50,7 +55,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _editingMessage = null;
       });
     } else {
-      ref.read(chatNotifierProvider(widget.teamId).notifier).sendMessage(
+      ref.read(directMessageNotifierProvider(widget.recipientId).notifier).sendMessage(
             content,
             replyToId: _replyingTo?.id,
           );
@@ -87,23 +92,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(chatNotifierProvider(widget.teamId));
+    final chatState = ref.watch(directMessageNotifierProvider(widget.recipientId));
     final currentUser = ref.watch(authStateProvider).valueOrNull;
+    final membersAsync = ref.watch(teamMembersProvider(widget.teamId));
     final theme = Theme.of(context);
+
+    // Get recipient name from team members
+    final recipientName = membersAsync.when(
+      data: (members) {
+        final recipient = members.where((m) => m.userId == widget.recipientId).firstOrNull;
+        return recipient?.userName ?? 'Ukjent';
+      },
+      loading: () => 'Laster...',
+      error: (error, stackTrace) => 'Ukjent',
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lag-chat'),
+        title: Text(recipientName),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => context.push('/teams/${widget.teamId}/conversations'),
-            tooltip: 'Direktemeldinger',
-          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () =>
-                ref.read(chatNotifierProvider(widget.teamId).notifier).refresh(),
+                ref.read(directMessageNotifierProvider(widget.recipientId).notifier).refresh(),
             tooltip: 'Oppdater',
           ),
         ],
@@ -130,7 +141,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Vær den forste til a skrive!',
+                          'Send en melding for a starte samtalen!',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.outline,
                           ),
@@ -184,7 +195,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => ref
-                          .read(chatNotifierProvider(widget.teamId).notifier)
+                          .read(directMessageNotifierProvider(widget.recipientId).notifier)
                           .refresh(),
                       child: const Text('Prov igjen'),
                     ),
@@ -295,7 +306,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             onPressed: () {
               Navigator.pop(context);
               ref
-                  .read(chatNotifierProvider(widget.teamId).notifier)
+                  .read(directMessageNotifierProvider(widget.recipientId).notifier)
                   .deleteMessage(message.id);
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
