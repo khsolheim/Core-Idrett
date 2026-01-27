@@ -157,6 +157,68 @@ class SupabaseClient {
 
     return jsonDecode(response.body);
   }
+
+  // ============ STORAGE API ============
+
+  /// Generate a signed URL for downloading a file
+  Future<String> createSignedUrl(String bucket, String path, int expiresIn) async {
+    final url = '$_baseUrl/storage/v1/object/sign/$bucket/$path';
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: _headers,
+      body: jsonEncode({'expiresIn': expiresIn}),
+    );
+
+    if (response.statusCode >= 400) {
+      throw SupabaseException('Failed to create signed URL: ${response.body}', response.statusCode);
+    }
+
+    final data = jsonDecode(response.body);
+    final signedUrl = data['signedURL'] as String;
+    return '$_baseUrl/storage/v1$signedUrl';
+  }
+
+  /// Upload a file to storage
+  Future<String> uploadFile(String bucket, String path, List<int> bytes, String contentType) async {
+    final url = '$_baseUrl/storage/v1/object/$bucket/$path';
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'apikey': _serviceKey,
+        'Authorization': 'Bearer $_serviceKey',
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode >= 400) {
+      throw SupabaseException('Upload failed: ${response.body}', response.statusCode);
+    }
+
+    return path;
+  }
+
+  /// Delete a file from storage
+  Future<void> deleteFile(String bucket, String path) async {
+    final url = '$_baseUrl/storage/v1/object/$bucket/$path';
+
+    final response = await http.delete(
+      Uri.parse(url),
+      headers: _headers,
+    );
+
+    if (response.statusCode >= 400) {
+      throw SupabaseException('Delete failed: ${response.body}', response.statusCode);
+    }
+  }
+
+  /// Get public URL for a file (if bucket is public)
+  String getPublicUrl(String bucket, String path) {
+    return '$_baseUrl/storage/v1/object/public/$bucket/$path';
+  }
 }
 
 class SupabaseException implements Exception {
