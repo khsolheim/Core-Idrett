@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/fine.dart';
 import '../providers/fines_provider.dart';
 
@@ -170,17 +171,13 @@ class _RecordPaymentSheetState extends ConsumerState<RecordPaymentSheet> {
   Future<void> _submitPayment() async {
     final amount = double.tryParse(_amountController.text.trim());
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Du må skrive et gyldig beløp')),
-      );
+      ErrorDisplayService.showWarning('Du må skrive et gyldig beløp');
       return;
     }
 
     final remaining = widget.fine.remainingAmount;
     if (amount > remaining) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Beløpet kan ikke overstige gjenstående (${remaining.toStringAsFixed(0)} kr)')),
-      );
+      ErrorDisplayService.showWarning('Beløpet kan ikke overstige gjenstående (${remaining.toStringAsFixed(0)} kr)');
       return;
     }
 
@@ -196,13 +193,9 @@ class _RecordPaymentSheetState extends ConsumerState<RecordPaymentSheet> {
       setState(() => _loading = false);
       if (result != null) {
         Navigator.pop(context, true); // Return true to indicate success
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Betaling på ${amount.toStringAsFixed(0)} kr registrert')),
-        );
+        ErrorDisplayService.showSuccess('Betaling på ${amount.toStringAsFixed(0)} kr registrert');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke registrere betaling')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke registrere betaling. Prøv igjen.');
       }
     }
   }

@@ -14,6 +14,9 @@ import '../services/notification_service.dart';
 import '../services/message_service.dart';
 import '../services/document_service.dart';
 import '../services/export_service.dart';
+import '../services/tournament_service.dart';
+import '../services/stopwatch_service.dart';
+import '../services/mini_activity_statistics_service.dart';
 import 'auth_handler.dart';
 import 'teams_handler.dart';
 import 'activities_handler.dart';
@@ -27,6 +30,9 @@ import 'notifications_handler.dart';
 import 'messages_handler.dart';
 import 'documents_handler.dart';
 import 'exports_handler.dart';
+import 'tournaments_handler.dart';
+import 'stopwatch_handler.dart';
+import 'mini_activity_statistics_handler.dart';
 
 Router createRouter(Database db) {
   final authService = AuthService(db);
@@ -42,6 +48,9 @@ Router createRouter(Database db) {
   final messageService = MessageService(db);
   final documentService = DocumentService(db);
   final exportService = ExportService(db);
+  final tournamentService = TournamentService(db);
+  final stopwatchService = StopwatchService(db);
+  final miniActivityStatisticsService = MiniActivityStatisticsService(db);
 
   final router = Router();
 
@@ -58,15 +67,36 @@ Router createRouter(Database db) {
   router.mount('/activities', activitiesHandler.router.call);
 
   // Mini-activity routes
-  final miniActivitiesHandler = MiniActivitiesHandler(miniActivityService, authService, teamService);
+  final miniActivitiesHandler = MiniActivitiesHandler(
+    miniActivityService,
+    authService,
+    teamService,
+    miniActivityStatisticsService,
+  );
   router.mount('/mini-activities', miniActivitiesHandler.router.call);
+
+  // Tournament routes
+  final tournamentsHandler = TournamentsHandler(tournamentService, authService, teamService);
+  router.mount('/tournaments', tournamentsHandler.router.call);
+
+  // Stopwatch routes
+  final stopwatchHandler = StopwatchHandler(stopwatchService, authService, teamService);
+  router.mount('/stopwatch', stopwatchHandler.router.call);
+
+  // Mini-activity statistics routes
+  final miniActivityStatsHandler = MiniActivityStatisticsHandler(
+    miniActivityStatisticsService,
+    authService,
+    teamService,
+  );
+  router.mount('/mini-activity-stats', miniActivityStatsHandler.router.call);
 
   // Statistics routes
   final statisticsHandler = StatisticsHandler(statisticsService);
   router.mount('/statistics', statisticsHandler.router.call);
 
   // Fines routes
-  final finesHandler = FinesHandler(fineService);
+  final finesHandler = FinesHandler(fineService, authService);
   router.mount('/fines', finesHandler.router.call);
 
   // Season routes

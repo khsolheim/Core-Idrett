@@ -160,6 +160,7 @@ class FineNotifier extends StateNotifier<AsyncValue<Fine?>> {
     required double amount,
     String? description,
     String? evidenceUrl,
+    bool isGameDay = false,
   }) async {
     state = const AsyncValue.loading();
     try {
@@ -170,6 +171,7 @@ class FineNotifier extends StateNotifier<AsyncValue<Fine?>> {
         amount: amount,
         description: description,
         evidenceUrl: evidenceUrl,
+        isGameDay: isGameDay,
       );
       state = AsyncValue.data(fine);
       _invalidateFineProviders(teamId);

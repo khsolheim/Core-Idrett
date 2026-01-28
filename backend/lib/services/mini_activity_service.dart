@@ -26,6 +26,14 @@ class MiniActivityService {
     required String name,
     required String type,
     int defaultPoints = 1,
+    String? description,
+    String? instructions,
+    String? sportType,
+    Map<String, dynamic>? suggestedRules,
+    int winPoints = 3,
+    int drawPoints = 1,
+    int lossPoints = 0,
+    String? leaderboardId,
   }) async {
     final id = _uuid.v4();
     await _db.client.insert('activity_templates', {
@@ -34,6 +42,14 @@ class MiniActivityService {
       'name': name,
       'type': type,
       'default_points': defaultPoints,
+      'description': description,
+      'instructions': instructions,
+      'sport_type': sportType,
+      'suggested_rules': suggestedRules,
+      'win_points': winPoints,
+      'draw_points': drawPoints,
+      'loss_points': lossPoints,
+      'leaderboard_id': leaderboardId,
     });
 
     return ActivityTemplate(
@@ -43,6 +59,77 @@ class MiniActivityService {
       type: type,
       defaultPoints: defaultPoints,
       createdAt: DateTime.now(),
+      description: description,
+      instructions: instructions,
+      sportType: sportType,
+      suggestedRules: suggestedRules,
+      winPoints: winPoints,
+      drawPoints: drawPoints,
+      lossPoints: lossPoints,
+      leaderboardId: leaderboardId,
+    );
+  }
+
+  Future<ActivityTemplate?> updateTemplate({
+    required String templateId,
+    String? name,
+    String? type,
+    int? defaultPoints,
+    String? description,
+    String? instructions,
+    String? sportType,
+    Map<String, dynamic>? suggestedRules,
+    bool? isFavorite,
+    int? winPoints,
+    int? drawPoints,
+    int? lossPoints,
+    String? leaderboardId,
+  }) async {
+    final updates = <String, dynamic>{};
+    if (name != null) updates['name'] = name;
+    if (type != null) updates['type'] = type;
+    if (defaultPoints != null) updates['default_points'] = defaultPoints;
+    if (description != null) updates['description'] = description;
+    if (instructions != null) updates['instructions'] = instructions;
+    if (sportType != null) updates['sport_type'] = sportType;
+    if (suggestedRules != null) updates['suggested_rules'] = suggestedRules;
+    if (isFavorite != null) updates['is_favorite'] = isFavorite;
+    if (winPoints != null) updates['win_points'] = winPoints;
+    if (drawPoints != null) updates['draw_points'] = drawPoints;
+    if (lossPoints != null) updates['loss_points'] = lossPoints;
+    if (leaderboardId != null) updates['leaderboard_id'] = leaderboardId;
+
+    if (updates.isEmpty) return null;
+
+    await _db.client.update(
+      'activity_templates',
+      updates,
+      filters: {'id': 'eq.$templateId'},
+    );
+
+    final result = await _db.client.select(
+      'activity_templates',
+      filters: {'id': 'eq.$templateId'},
+    );
+
+    if (result.isEmpty) return null;
+    return ActivityTemplate.fromRow(result.first);
+  }
+
+  Future<void> toggleTemplateFavorite(String templateId) async {
+    final result = await _db.client.select(
+      'activity_templates',
+      select: 'is_favorite',
+      filters: {'id': 'eq.$templateId'},
+    );
+
+    if (result.isEmpty) return;
+    final currentFavorite = result.first['is_favorite'] as bool? ?? false;
+
+    await _db.client.update(
+      'activity_templates',
+      {'is_favorite': !currentFavorite},
+      filters: {'id': 'eq.$templateId'},
     );
   }
 
@@ -71,6 +158,13 @@ class MiniActivityService {
     required String name,
     required String type,
     int numTeams = 2,
+    String? description,
+    int? maxParticipants,
+    bool enableLeaderboard = true,
+    String? leaderboardId,
+    int winPoints = 3,
+    int drawPoints = 1,
+    int lossPoints = 0,
   }) async {
     final id = _uuid.v4();
     await _db.client.insert('mini_activities', {
@@ -80,6 +174,13 @@ class MiniActivityService {
       'name': name,
       'type': type,
       'num_teams': numTeams,
+      'description': description,
+      'max_participants': maxParticipants,
+      'enable_leaderboard': enableLeaderboard,
+      'leaderboard_id': leaderboardId,
+      'win_points': winPoints,
+      'draw_points': drawPoints,
+      'loss_points': lossPoints,
     });
 
     return MiniActivity(
@@ -90,14 +191,360 @@ class MiniActivityService {
       type: type,
       numTeams: numTeams,
       createdAt: DateTime.now(),
+      description: description,
+      maxParticipants: maxParticipants,
+      enableLeaderboard: enableLeaderboard,
+      leaderboardId: leaderboardId,
+      winPoints: winPoints,
+      drawPoints: drawPoints,
+      lossPoints: lossPoints,
     );
+  }
+
+  // BS-002: Create standalone mini-activity (not linked to activity instance)
+  Future<MiniActivity> createStandaloneMiniActivity({
+    required String teamId,
+    String? templateId,
+    required String name,
+    required String type,
+    int numTeams = 2,
+    String? description,
+    int? maxParticipants,
+    bool enableLeaderboard = true,
+    String? leaderboardId,
+    int winPoints = 3,
+    int drawPoints = 1,
+    int lossPoints = 0,
+  }) async {
+    final id = _uuid.v4();
+    await _db.client.insert('mini_activities', {
+      'id': id,
+      'team_id': teamId,
+      'template_id': templateId,
+      'name': name,
+      'type': type,
+      'num_teams': numTeams,
+      'description': description,
+      'max_participants': maxParticipants,
+      'enable_leaderboard': enableLeaderboard,
+      'leaderboard_id': leaderboardId,
+      'win_points': winPoints,
+      'draw_points': drawPoints,
+      'loss_points': lossPoints,
+    });
+
+    return MiniActivity(
+      id: id,
+      teamId: teamId,
+      templateId: templateId,
+      name: name,
+      type: type,
+      numTeams: numTeams,
+      createdAt: DateTime.now(),
+      description: description,
+      maxParticipants: maxParticipants,
+      enableLeaderboard: enableLeaderboard,
+      leaderboardId: leaderboardId,
+      winPoints: winPoints,
+      drawPoints: drawPoints,
+      lossPoints: lossPoints,
+    );
+  }
+
+  // BS-001: Update mini-activity
+  Future<MiniActivity?> updateMiniActivity({
+    required String miniActivityId,
+    String? name,
+    String? description,
+    int? maxParticipants,
+    bool? enableLeaderboard,
+    String? leaderboardId,
+    int? winPoints,
+    int? drawPoints,
+    int? lossPoints,
+    bool? handicapEnabled,
+  }) async {
+    final updates = <String, dynamic>{};
+    if (name != null) updates['name'] = name;
+    if (description != null) updates['description'] = description;
+    if (maxParticipants != null) updates['max_participants'] = maxParticipants;
+    if (enableLeaderboard != null) updates['enable_leaderboard'] = enableLeaderboard;
+    if (leaderboardId != null) updates['leaderboard_id'] = leaderboardId;
+    if (winPoints != null) updates['win_points'] = winPoints;
+    if (drawPoints != null) updates['draw_points'] = drawPoints;
+    if (lossPoints != null) updates['loss_points'] = lossPoints;
+    if (handicapEnabled != null) updates['handicap_enabled'] = handicapEnabled;
+
+    if (updates.isEmpty) return null;
+
+    await _db.client.update(
+      'mini_activities',
+      updates,
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+
+    final result = await _db.client.select(
+      'mini_activities',
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+
+    if (result.isEmpty) return null;
+    return MiniActivity.fromRow(result.first);
+  }
+
+  // BS-003: Reset team division
+  Future<void> resetTeamDivision(String miniActivityId) async {
+    // Delete all participants
+    await _db.client.delete(
+      'mini_activity_participants',
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+    );
+
+    // Delete all teams
+    await _db.client.delete(
+      'mini_activity_teams',
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+    );
+
+    // Reset division method
+    await _db.client.update(
+      'mini_activities',
+      {'division_method': null, 'num_teams': 2},
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+  }
+
+  // BS-004: Add late participant to existing team
+  Future<MiniActivityParticipant> addLateParticipant({
+    required String miniActivityId,
+    required String teamId,
+    required String userId,
+  }) async {
+    final id = _uuid.v4();
+    await _db.client.insert('mini_activity_participants', {
+      'id': id,
+      'mini_activity_id': miniActivityId,
+      'mini_team_id': teamId,
+      'user_id': userId,
+      'points': 0,
+    });
+
+    return MiniActivityParticipant(
+      id: id,
+      miniActivityId: miniActivityId,
+      miniTeamId: teamId,
+      userId: userId,
+      points: 0,
+    );
+  }
+
+  // BS-005: Award adjustment (bonus/penalty)
+  Future<MiniActivityAdjustment> awardAdjustment({
+    required String miniActivityId,
+    String? teamId,
+    String? userId,
+    required int points,
+    String? reason,
+    required String createdBy,
+  }) async {
+    final id = _uuid.v4();
+    await _db.client.insert('mini_activity_adjustments', {
+      'id': id,
+      'mini_activity_id': miniActivityId,
+      'team_id': teamId,
+      'user_id': userId,
+      'points': points,
+      'reason': reason,
+      'created_by': createdBy,
+    });
+
+    return MiniActivityAdjustment(
+      id: id,
+      miniActivityId: miniActivityId,
+      teamId: teamId,
+      userId: userId,
+      points: points,
+      reason: reason,
+      createdBy: createdBy,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  // BS-006: Get adjustments for mini-activity
+  Future<List<MiniActivityAdjustment>> getAdjustments(String miniActivityId) async {
+    final result = await _db.client.select(
+      'mini_activity_adjustments',
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+      order: 'created_at.desc',
+    );
+    return result.map((row) => MiniActivityAdjustment.fromRow(row)).toList();
+  }
+
+  // BS-007: Duplicate mini-activity
+  Future<MiniActivity> duplicateMiniActivity({
+    required String miniActivityId,
+    String? newInstanceId,
+    String? newTeamId,
+    String? newName,
+  }) async {
+    final result = await _db.client.select(
+      'mini_activities',
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+
+    if (result.isEmpty) {
+      throw Exception('Mini-activity not found');
+    }
+
+    final original = MiniActivity.fromRow(result.first);
+    final id = _uuid.v4();
+
+    await _db.client.insert('mini_activities', {
+      'id': id,
+      'instance_id': newInstanceId ?? original.instanceId,
+      'team_id': newTeamId ?? original.teamId,
+      'template_id': original.templateId,
+      'name': newName ?? '${original.name} (kopi)',
+      'type': original.type,
+      'num_teams': original.numTeams,
+      'description': original.description,
+      'max_participants': original.maxParticipants,
+      'enable_leaderboard': original.enableLeaderboard,
+      'leaderboard_id': original.leaderboardId,
+      'win_points': original.winPoints,
+      'draw_points': original.drawPoints,
+      'loss_points': original.lossPoints,
+      'handicap_enabled': original.handicapEnabled,
+    });
+
+    return MiniActivity(
+      id: id,
+      instanceId: newInstanceId ?? original.instanceId,
+      teamId: newTeamId ?? original.teamId,
+      templateId: original.templateId,
+      name: newName ?? '${original.name} (kopi)',
+      type: original.type,
+      numTeams: original.numTeams,
+      createdAt: DateTime.now(),
+      description: original.description,
+      maxParticipants: original.maxParticipants,
+      enableLeaderboard: original.enableLeaderboard,
+      leaderboardId: original.leaderboardId,
+      winPoints: original.winPoints,
+      drawPoints: original.drawPoints,
+      lossPoints: original.lossPoints,
+      handicapEnabled: original.handicapEnabled,
+    );
+  }
+
+  // BS-008: Archive mini-activity
+  Future<void> archiveMiniActivity(String miniActivityId) async {
+    await _db.client.update(
+      'mini_activities',
+      {'archived_at': DateTime.now().toIso8601String()},
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+  }
+
+  // Unarchive mini-activity
+  Future<void> unarchiveMiniActivity(String miniActivityId) async {
+    await _db.client.update(
+      'mini_activities',
+      {'archived_at': null},
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+  }
+
+  // BS-009: Get standalone mini-activities for team
+  Future<List<Map<String, dynamic>>> getStandaloneMiniActivitiesForTeam(
+    String teamId, {
+    bool includeArchived = false,
+  }) async {
+    final filters = <String, String>{
+      'team_id': 'eq.$teamId',
+    };
+
+    if (!includeArchived) {
+      filters['archived_at'] = 'is.null';
+    }
+
+    final miniActivities = await _db.client.select(
+      'mini_activities',
+      filters: filters,
+      order: 'created_at.desc',
+    );
+
+    if (miniActivities.isEmpty) return [];
+
+    final miniActivityIds = miniActivities.map((m) => m['id'] as String).toList();
+
+    // Get team counts
+    final teams = await _db.client.select(
+      'mini_activity_teams',
+      select: 'mini_activity_id',
+      filters: {'mini_activity_id': 'in.(${miniActivityIds.join(',')})'},
+    );
+
+    final teamCounts = <String, int>{};
+    for (final t in teams) {
+      final id = t['mini_activity_id'] as String;
+      teamCounts[id] = (teamCounts[id] ?? 0) + 1;
+    }
+
+    // Get participant counts
+    final participants = await _db.client.select(
+      'mini_activity_participants',
+      select: 'mini_activity_id',
+      filters: {'mini_activity_id': 'in.(${miniActivityIds.join(',')})'},
+    );
+
+    final participantCounts = <String, int>{};
+    for (final p in participants) {
+      final id = p['mini_activity_id'] as String;
+      participantCounts[id] = (participantCounts[id] ?? 0) + 1;
+    }
+
+    return miniActivities.map((ma) {
+      final id = ma['id'] as String;
+      return {
+        ...ma,
+        'team_count': teamCounts[id] ?? 0,
+        'participant_count': participantCounts[id] ?? 0,
+      };
+    }).toList();
+  }
+
+  // BS-010: Update team name
+  Future<void> updateTeamName({
+    required String teamId,
+    required String newName,
+  }) async {
+    await _db.client.update(
+      'mini_activity_teams',
+      {'name': newName},
+      filters: {'id': 'eq.$teamId'},
+    );
+  }
+
+  // Get mini-activity by ID
+  Future<MiniActivity?> getMiniActivityById(String miniActivityId) async {
+    final result = await _db.client.select(
+      'mini_activities',
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+
+    if (result.isEmpty) return null;
+    return MiniActivity.fromRow(result.first);
   }
 
   Future<List<Map<String, dynamic>>> getMiniActivitiesForInstance(String instanceId) async {
     // Get mini-activities
     final miniActivities = await _db.client.select(
       'mini_activities',
-      filters: {'instance_id': 'eq.$instanceId'},
+      filters: {
+        'instance_id': 'eq.$instanceId',
+        'archived_at': 'is.null',
+      },
       order: 'created_at.asc',
     );
 
@@ -134,14 +581,7 @@ class MiniActivityService {
     return miniActivities.map((ma) {
       final id = ma['id'] as String;
       return {
-        'id': ma['id'],
-        'instance_id': ma['instance_id'],
-        'template_id': ma['template_id'],
-        'name': ma['name'],
-        'type': ma['type'],
-        'division_method': ma['division_method'],
-        'num_teams': ma['num_teams'] ?? 2,
-        'created_at': ma['created_at'],
+        ...ma,
         'team_count': teamCounts[id] ?? 0,
         'participant_count': participantCounts[id] ?? 0,
       };
@@ -247,17 +687,14 @@ class MiniActivityService {
       }).toList();
     }
 
+    // Get adjustments
+    final adjustments = await getAdjustments(miniActivityId);
+
     return {
-      'id': miniActivity['id'],
-      'instance_id': miniActivity['instance_id'],
-      'template_id': miniActivity['template_id'],
-      'name': miniActivity['name'],
-      'type': miniActivity['type'],
-      'division_method': miniActivity['division_method'],
-      'num_teams': miniActivity['num_teams'] ?? 2,
-      'created_at': miniActivity['created_at'],
+      ...miniActivity,
       'teams': teams,
       'participants': individualParticipants,
+      'adjustments': adjustments.map((a) => a.toJson()).toList(),
     };
   }
 
@@ -525,6 +962,84 @@ class MiniActivityService {
     return List.generate(count, (i) => 'Lag ${i + 1}');
   }
 
+  // ============ HANDICAPS ============
+
+  Future<MiniActivityHandicap> setHandicap({
+    required String miniActivityId,
+    required String userId,
+    required double handicapValue,
+  }) async {
+    // Check for existing handicap
+    final existing = await _db.client.select(
+      'mini_activity_handicaps',
+      filters: {
+        'mini_activity_id': 'eq.$miniActivityId',
+        'user_id': 'eq.$userId',
+      },
+    );
+
+    if (existing.isNotEmpty) {
+      await _db.client.update(
+        'mini_activity_handicaps',
+        {
+          'handicap_value': handicapValue,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        filters: {
+          'mini_activity_id': 'eq.$miniActivityId',
+          'user_id': 'eq.$userId',
+        },
+      );
+
+      return MiniActivityHandicap(
+        id: existing.first['id'] as String,
+        miniActivityId: miniActivityId,
+        userId: userId,
+        handicapValue: handicapValue,
+        createdAt: existing.first['created_at'] as DateTime,
+        updatedAt: DateTime.now(),
+      );
+    }
+
+    final id = _uuid.v4();
+    await _db.client.insert('mini_activity_handicaps', {
+      'id': id,
+      'mini_activity_id': miniActivityId,
+      'user_id': userId,
+      'handicap_value': handicapValue,
+    });
+
+    return MiniActivityHandicap(
+      id: id,
+      miniActivityId: miniActivityId,
+      userId: userId,
+      handicapValue: handicapValue,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  Future<List<MiniActivityHandicap>> getHandicaps(String miniActivityId) async {
+    final result = await _db.client.select(
+      'mini_activity_handicaps',
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+    );
+    return result.map((row) => MiniActivityHandicap.fromRow(row)).toList();
+  }
+
+  Future<void> removeHandicap({
+    required String miniActivityId,
+    required String userId,
+  }) async {
+    await _db.client.delete(
+      'mini_activity_handicaps',
+      filters: {
+        'mini_activity_id': 'eq.$miniActivityId',
+        'user_id': 'eq.$userId',
+      },
+    );
+  }
+
   // ============ SCORES ============
 
   Future<void> recordTeamScore({
@@ -578,39 +1093,45 @@ class MiniActivityService {
     if (miniResult.isEmpty) return;
     final miniActivity = miniResult.first;
 
-    // Get activity instance
-    final instanceResult = await _db.client.select(
-      'activity_instances',
-      filters: {'id': 'eq.${miniActivity['instance_id']}'},
-    );
+    // Use activity-specific point values if set
+    int winPoints = miniActivity['win_points'] as int? ?? 3;
+    int drawPoints = miniActivity['draw_points'] as int? ?? 1;
+    int lossPoints = miniActivity['loss_points'] as int? ?? 0;
 
-    if (instanceResult.isEmpty) return;
-    final instance = instanceResult.first;
+    // If no activity-specific values, try team settings
+    if (miniActivity['instance_id'] != null) {
+      // Get activity instance
+      final instanceResult = await _db.client.select(
+        'activity_instances',
+        filters: {'id': 'eq.${miniActivity['instance_id']}'},
+      );
 
-    // Get activity to find team_id
-    final activityResult = await _db.client.select(
-      'activities',
-      filters: {'id': 'eq.${instance['activity_id']}'},
-    );
+      if (instanceResult.isNotEmpty) {
+        final instance = instanceResult.first;
 
-    if (activityResult.isEmpty) return;
-    final teamId = activityResult.first['team_id'] as String;
+        // Get activity to find team_id
+        final activityResult = await _db.client.select(
+          'activities',
+          filters: {'id': 'eq.${instance['activity_id']}'},
+        );
 
-    // Get team settings
-    final settingsResult = await _db.client.select(
-      'team_settings',
-      filters: {'team_id': 'eq.$teamId'},
-    );
+        if (activityResult.isNotEmpty) {
+          final teamId = activityResult.first['team_id'] as String;
 
-    int winPoints = 3;
-    int drawPoints = 1;
-    int lossPoints = 0;
+          // Get team settings
+          final settingsResult = await _db.client.select(
+            'team_settings',
+            filters: {'team_id': 'eq.$teamId'},
+          );
 
-    if (settingsResult.isNotEmpty) {
-      final settings = settingsResult.first;
-      winPoints = settings['win_points'] as int? ?? 3;
-      drawPoints = settings['draw_points'] as int? ?? 1;
-      lossPoints = settings['loss_points'] as int? ?? 0;
+          if (settingsResult.isNotEmpty) {
+            final settings = settingsResult.first;
+            winPoints = settings['win_points'] as int? ?? winPoints;
+            drawPoints = settings['draw_points'] as int? ?? drawPoints;
+            lossPoints = settings['loss_points'] as int? ?? lossPoints;
+          }
+        }
+      }
     }
 
     // Get teams with scores
@@ -664,6 +1185,43 @@ class MiniActivityService {
     await _db.client.delete(
       'mini_activities',
       filters: {'id': 'eq.$miniActivityId'},
+    );
+  }
+
+  // Delete adjustment
+  Future<void> deleteAdjustment(String adjustmentId) async {
+    await _db.client.delete(
+      'mini_activity_adjustments',
+      filters: {'id': 'eq.$adjustmentId'},
+    );
+  }
+
+  // Get team by ID
+  Future<MiniActivityTeam?> getTeamById(String teamId) async {
+    final result = await _db.client.select(
+      'mini_activity_teams',
+      filters: {'id': 'eq.$teamId'},
+    );
+
+    if (result.isEmpty) return null;
+    return MiniActivityTeam.fromRow(result.first);
+  }
+
+  // Get teams for mini-activity
+  Future<List<MiniActivityTeam>> getTeamsForMiniActivity(String miniActivityId) async {
+    final result = await _db.client.select(
+      'mini_activity_teams',
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+      order: 'name.asc',
+    );
+    return result.map((row) => MiniActivityTeam.fromRow(row)).toList();
+  }
+
+  // Remove participant from activity
+  Future<void> removeParticipant(String participantId) async {
+    await _db.client.delete(
+      'mini_activity_participants',
+      filters: {'id': 'eq.$participantId'},
     );
   }
 }

@@ -658,7 +658,7 @@ class TeamService {
     try {
       // Get last read timestamp for user
       final lastRead = await _db.client.select(
-        'chat_read_status',
+        'message_reads',
         select: 'last_read_at',
         filters: {
           'team_id': 'eq.$teamId',
@@ -681,7 +681,7 @@ class TeamService {
       }
 
       final messages = await _db.client.select(
-        'chat_messages',
+        'messages',
         select: 'id',
         filters: filters,
       );

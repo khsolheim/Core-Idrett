@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/fine.dart';
 import '../../../data/models/team.dart';
 import '../providers/fines_provider.dart';
@@ -24,6 +25,7 @@ class _ReportFineSheetState extends ConsumerState<ReportFineSheet> {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _loading = false;
+  bool _isGameDay = false;
 
   @override
   void dispose() {
@@ -165,7 +167,18 @@ class _ReportFineSheetState extends ConsumerState<ReportFineSheet> {
               maxLines: 3,
               textCapitalization: TextCapitalization.sentences,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Game day checkbox
+            CheckboxListTile(
+              title: const Text('Kampdag'),
+              subtitle: const Text('Boter pa kampdag far multiplikator'),
+              value: _isGameDay,
+              onChanged: (value) => setState(() => _isGameDay = value ?? false),
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 16),
 
             SizedBox(
               width: double.infinity,
@@ -189,17 +202,13 @@ class _ReportFineSheetState extends ConsumerState<ReportFineSheet> {
 
   Future<void> _submitFine() async {
     if (_selectedMember == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Du må velge en spiller')),
-      );
+      ErrorDisplayService.showWarning('Du må velge en spiller');
       return;
     }
 
     final amount = double.tryParse(_amountController.text.trim());
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Du må skrive et gyldig beløp')),
-      );
+      ErrorDisplayService.showWarning('Du må skrive et gyldig beløp');
       return;
     }
 
@@ -213,19 +222,16 @@ class _ReportFineSheetState extends ConsumerState<ReportFineSheet> {
           description: _descriptionController.text.trim().isEmpty
               ? null
               : _descriptionController.text.trim(),
+          isGameDay: _isGameDay,
         );
 
     if (mounted) {
       setState(() => _loading = false);
       if (result != null) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Bøte meldt til ${_selectedMember!.userName}')),
-        );
+        ErrorDisplayService.showSuccess('Bøte meldt til ${_selectedMember!.userName}');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke melde bøte')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke melde bøte. Prøv igjen.');
       }
     }
   }
