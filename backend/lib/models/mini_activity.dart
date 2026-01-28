@@ -1,6 +1,20 @@
 // Mini-Activity Models
 // Tasks: BM-001 to BM-023
 
+// Helper to parse DateTime from database (may come as String or DateTime)
+DateTime _parseDateTime(dynamic value) {
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.parse(value);
+  return DateTime.now();
+}
+
+DateTime? _parseDateTimeNullable(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.parse(value);
+  return null;
+}
+
 class ActivityTemplate {
   final String id;
   final String teamId;
@@ -44,7 +58,7 @@ class ActivityTemplate {
       name: row['name'] as String,
       type: row['type'] as String,
       defaultPoints: row['default_points'] as int? ?? 1,
-      createdAt: row['created_at'] as DateTime,
+      createdAt: _parseDateTime(row['created_at']),
       description: row['description'] as String?,
       instructions: row['instructions'] as String?,
       sportType: row['sport_type'] as String?,
@@ -165,7 +179,7 @@ class MiniActivity {
       type: row['type'] as String,
       divisionMethod: row['division_method'] as String?,
       numTeams: row['num_teams'] as int? ?? 2,
-      createdAt: row['created_at'] as DateTime,
+      createdAt: _parseDateTime(row['created_at']),
       teamId: row['team_id'] as String?,
       leaderboardId: row['leaderboard_id'] as String?,
       enableLeaderboard: row['enable_leaderboard'] as bool? ?? true,
@@ -175,7 +189,7 @@ class MiniActivity {
       description: row['description'] as String?,
       maxParticipants: row['max_participants'] as int?,
       handicapEnabled: row['handicap_enabled'] as bool? ?? false,
-      archivedAt: row['archived_at'] as DateTime?,
+      archivedAt: _parseDateTimeNullable(row['archived_at']),
     );
   }
 
@@ -377,7 +391,7 @@ class MiniActivityAdjustment {
       points: row['points'] as int,
       reason: row['reason'] as String?,
       createdBy: row['created_by'] as String,
-      createdAt: row['created_at'] as DateTime,
+      createdAt: _parseDateTime(row['created_at']),
     );
   }
 
@@ -424,8 +438,8 @@ class MiniActivityHandicap {
       miniActivityId: row['mini_activity_id'] as String,
       userId: row['user_id'] as String,
       handicapValue: (row['handicap_value'] as num).toDouble(),
-      createdAt: row['created_at'] as DateTime,
-      updatedAt: row['updated_at'] as DateTime,
+      createdAt: _parseDateTime(row['created_at']),
+      updatedAt: _parseDateTime(row['updated_at']),
     );
   }
 

@@ -49,7 +49,6 @@ class MiniActivityService {
       'win_points': winPoints,
       'draw_points': drawPoints,
       'loss_points': lossPoints,
-      'leaderboard_id': leaderboardId,
     });
 
     return ActivityTemplate(
@@ -97,7 +96,6 @@ class MiniActivityService {
     if (winPoints != null) updates['win_points'] = winPoints;
     if (drawPoints != null) updates['draw_points'] = drawPoints;
     if (lossPoints != null) updates['loss_points'] = lossPoints;
-    if (leaderboardId != null) updates['leaderboard_id'] = leaderboardId;
 
     if (updates.isEmpty) return null;
 
@@ -173,11 +171,9 @@ class MiniActivityService {
       'template_id': templateId,
       'name': name,
       'type': type,
-      'num_teams': numTeams,
       'description': description,
       'max_participants': maxParticipants,
       'enable_leaderboard': enableLeaderboard,
-      'leaderboard_id': leaderboardId,
       'win_points': winPoints,
       'draw_points': drawPoints,
       'loss_points': lossPoints,
@@ -223,11 +219,9 @@ class MiniActivityService {
       'template_id': templateId,
       'name': name,
       'type': type,
-      'num_teams': numTeams,
       'description': description,
       'max_participants': maxParticipants,
       'enable_leaderboard': enableLeaderboard,
-      'leaderboard_id': leaderboardId,
       'win_points': winPoints,
       'draw_points': drawPoints,
       'loss_points': lossPoints,
@@ -269,7 +263,6 @@ class MiniActivityService {
     if (description != null) updates['description'] = description;
     if (maxParticipants != null) updates['max_participants'] = maxParticipants;
     if (enableLeaderboard != null) updates['enable_leaderboard'] = enableLeaderboard;
-    if (leaderboardId != null) updates['leaderboard_id'] = leaderboardId;
     if (winPoints != null) updates['win_points'] = winPoints;
     if (drawPoints != null) updates['draw_points'] = drawPoints;
     if (lossPoints != null) updates['loss_points'] = lossPoints;
@@ -309,7 +302,7 @@ class MiniActivityService {
     // Reset division method
     await _db.client.update(
       'mini_activities',
-      {'division_method': null, 'num_teams': 2},
+      {'division_method': null},
       filters: {'id': 'eq.$miniActivityId'},
     );
   }
@@ -406,11 +399,9 @@ class MiniActivityService {
       'template_id': original.templateId,
       'name': newName ?? '${original.name} (kopi)',
       'type': original.type,
-      'num_teams': original.numTeams,
       'description': original.description,
       'max_participants': original.maxParticipants,
       'enable_leaderboard': original.enableLeaderboard,
-      'leaderboard_id': original.leaderboardId,
       'win_points': original.winPoints,
       'draw_points': original.drawPoints,
       'loss_points': original.lossPoints,
@@ -719,7 +710,6 @@ class MiniActivityService {
       'mini_activities',
       {
         'division_method': method,
-        'num_teams': numberOfTeams,
       },
       filters: {'id': 'eq.$miniActivityId'},
     );
