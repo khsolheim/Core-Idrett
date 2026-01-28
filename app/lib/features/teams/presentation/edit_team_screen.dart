@@ -25,6 +25,8 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
   late TextEditingController _winPointsController;
   late TextEditingController _drawPointsController;
   late TextEditingController _lossPointsController;
+  late TextEditingController _appealFeeController;
+  late TextEditingController _gameDayMultiplierController;
 
   bool _saving = false;
   bool _initialized = false;
@@ -38,6 +40,8 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
     _winPointsController = TextEditingController(text: '3');
     _drawPointsController = TextEditingController(text: '1');
     _lossPointsController = TextEditingController(text: '0');
+    _appealFeeController = TextEditingController(text: '0');
+    _gameDayMultiplierController = TextEditingController(text: '1.0');
   }
 
   @override
@@ -49,6 +53,8 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
     _winPointsController.dispose();
     _drawPointsController.dispose();
     _lossPointsController.dispose();
+    _appealFeeController.dispose();
+    _gameDayMultiplierController.dispose();
     super.dispose();
   }
 
@@ -62,6 +68,8 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
     _winPointsController.text = settings.winPoints.toString();
     _drawPointsController.text = settings.drawPoints.toString();
     _lossPointsController.text = settings.lossPoints.toString();
+    _appealFeeController.text = settings.appealFee.toStringAsFixed(0);
+    _gameDayMultiplierController.text = settings.gameDayMultiplier.toString();
   }
 
   @override
@@ -109,12 +117,18 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
             data: (settings) {
               _initializeFields(team, settings);
 
-              return TabBarView(
-                controller: _tabController,
+              return Column(
                 children: [
-                  _buildGeneralTab(team, settings),
-                  _buildMembersTab(team),
-                  _buildTrainerTypesTab(team),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildGeneralTab(team, settings),
+                        _buildMembersTab(team),
+                        _buildTrainerTypesTab(team),
+                      ],
+                    ),
+                  ),
                 ],
               );
             },
@@ -263,6 +277,65 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
                   ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Fine settings section
+            Text(
+              'Boteinnstillinger',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Innstillinger for boter og klager.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _appealFeeController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Klagegebyr',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.gavel),
+                suffixText: 'kr',
+                helperText: 'Legges til ved avslatt klage',
+              ),
+              validator: (value) {
+                if (value != null && value.isNotEmpty) {
+                  if (double.tryParse(value) == null) {
+                    return 'Ugyldig belop';
+                  }
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _gameDayMultiplierController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: 'Kampdagsmultiplikator',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.sports_soccer),
+                suffixText: 'x',
+                helperText: 'F.eks. 2.0 = dobbelt belop pa kampdag',
+              ),
+              validator: (value) {
+                if (value != null && value.isNotEmpty) {
+                  final parsed = double.tryParse(value);
+                  if (parsed == null || parsed < 1.0) {
+                    return 'Ma vare minst 1.0';
+                  }
+                }
+                return null;
+              },
             ),
           ],
         ),
@@ -537,6 +610,8 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
       winPoints: int.tryParse(_winPointsController.text) ?? 3,
       drawPoints: int.tryParse(_drawPointsController.text) ?? 1,
       lossPoints: int.tryParse(_lossPointsController.text) ?? 0,
+      appealFee: double.tryParse(_appealFeeController.text) ?? 0,
+      gameDayMultiplier: double.tryParse(_gameDayMultiplierController.text) ?? 1.0,
     );
 
     if (mounted) {

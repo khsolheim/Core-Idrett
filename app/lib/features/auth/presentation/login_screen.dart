@@ -38,9 +38,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             password: _passwordController.text,
           );
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Innlogging feilet. Sjekk e-post og passord.';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Innlogging feilet. Sjekk e-post og passord.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
