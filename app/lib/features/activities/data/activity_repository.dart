@@ -147,4 +147,31 @@ class ActivityRepository {
     );
     return InstanceOperationResult.fromJson(response.data as Map<String, dynamic>);
   }
+
+  /// Award attendance points to all users who responded 'yes' to a completed activity
+  Future<AttendancePointsResult> awardAttendancePoints(String instanceId) async {
+    final response = await _apiClient.post('/activities/instances/$instanceId/award-attendance');
+    return AttendancePointsResult.fromJson(response.data as Map<String, dynamic>);
+  }
+}
+
+/// Result of awarding attendance points
+class AttendancePointsResult {
+  final bool success;
+  final int pointsAwardedTo;
+  final String message;
+
+  AttendancePointsResult({
+    required this.success,
+    required this.pointsAwardedTo,
+    required this.message,
+  });
+
+  factory AttendancePointsResult.fromJson(Map<String, dynamic> json) {
+    return AttendancePointsResult(
+      success: json['success'] as bool? ?? false,
+      pointsAwardedTo: json['points_awarded_to'] as int? ?? 0,
+      message: json['message'] as String? ?? '',
+    );
+  }
 }

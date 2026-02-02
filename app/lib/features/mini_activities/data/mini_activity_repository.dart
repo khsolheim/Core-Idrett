@@ -297,10 +297,12 @@ class MiniActivityRepository {
     required String miniActivityId,
     Map<String, int>? teamScores,
     Map<String, int>? participantPoints,
+    bool addToLeaderboard = false,
   }) async {
     final response = await _apiClient.post('/mini-activities/$miniActivityId/scores', data: {
       'team_scores': teamScores ?? {},
       'participant_points': participantPoints ?? {},
+      'add_to_leaderboard': addToLeaderboard,
     });
     return MiniActivity.fromJson(_parseJsonResponse(response.data));
   }
@@ -358,5 +360,73 @@ class MiniActivityRepository {
     required String userId,
   }) async {
     await _apiClient.delete('/mini-activities/$miniActivityId/handicaps/$userId');
+  }
+
+  // ============ NEW: TEAM MANAGEMENT ============
+
+  Future<MiniActivity> createTeam({
+    required String miniActivityId,
+    required String name,
+  }) async {
+    final response = await _apiClient.post('/mini-activities/$miniActivityId/teams', data: {
+      'name': name,
+    });
+    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+  }
+
+  Future<MiniActivity> deleteTeam({
+    required String miniActivityId,
+    required String miniTeamId,
+    String? moveParticipantsToTeamId,
+  }) async {
+    final response = await _apiClient.delete('/mini-activities/$miniActivityId/teams/$miniTeamId', data: {
+      if (moveParticipantsToTeamId != null) 'move_participants_to_team_id': moveParticipantsToTeamId,
+    });
+    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+  }
+
+  Future<MiniActivity> moveParticipant({
+    required String miniActivityId,
+    required String participantId,
+    required String targetTeamId,
+  }) async {
+    final response = await _apiClient.put('/mini-activities/$miniActivityId/participants/$participantId/move', data: {
+      'target_team_id': targetTeamId,
+    });
+    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+  }
+
+  // ============ NEW: RESULT MANAGEMENT ============
+
+  Future<MiniActivity> setWinner({
+    required String miniActivityId,
+    String? winnerTeamId,
+    bool addToLeaderboard = false,
+  }) async {
+    final response = await _apiClient.post('/mini-activities/$miniActivityId/result', data: {
+      'winner_team_id': winnerTeamId,
+      'add_to_leaderboard': addToLeaderboard,
+    });
+    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+  }
+
+  Future<MiniActivity> clearResult(String miniActivityId) async {
+    final response = await _apiClient.delete('/mini-activities/$miniActivityId/result');
+    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+  }
+
+  // ============ NEW: HISTORY ============
+
+  Future<List<MiniActivityHistoryEntry>> getHistory({
+    required String teamId,
+    String? templateId,
+    int limit = 20,
+  }) async {
+    final response = await _apiClient.get('/mini-activities/history/team/$teamId', queryParameters: {
+      if (templateId != null) 'template_id': templateId,
+      'limit': limit.toString(),
+    });
+    final data = _parseListResponse(response.data);
+    return data.map((json) => MiniActivityHistoryEntry.fromJson(json as Map<String, dynamic>)).toList();
   }
 }

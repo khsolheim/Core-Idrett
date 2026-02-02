@@ -167,6 +167,7 @@ class RecordScoresNotifier extends StateNotifier<AsyncValue<void>> {
     required String instanceId,
     Map<String, int>? teamScores,
     Map<String, int>? participantPoints,
+    bool addToLeaderboard = false,
   }) async {
     state = const AsyncValue.loading();
     try {
@@ -174,6 +175,7 @@ class RecordScoresNotifier extends StateNotifier<AsyncValue<void>> {
         miniActivityId: miniActivityId,
         teamScores: teamScores,
         participantPoints: participantPoints,
+        addToLeaderboard: addToLeaderboard,
       );
       _ref.invalidate(miniActivityDetailProvider(miniActivityId));
       _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
@@ -596,3 +598,171 @@ class TemplateOperationsNotifier extends StateNotifier<AsyncValue<void>> {
 final templateOperationsProvider = StateNotifierProvider<TemplateOperationsNotifier, AsyncValue<void>>((ref) {
   return TemplateOperationsNotifier(ref.watch(miniActivityRepositoryProvider), ref);
 });
+
+// ============ NEW: TEAM MANAGEMENT NOTIFIER ============
+
+class TeamManagementNotifier extends StateNotifier<AsyncValue<void>> {
+  final MiniActivityRepository _repository;
+  final Ref _ref;
+
+  TeamManagementNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+
+  Future<MiniActivity?> createTeam({
+    required String miniActivityId,
+    required String instanceId,
+    required String name,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repository.createTeam(
+        miniActivityId: miniActivityId,
+        name: name,
+      );
+      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      state = const AsyncValue.data(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<MiniActivity?> deleteTeam({
+    required String miniActivityId,
+    required String instanceId,
+    required String miniTeamId,
+    String? moveParticipantsToTeamId,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repository.deleteTeam(
+        miniActivityId: miniActivityId,
+        miniTeamId: miniTeamId,
+        moveParticipantsToTeamId: moveParticipantsToTeamId,
+      );
+      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      state = const AsyncValue.data(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<MiniActivity?> moveParticipant({
+    required String miniActivityId,
+    required String instanceId,
+    required String participantId,
+    required String targetTeamId,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repository.moveParticipant(
+        miniActivityId: miniActivityId,
+        participantId: participantId,
+        targetTeamId: targetTeamId,
+      );
+      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      state = const AsyncValue.data(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+}
+
+final teamManagementProvider = StateNotifierProvider<TeamManagementNotifier, AsyncValue<void>>((ref) {
+  return TeamManagementNotifier(ref.watch(miniActivityRepositoryProvider), ref);
+});
+
+// ============ NEW: RESULT MANAGEMENT NOTIFIER ============
+
+class ResultManagementNotifier extends StateNotifier<AsyncValue<void>> {
+  final MiniActivityRepository _repository;
+  final Ref _ref;
+
+  ResultManagementNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+
+  Future<MiniActivity?> setWinner({
+    required String miniActivityId,
+    required String instanceId,
+    String? winnerTeamId,
+    bool addToLeaderboard = false,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repository.setWinner(
+        miniActivityId: miniActivityId,
+        winnerTeamId: winnerTeamId,
+        addToLeaderboard: addToLeaderboard,
+      );
+      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      state = const AsyncValue.data(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<MiniActivity?> clearResult({
+    required String miniActivityId,
+    required String instanceId,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repository.clearResult(miniActivityId);
+      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      state = const AsyncValue.data(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+}
+
+final resultManagementProvider = StateNotifierProvider<ResultManagementNotifier, AsyncValue<void>>((ref) {
+  return ResultManagementNotifier(ref.watch(miniActivityRepositoryProvider), ref);
+});
+
+// ============ NEW: HISTORY PROVIDER ============
+
+final miniActivityHistoryProvider = FutureProvider.family<List<MiniActivityHistoryEntry>, MiniActivityHistoryParams>((ref, params) async {
+  final repository = ref.watch(miniActivityRepositoryProvider);
+  return repository.getHistory(
+    teamId: params.teamId,
+    templateId: params.templateId,
+    limit: params.limit,
+  );
+});
+
+class MiniActivityHistoryParams {
+  final String teamId;
+  final String? templateId;
+  final int limit;
+
+  MiniActivityHistoryParams({
+    required this.teamId,
+    this.templateId,
+    this.limit = 20,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MiniActivityHistoryParams &&
+          runtimeType == other.runtimeType &&
+          teamId == other.teamId &&
+          templateId == other.templateId &&
+          limit == other.limit;
+
+  @override
+  int get hashCode => teamId.hashCode ^ templateId.hashCode ^ limit.hashCode;
+}

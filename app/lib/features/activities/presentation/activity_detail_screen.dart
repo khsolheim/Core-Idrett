@@ -210,6 +210,7 @@ class _ActivityDetailContent extends ConsumerStatefulWidget {
 
 class _ActivityDetailContentState extends ConsumerState<_ActivityDetailContent> {
   bool _isResponding = false;
+  bool _isAwardingPoints = false;
 
   Future<void> _respond(UserResponse? response) async {
     setState(() => _isResponding = true);
@@ -381,10 +382,63 @@ class _ActivityDetailContentState extends ConsumerState<_ActivityDetailContent> 
               teamId: widget.teamId,
               canCreate: _canManageMiniActivities(widget.team, widget.user, instance),
             ),
+
+            // Admin section for awarding attendance points
+            if (_canAwardAttendancePoints(widget.team, instance)) ...[
+              const SizedBox(height: 16),
+              _AdminActionsSection(
+                instance: instance,
+                teamId: widget.teamId,
+                isAwardingPoints: _isAwardingPoints,
+                onAwardPoints: _awardAttendancePoints,
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  /// Determine if user can award attendance points
+  bool _canAwardAttendancePoints(Team? team, ActivityInstance instance) {
+    if (team == null) return false;
+    // Only admin can award attendance points
+    if (!team.userIsAdmin) return false;
+    // Activity must be in the past
+    final today = DateTime.now();
+    final activityDate = DateTime(instance.date.year, instance.date.month, instance.date.day);
+    final todayDate = DateTime(today.year, today.month, today.day);
+    if (!activityDate.isBefore(todayDate)) return false;
+    // Activity must not be cancelled
+    if (instance.status == InstanceStatus.cancelled) return false;
+    return true;
+  }
+
+  Future<void> _awardAttendancePoints() async {
+    setState(() => _isAwardingPoints = true);
+
+    final result = await ref.read(attendancePointsProvider.notifier).awardPoints(
+          instanceId: widget.instance.id,
+          teamId: widget.teamId,
+        );
+
+    if (mounted) {
+      setState(() => _isAwardingPoints = false);
+
+      if (result != null && result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.message)),
+        );
+      } else {
+        final error = ref.read(attendancePointsProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error?.toString() ?? 'Kunne ikke tildele oppmøtepoeng'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   /// Determine if user can create/manage mini-activities
@@ -649,6 +703,80 @@ class _ResponseListItem extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AdminActionsSection extends StatelessWidget {
+  final ActivityInstance instance;
+  final String teamId;
+  final bool isAwardingPoints;
+  final VoidCallback onAwardPoints;
+
+  const _AdminActionsSection({
+    required this.instance,
+    required this.teamId,
+    required this.isAwardingPoints,
+    required this.onAwardPoints,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final yesCount = instance.yesCount ?? 0;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.admin_panel_settings,
+                  color: theme.colorScheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Admin',
+                  style: theme.textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Tildel oppmøtepoeng til alle som svarte "Ja" ($yesCount spillere)',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: isAwardingPoints ? null : onAwardPoints,
+                icon: isAwardingPoints
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.emoji_events),
+                label: Text(isAwardingPoints ? 'Tildeler poeng...' : 'Tildel oppmøtepoeng'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Poeng legges til på sesong-leaderboard. Allerede tildelte poeng hoppes over.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
