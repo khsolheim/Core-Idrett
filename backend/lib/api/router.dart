@@ -37,12 +37,12 @@ import 'mini_activity_statistics_handler.dart';
 Router createRouter(Database db) {
   final authService = AuthService(db);
   final teamService = TeamService(db);
-  final activityService = ActivityService(db);
-  final miniActivityService = MiniActivityService(db);
-  final statisticsService = StatisticsService(db);
-  final fineService = FineService(db);
   final seasonService = SeasonService(db);
   final leaderboardService = LeaderboardService(db);
+  final activityService = ActivityService(db, leaderboardService, seasonService);
+  final miniActivityService = MiniActivityService(db, leaderboardService, seasonService);
+  final statisticsService = StatisticsService(db);
+  final fineService = FineService(db);
   final testService = TestService(db);
   final notificationService = NotificationService(db);
   final messageService = MessageService(db);

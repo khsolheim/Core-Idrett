@@ -27,6 +27,7 @@ class ActivitiesHandler {
     router.patch('/instances/<instanceId>/status', _updateInstanceStatus);
     router.patch('/instances/<instanceId>', _editInstance);
     router.delete('/instances/<instanceId>', _deleteInstance);
+    router.post('/instances/<instanceId>/award-attendance', _awardAttendancePoints);
 
     // Activity routes
     router.patch('/<activityId>', _updateActivity);
@@ -468,6 +469,63 @@ class ActivitiesHandler {
     } catch (e) {
       if (e.toString().contains('Cannot delete past')) {
         return Response(400, body: jsonEncode({'error': 'Kan ikke slette aktiviteter i fortiden'}));
+      }
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  /// Award attendance points to all users who responded 'yes' to a completed activity
+  Future<Response> _awardAttendancePoints(Request request, String instanceId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      // Get instance info for authorization
+      final instanceInfo = await _activityService.getInstanceInfo(instanceId);
+      if (instanceInfo == null) {
+        return Response(404, body: jsonEncode({'error': 'Aktivitet ikke funnet'}));
+      }
+
+      final teamId = instanceInfo['team_id'] as String;
+
+      // Only admins can award attendance points
+      final team = await _teamService.getTeamById(teamId, userId);
+      if (team == null || team['user_role'] != 'admin') {
+        return Response(403, body: jsonEncode({
+          'error': 'Kun administratorer kan tildele oppmøtepoeng'
+        }));
+      }
+
+      final pointsAwarded = await _activityService.awardAttendancePoints(instanceId);
+
+      return Response.ok(jsonEncode({
+        'success': true,
+        'points_awarded_to': pointsAwarded,
+        'message': 'Oppmøtepoeng tildelt til $pointsAwarded spillere',
+      }));
+    } catch (e) {
+      final errorMsg = e.toString();
+      if (errorMsg.contains('Cannot award points for future')) {
+        return Response(400, body: jsonEncode({
+          'error': 'Kan ikke tildele poeng for fremtidige aktiviteter'
+        }));
+      }
+      if (errorMsg.contains('Cannot award points for cancelled')) {
+        return Response(400, body: jsonEncode({
+          'error': 'Kan ikke tildele poeng for avlyste aktiviteter'
+        }));
+      }
+      if (errorMsg.contains('No active season')) {
+        return Response(400, body: jsonEncode({
+          'error': 'Ingen aktiv sesong funnet for laget'
+        }));
+      }
+      if (errorMsg.contains('No main leaderboard')) {
+        return Response(400, body: jsonEncode({
+          'error': 'Ingen hovedleaderboard funnet for laget'
+        }));
       }
       return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
     }

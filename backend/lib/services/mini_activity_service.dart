@@ -2,13 +2,18 @@ import 'dart:math';
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/mini_activity.dart';
+import '../models/mini_activity_statistics.dart';
+import 'leaderboard_service.dart';
+import 'season_service.dart';
 
 class MiniActivityService {
   final Database _db;
+  final LeaderboardService _leaderboardService;
+  final SeasonService _seasonService;
   final _uuid = const Uuid();
   final _random = Random();
 
-  MiniActivityService(this._db);
+  MiniActivityService(this._db, this._leaderboardService, this._seasonService);
 
   // ============ TEMPLATES ============
 
@@ -1086,6 +1091,7 @@ class MiniActivityService {
     required String miniActivityId,
     required Map<String, int> teamScores, // teamId -> score
     required Map<String, int> participantPoints, // participantId -> points
+    bool addToLeaderboard = false,
   }) async {
     // Update team scores
     for (final entry in teamScores.entries) {
@@ -1098,10 +1104,10 @@ class MiniActivityService {
     }
 
     // Calculate and award points based on team results
-    await _awardPointsBasedOnResults(miniActivityId);
+    await _awardPointsBasedOnResults(miniActivityId, addToMainLeaderboard: addToLeaderboard);
   }
 
-  Future<void> _awardPointsBasedOnResults(String miniActivityId) async {
+  Future<void> _awardPointsBasedOnResults(String miniActivityId, {bool addToMainLeaderboard = false}) async {
     // Get mini-activity
     final miniResult = await _db.client.select(
       'mini_activities',
@@ -1110,11 +1116,14 @@ class MiniActivityService {
 
     if (miniResult.isEmpty) return;
     final miniActivity = miniResult.first;
+    final miniActivityName = miniActivity['name'] as String? ?? 'Mini-aktivitet';
 
     // Use activity-specific point values if set
     int winPoints = miniActivity['win_points'] as int? ?? 3;
     int drawPoints = miniActivity['draw_points'] as int? ?? 1;
     int lossPoints = miniActivity['loss_points'] as int? ?? 0;
+
+    String? teamId;
 
     // If no activity-specific values, try team settings
     if (miniActivity['instance_id'] != null) {
@@ -1134,7 +1143,7 @@ class MiniActivityService {
         );
 
         if (activityResult.isNotEmpty) {
-          final teamId = activityResult.first['team_id'] as String;
+          teamId = activityResult.first['team_id'] as String;
 
           // Get team settings
           final settingsResult = await _db.client.select(
@@ -1149,6 +1158,18 @@ class MiniActivityService {
             lossPoints = settings['loss_points'] as int? ?? lossPoints;
           }
         }
+      }
+    } else if (miniActivity['team_id'] != null) {
+      teamId = miniActivity['team_id'] as String;
+    }
+
+    // Get main leaderboard if we should add to it
+    String? mainLeaderboardId;
+    if (addToMainLeaderboard && teamId != null) {
+      final activeSeason = await _seasonService.getActiveSeason(teamId);
+      if (activeSeason != null) {
+        final mainLeaderboard = await _leaderboardService.getMainLeaderboard(teamId);
+        mainLeaderboardId = mainLeaderboard?.id;
       }
     }
 
@@ -1171,15 +1192,20 @@ class MiniActivityService {
       final teamDbId = team['id'] as String;
 
       int pointsToAward;
+      String resultDescription;
       if (score == highestScore && score == lowestScore) {
         // All teams have same score - draw
         pointsToAward = drawPoints;
+        resultDescription = 'Uavgjort';
       } else if (score == highestScore) {
         pointsToAward = winPoints;
+        resultDescription = 'Seier';
       } else if (score == lowestScore) {
         pointsToAward = lossPoints;
+        resultDescription = 'Tap';
       } else {
         pointsToAward = drawPoints;
+        resultDescription = 'Uavgjort';
       }
 
       // Get participants in this team and award points
@@ -1189,12 +1215,36 @@ class MiniActivityService {
       );
 
       for (final p in teamParticipants) {
+        final userId = p['user_id'] as String;
+
+        // Update mini-activity participant points
         final currentPoints = (p['points'] as int?) ?? 0;
         await _db.client.update(
           'mini_activity_participants',
           {'points': currentPoints + pointsToAward},
           filters: {'id': 'eq.${p['id']}'},
         );
+
+        // Also add to main leaderboard if configured
+        if (mainLeaderboardId != null && pointsToAward > 0) {
+          // Check if points were already awarded for this mini-activity
+          final alreadyAwarded = await _leaderboardService.hasPointsForSource(
+            userId: userId,
+            sourceType: PointSourceType.miniActivity,
+            sourceId: miniActivityId,
+          );
+
+          if (!alreadyAwarded) {
+            await _leaderboardService.addPointsWithSource(
+              leaderboardId: mainLeaderboardId,
+              userId: userId,
+              points: pointsToAward,
+              sourceType: PointSourceType.miniActivity,
+              sourceId: miniActivityId,
+              description: '$resultDescription i $miniActivityName',
+            );
+          }
+        }
       }
     }
   }
@@ -1241,6 +1291,304 @@ class MiniActivityService {
       'mini_activity_participants',
       filters: {'id': 'eq.$participantId'},
     );
+  }
+
+  // ============ NEW: DELETE SINGLE TEAM ============
+
+  /// Delete a single team from a mini-activity
+  /// Optionally moves participants to another team or removes them
+  Future<void> deleteTeam({
+    required String miniActivityId,
+    required String teamId,
+    String? moveParticipantsToTeamId,
+  }) async {
+    if (moveParticipantsToTeamId != null) {
+      // Move participants to the target team
+      await _db.client.update(
+        'mini_activity_participants',
+        {'mini_team_id': moveParticipantsToTeamId},
+        filters: {'mini_team_id': 'eq.$teamId'},
+      );
+    } else {
+      // Delete participants from this team
+      await _db.client.delete(
+        'mini_activity_participants',
+        filters: {'mini_team_id': 'eq.$teamId'},
+      );
+    }
+
+    // Delete the team
+    await _db.client.delete(
+      'mini_activity_teams',
+      filters: {'id': 'eq.$teamId'},
+    );
+  }
+
+  // ============ NEW: CREATE MANUAL TEAM ============
+
+  /// Create a new empty team for a mini-activity
+  Future<MiniActivityTeam> createTeam({
+    required String miniActivityId,
+    required String name,
+  }) async {
+    final id = _uuid.v4();
+    await _db.client.insert('mini_activity_teams', {
+      'id': id,
+      'mini_activity_id': miniActivityId,
+      'name': name,
+    });
+
+    return MiniActivityTeam(
+      id: id,
+      miniActivityId: miniActivityId,
+      name: name,
+    );
+  }
+
+  // ============ NEW: SET WINNER MANUALLY ============
+
+  /// Mark a winner manually (without requiring score input)
+  /// winnerTeamId can be null for a draw
+  Future<void> setWinner({
+    required String miniActivityId,
+    String? winnerTeamId,
+    bool addToLeaderboard = false,
+  }) async {
+    // Get mini-activity for point values
+    final miniResult = await _db.client.select(
+      'mini_activities',
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+    if (miniResult.isEmpty) return;
+
+    final miniActivity = miniResult.first;
+    final winPoints = miniActivity['win_points'] as int? ?? 3;
+    final drawPoints = miniActivity['draw_points'] as int? ?? 1;
+    final lossPoints = miniActivity['loss_points'] as int? ?? 0;
+    final miniActivityName = miniActivity['name'] as String? ?? 'Mini-aktivitet';
+
+    // Get all teams
+    final teams = await _db.client.select(
+      'mini_activity_teams',
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+    );
+
+    // Update winner_team_id on mini_activity
+    await _db.client.update(
+      'mini_activities',
+      {'winner_team_id': winnerTeamId},
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+
+    // For draws, set final_score on all teams so hasResult returns true in frontend
+    if (winnerTeamId == null) {
+      for (final team in teams) {
+        await _db.client.update(
+          'mini_activity_teams',
+          {'final_score': 0},
+          filters: {'id': 'eq.${team['id']}'},
+        );
+      }
+    }
+
+    // Award points to participants if addToLeaderboard is true
+    if (addToLeaderboard) {
+      // Get team_id for main leaderboard lookup
+      final teamId = await _getTeamIdForMiniActivity(miniActivityId);
+      String? mainLeaderboardId;
+
+      if (teamId != null) {
+        // Get active season and main leaderboard
+        final activeSeason = await _seasonService.getActiveSeason(teamId);
+        if (activeSeason != null) {
+          final mainLeaderboard = await _leaderboardService.getMainLeaderboard(teamId);
+          mainLeaderboardId = mainLeaderboard?.id;
+        }
+      }
+
+      for (final team in teams) {
+        final teamDbId = team['id'] as String;
+        final isWinner = teamDbId == winnerTeamId;
+        final isDraw = winnerTeamId == null;
+
+        int pointsToAward;
+        String resultDescription;
+        if (isDraw) {
+          pointsToAward = drawPoints;
+          resultDescription = 'Uavgjort';
+        } else if (isWinner) {
+          pointsToAward = winPoints;
+          resultDescription = 'Seier';
+        } else {
+          pointsToAward = lossPoints;
+          resultDescription = 'Tap';
+        }
+
+        // Get participants in this team and award points
+        final teamParticipants = await _db.client.select(
+          'mini_activity_participants',
+          filters: {'mini_team_id': 'eq.$teamDbId'},
+        );
+
+        for (final p in teamParticipants) {
+          final userId = p['user_id'] as String;
+
+          // Update mini-activity participant points
+          final currentPoints = (p['points'] as int?) ?? 0;
+          await _db.client.update(
+            'mini_activity_participants',
+            {'points': currentPoints + pointsToAward},
+            filters: {'id': 'eq.${p['id']}'},
+          );
+
+          // Also add to main leaderboard if we have one
+          if (mainLeaderboardId != null && pointsToAward > 0) {
+            // Check if points were already awarded for this mini-activity
+            final alreadyAwarded = await _leaderboardService.hasPointsForSource(
+              userId: userId,
+              sourceType: PointSourceType.miniActivity,
+              sourceId: miniActivityId,
+            );
+
+            if (!alreadyAwarded) {
+              await _leaderboardService.addPointsWithSource(
+                leaderboardId: mainLeaderboardId,
+                userId: userId,
+                points: pointsToAward,
+                sourceType: PointSourceType.miniActivity,
+                sourceId: miniActivityId,
+                description: '$resultDescription i $miniActivityName',
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /// Get team_id for a mini-activity (looks up via instance or team_id field)
+  Future<String?> _getTeamIdForMiniActivity(String miniActivityId) async {
+    final result = await _db.client.select(
+      'mini_activities',
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+
+    if (result.isEmpty) return null;
+    final miniActivity = result.first;
+
+    // First check if team_id is set directly (standalone mini-activity)
+    if (miniActivity['team_id'] != null) {
+      return miniActivity['team_id'] as String;
+    }
+
+    // Otherwise, look up through instance -> activity -> team
+    final instanceId = miniActivity['instance_id'] as String?;
+    if (instanceId == null) return null;
+
+    final instanceResult = await _db.client.select(
+      'activity_instances',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    if (instanceResult.isEmpty) return null;
+    final activityId = instanceResult.first['activity_id'] as String;
+
+    final activityResult = await _db.client.select(
+      'activities',
+      select: 'team_id',
+      filters: {'id': 'eq.$activityId'},
+    );
+
+    if (activityResult.isEmpty) return null;
+    return activityResult.first['team_id'] as String?;
+  }
+
+  // ============ NEW: CLEAR/RESET RESULT ============
+
+  /// Clear the result of a mini-activity (reset scores and winner)
+  Future<void> clearResult(String miniActivityId) async {
+    // Reset winner_team_id on mini_activity
+    await _db.client.update(
+      'mini_activities',
+      {'winner_team_id': null},
+      filters: {'id': 'eq.$miniActivityId'},
+    );
+
+    // Reset all team scores to null
+    await _db.client.update(
+      'mini_activity_teams',
+      {'final_score': null},
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+    );
+
+    // Reset all participant points to 0
+    await _db.client.update(
+      'mini_activity_participants',
+      {'points': 0},
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+    );
+  }
+
+  // ============ NEW: GET HISTORY ============
+
+  /// Get history of completed mini-activities with the same template
+  Future<List<Map<String, dynamic>>> getHistory({
+    required String teamId,
+    String? templateId,
+    int limit = 20,
+  }) async {
+    // Build filters
+    final filters = <String, String>{
+      'team_id': 'eq.$teamId',
+    };
+
+    if (templateId != null) {
+      filters['template_id'] = 'eq.$templateId';
+    }
+
+    // Get mini-activities that have results (have a winner_team_id set or have teams with scores)
+    final miniActivities = await _db.client.select(
+      'mini_activities',
+      filters: filters,
+      order: 'created_at.desc',
+    );
+
+    if (miniActivities.isEmpty) return [];
+
+    final result = <Map<String, dynamic>>[];
+
+    for (final ma in miniActivities) {
+      final miniActivityId = ma['id'] as String;
+
+      // Get teams with scores for this mini-activity
+      final teams = await _db.client.select(
+        'mini_activity_teams',
+        filters: {'mini_activity_id': 'eq.$miniActivityId'},
+        order: 'name.asc',
+      );
+
+      // Check if any team has a score or if there's a winner set
+      final hasResult = teams.any((t) => t['final_score'] != null) ||
+          ma['winner_team_id'] != null;
+
+      if (hasResult) {
+        result.add({
+          'id': ma['id'],
+          'name': ma['name'],
+          'created_at': ma['created_at'],
+          'winner_team_id': ma['winner_team_id'],
+          'teams': teams.map((t) => {
+            'id': t['id'],
+            'name': t['name'],
+            'final_score': t['final_score'],
+          }).toList(),
+        });
+      }
+
+      if (result.length >= limit) break;
+    }
+
+    return result;
   }
 }
 

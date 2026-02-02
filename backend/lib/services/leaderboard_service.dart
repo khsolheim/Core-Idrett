@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/season.dart';
+import '../models/mini_activity_statistics.dart';
 
 class LeaderboardService {
   final Database _db;
@@ -343,6 +344,93 @@ class LeaderboardService {
       {'points': 0, 'updated_at': DateTime.now().toIso8601String()},
       filters: {'leaderboard_id': 'eq.$leaderboardId'},
     );
+  }
+
+  /// Add points to a user's leaderboard entry with a traceable source
+  /// This creates both the leaderboard entry (if needed) and a point source record
+  Future<LeaderboardEntry> addPointsWithSource({
+    required String leaderboardId,
+    required String userId,
+    required int points,
+    required PointSourceType sourceType,
+    required String sourceId,
+    String? description,
+  }) async {
+    // Find or create the leaderboard entry
+    final existing = await _db.client.select(
+      'leaderboard_entries',
+      filters: {
+        'leaderboard_id': 'eq.$leaderboardId',
+        'user_id': 'eq.$userId',
+      },
+    );
+
+    String entryId;
+    int newPoints;
+
+    if (existing.isEmpty) {
+      // Create new entry
+      entryId = _uuid.v4();
+      newPoints = points;
+      await _db.client.insert('leaderboard_entries', {
+        'id': entryId,
+        'leaderboard_id': leaderboardId,
+        'user_id': userId,
+        'points': newPoints,
+      });
+    } else {
+      // Update existing entry
+      entryId = existing.first['id'] as String;
+      final currentPoints = existing.first['points'] as int? ?? 0;
+      newPoints = currentPoints + points;
+
+      await _db.client.update(
+        'leaderboard_entries',
+        {
+          'points': newPoints,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        filters: {'id': 'eq.$entryId'},
+      );
+    }
+
+    // Record the point source for traceability
+    await _db.client.insert('leaderboard_point_sources', {
+      'id': _uuid.v4(),
+      'leaderboard_entry_id': entryId,
+      'user_id': userId,
+      'source_type': sourceType.value,
+      'source_id': sourceId,
+      'points': points,
+      'description': description,
+    });
+
+    return LeaderboardEntry(
+      id: entryId,
+      leaderboardId: leaderboardId,
+      userId: userId,
+      points: newPoints,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Check if points have already been awarded for a specific source
+  Future<bool> hasPointsForSource({
+    required String userId,
+    required PointSourceType sourceType,
+    required String sourceId,
+  }) async {
+    final result = await _db.client.select(
+      'leaderboard_point_sources',
+      select: 'id',
+      filters: {
+        'user_id': 'eq.$userId',
+        'source_type': 'eq.${sourceType.value}',
+        'source_id': 'eq.$sourceId',
+      },
+      limit: 1,
+    );
+    return result.isNotEmpty;
   }
 
   /// Get team ID for a leaderboard (for authorization checks)
