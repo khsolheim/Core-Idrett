@@ -258,14 +258,16 @@ class MiniActivity {
     List<MiniActivityTeam>? teams;
     if (json['teams'] != null) {
       teams = (json['teams'] as List)
-          .map((t) => MiniActivityTeam.fromJson(t as Map<String, dynamic>))
+          .map((t) => MiniActivityTeam.fromJson(
+              t is Map<String, dynamic> ? t : Map<String, dynamic>.from(t as Map)))
           .toList();
     }
 
     List<MiniActivityParticipant>? participants;
     if (json['participants'] != null) {
       participants = (json['participants'] as List)
-          .map((p) => MiniActivityParticipant.fromJson(p as Map<String, dynamic>))
+          .map((p) => MiniActivityParticipant.fromJson(
+              p is Map<String, dynamic> ? p : Map<String, dynamic>.from(p as Map)))
           .toList();
     }
 
@@ -398,7 +400,8 @@ class MiniActivityTeam {
       // Filter out null entries that might come from LEFT JOIN
       participants = list
           .where((p) => p != null && p is Map && p['user_id'] != null)
-          .map((p) => MiniActivityParticipant.fromJson(p as Map<String, dynamic>))
+          .map((p) => MiniActivityParticipant.fromJson(
+              p is Map<String, dynamic> ? p : Map<String, dynamic>.from(p as Map)))
           .toList();
     }
 

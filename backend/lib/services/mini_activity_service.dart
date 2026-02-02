@@ -705,6 +705,24 @@ class MiniActivityService {
     required List<String> participantUserIds,
     String teamId = '', // For getting ratings/ages
   }) async {
+    // Remove duplicates from participant list
+    final uniqueParticipantIds = participantUserIds.toSet().toList();
+
+    // Validate that all user IDs exist (skip for manual mode with no participants)
+    if (method != 'manual' && uniqueParticipantIds.isNotEmpty) {
+      final existingUsers = await _db.client.select(
+        'users',
+        select: 'id',
+        filters: {'id': 'in.(${uniqueParticipantIds.join(',')})'},
+      );
+      final existingUserIds = existingUsers.map((u) => u['id'] as String).toSet();
+      final invalidIds = uniqueParticipantIds.where((id) => !existingUserIds.contains(id)).toList();
+
+      if (invalidIds.isNotEmpty) {
+        throw ArgumentError('Ugyldige bruker-IDer: ${invalidIds.join(", ")}');
+      }
+    }
+
     // Update mini-activity with division method and number of teams
     await _db.client.update(
       'mini_activities',
@@ -712,6 +730,16 @@ class MiniActivityService {
         'division_method': method,
       },
       filters: {'id': 'eq.$miniActivityId'},
+    );
+
+    // Delete existing participants and teams first (to allow re-division)
+    await _db.client.delete(
+      'mini_activity_participants',
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
+    );
+    await _db.client.delete(
+      'mini_activity_teams',
+      filters: {'mini_activity_id': 'eq.$miniActivityId'},
     );
 
     // For manual, just create empty teams
@@ -745,7 +773,7 @@ class MiniActivityService {
         select: 'user_id,rating',
         filters: {
           'team_id': 'eq.$teamId',
-          'user_id': 'in.(${participantUserIds.join(',')})',
+          'user_id': 'in.(${uniqueParticipantIds.join(',')})',
         },
       );
 
@@ -754,7 +782,7 @@ class MiniActivityService {
         ratingMap[r['user_id'] as String] = (r['rating'] as num).toDouble();
       }
 
-      for (final userId in participantUserIds) {
+      for (final userId in uniqueParticipantIds) {
         participants.add(_ParticipantData(
           userId: userId,
           sortValue: ratingMap[userId] ?? 1000.0,
@@ -765,7 +793,7 @@ class MiniActivityService {
       final users = await _db.client.select(
         'users',
         select: 'id,birth_date',
-        filters: {'id': 'in.(${participantUserIds.join(',')})'},
+        filters: {'id': 'in.(${uniqueParticipantIds.join(',')})'},
       );
 
       final birthDateMap = <String, DateTime?>{};
@@ -778,7 +806,7 @@ class MiniActivityService {
 
       // Sort value: days since birth (higher = older)
       final now = DateTime.now();
-      for (final userId in participantUserIds) {
+      for (final userId in uniqueParticipantIds) {
         final birthDate = birthDateMap[userId];
         final daysOld = birthDate != null
             ? now.difference(birthDate).inDays.toDouble()
@@ -790,7 +818,7 @@ class MiniActivityService {
       }
     } else {
       // For random, use random values
-      participants = participantUserIds
+      participants = uniqueParticipantIds
           .map((id) => _ParticipantData(userId: id, sortValue: _random.nextDouble()))
           .toList();
     }

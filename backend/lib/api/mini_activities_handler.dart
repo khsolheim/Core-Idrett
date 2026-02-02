@@ -268,8 +268,8 @@ class MiniActivitiesHandler {
         }));
       }
 
-      if (!['random', 'ranked', 'age'].contains(method)) {
-        return Response(400, body: jsonEncode({'error': 'Ugyldig metode (random, ranked, age)'}));
+      if (!['random', 'ranked', 'age', 'gmo', 'cup', 'manual'].contains(method)) {
+        return Response(400, body: jsonEncode({'error': 'Ugyldig metode'}));
       }
 
       if (numberOfTeams < 2) {
@@ -291,8 +291,11 @@ class MiniActivitiesHandler {
       // Return the updated mini-activity detail
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return Response.ok(jsonEncode(detail));
+    } on ArgumentError catch (e) {
+      return Response(400, body: jsonEncode({'error': e.message}));
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      print('Divide teams error: $e');
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod ved lagdeling: $e'}));
     }
   }
 
