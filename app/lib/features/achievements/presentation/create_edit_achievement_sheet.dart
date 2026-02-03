@@ -28,6 +28,7 @@ class _CreateEditAchievementSheetState
   late final TextEditingController _iconController;
   late final TextEditingController _bonusPointsController;
   late final TextEditingController _thresholdController;
+  late final TextEditingController _cooldownDaysController;
 
   late AchievementCategory _category;
   late AchievementTier _tier;
@@ -54,6 +55,8 @@ class _CreateEditAchievementSheetState
         TextEditingController(text: (existing?.bonusPoints ?? 0).toString());
     _thresholdController = TextEditingController(
         text: (existing?.criteria.threshold ?? 10).toString());
+    _cooldownDaysController = TextEditingController(
+        text: (existing?.repeatCooldownDays ?? 30).toString());
 
     _category = existing?.category ?? AchievementCategory.milestone;
     _tier = existing?.tier ?? AchievementTier.bronze;
@@ -72,6 +75,7 @@ class _CreateEditAchievementSheetState
     _iconController.dispose();
     _bonusPointsController.dispose();
     _thresholdController.dispose();
+    _cooldownDaysController.dispose();
     super.dispose();
   }
 
@@ -269,6 +273,21 @@ class _CreateEditAchievementSheetState
                 ),
               ],
             ),
+
+            // Cooldown days (shown when repeatable is enabled)
+            if (_isRepeatable) ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: _cooldownDaysController,
+                decoration: const InputDecoration(
+                  labelText: 'Ventetid mellom gjentagelser (dager)',
+                  border: OutlineInputBorder(),
+                  hintText: 'F.eks. 30 dager',
+                  helperText: 'Hvor lenge må spilleren vente før achievement kan oppnås igjen',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
             const SizedBox(height: 24),
 
             // Submit button
@@ -332,6 +351,12 @@ class _CreateEditAchievementSheetState
     }
   }
 
+  /// Maximum bonus points allowed for an achievement
+  static const int kMaxBonusPoints = 1000;
+
+  /// Maximum threshold value allowed
+  static const int kMaxThreshold = 10000;
+
   Future<void> _submit() async {
     final name = _nameController.text.trim();
     final code = _codeController.text.trim();
@@ -339,6 +364,9 @@ class _CreateEditAchievementSheetState
     final icon = _iconController.text.trim();
     final bonusPoints = int.tryParse(_bonusPointsController.text.trim()) ?? 0;
     final threshold = int.tryParse(_thresholdController.text.trim()) ?? 10;
+    final cooldownDays = _isRepeatable
+        ? int.tryParse(_cooldownDaysController.text.trim())
+        : null;
 
     if (name.isEmpty) {
       ErrorDisplayService.showWarning('Navn er påkrevd');
@@ -348,6 +376,41 @@ class _CreateEditAchievementSheetState
     if (!isEditing && code.isEmpty) {
       ErrorDisplayService.showWarning('Kode er påkrevd');
       return;
+    }
+
+    // Validate bonus points
+    if (bonusPoints < 0) {
+      ErrorDisplayService.showWarning('Bonuspoeng kan ikke være negative');
+      return;
+    }
+    if (bonusPoints > kMaxBonusPoints) {
+      ErrorDisplayService.showWarning('Maks $kMaxBonusPoints bonuspoeng tillatt');
+      return;
+    }
+
+    // Validate threshold
+    if (_criteriaType != AchievementCriteriaType.perfectAttendance) {
+      if (threshold < 1) {
+        ErrorDisplayService.showWarning('Terskelverdi må være minst 1');
+        return;
+      }
+      if (threshold > kMaxThreshold) {
+        ErrorDisplayService.showWarning('Terskelverdi kan ikke være over $kMaxThreshold');
+        return;
+      }
+      // Special validation for percentage-based criteria
+      if (_criteriaType == AchievementCriteriaType.attendanceRate && threshold > 100) {
+        ErrorDisplayService.showWarning('Prosent må være mellom 0 og 100');
+        return;
+      }
+    }
+
+    // Validate cooldown for repeatable achievements
+    if (_isRepeatable) {
+      if (cooldownDays == null || cooldownDays < 1) {
+        ErrorDisplayService.showWarning('Ventetid må være minst 1 dag for gjentakbare achievements');
+        return;
+      }
     }
 
     setState(() => _loading = true);
@@ -378,6 +441,7 @@ class _CreateEditAchievementSheetState
             isActive: _isActive,
             isSecret: _isSecret,
             isRepeatable: _isRepeatable,
+            repeatCooldownDays: cooldownDays,
           );
 
       if (mounted) {
@@ -405,6 +469,7 @@ class _CreateEditAchievementSheetState
             isActive: _isActive,
             isSecret: _isSecret,
             isRepeatable: _isRepeatable,
+            repeatCooldownDays: cooldownDays,
           );
 
       if (mounted) {

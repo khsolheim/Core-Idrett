@@ -285,7 +285,21 @@ class _AvailableAchievementsTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Feil: $error')),
+      error: (error, _) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            const SizedBox(height: 16),
+            Text('Kunne ikke laste achievements: $error'),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => ref.invalidate(teamAchievementsProvider(teamId)),
+              child: const Text('Prov igjen'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -336,7 +350,21 @@ class _TeamAchievementsTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Feil: $error')),
+      error: (error, _) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            const SizedBox(height: 16),
+            Text('Kunne ikke laste achievements: $error'),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => ref.invalidate(teamRecentAchievementsProvider(teamId)),
+              child: const Text('Prov igjen'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

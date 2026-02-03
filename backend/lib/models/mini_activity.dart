@@ -148,6 +148,7 @@ class MiniActivity {
   final int? maxParticipants;
   final bool handicapEnabled;
   final DateTime? archivedAt;
+  final String? winnerTeamId; // Manually set winner (null = draw or no result)
 
   MiniActivity({
     required this.id,
@@ -168,6 +169,7 @@ class MiniActivity {
     this.maxParticipants,
     this.handicapEnabled = false,
     this.archivedAt,
+    this.winnerTeamId,
   });
 
   factory MiniActivity.fromRow(Map<String, dynamic> row) {
@@ -190,6 +192,7 @@ class MiniActivity {
       maxParticipants: row['max_participants'] as int?,
       handicapEnabled: row['handicap_enabled'] as bool? ?? false,
       archivedAt: _parseDateTimeNullable(row['archived_at']),
+      winnerTeamId: row['winner_team_id'] as String?,
     );
   }
 
@@ -213,11 +216,13 @@ class MiniActivity {
       'max_participants': maxParticipants,
       'handicap_enabled': handicapEnabled,
       'archived_at': archivedAt?.toIso8601String(),
+      'winner_team_id': winnerTeamId,
     };
   }
 
   bool get isStandalone => instanceId == null && teamId != null;
   bool get isArchived => archivedAt != null;
+  bool get hasResult => winnerTeamId != null;
 
   MiniActivity copyWith({
     String? id,
@@ -238,6 +243,7 @@ class MiniActivity {
     int? maxParticipants,
     bool? handicapEnabled,
     DateTime? archivedAt,
+    String? winnerTeamId,
   }) {
     return MiniActivity(
       id: id ?? this.id,
@@ -258,6 +264,7 @@ class MiniActivity {
       maxParticipants: maxParticipants ?? this.maxParticipants,
       handicapEnabled: handicapEnabled ?? this.handicapEnabled,
       archivedAt: archivedAt ?? this.archivedAt,
+      winnerTeamId: winnerTeamId ?? this.winnerTeamId,
     );
   }
 }

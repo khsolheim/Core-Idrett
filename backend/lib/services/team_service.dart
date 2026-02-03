@@ -265,6 +265,7 @@ class TeamService {
         'trainer_type_name': trainerType?['name'],
         'trainer_type': trainerType,
         'is_active': m['is_active'] ?? true,
+        'is_injured': m['is_injured'] ?? false,
         'joined_at': m['joined_at'],
         'user_name': user['name'],
         'user_avatar_url': user['avatar_url'],
@@ -460,6 +461,98 @@ class TeamService {
       {'is_active': true},
       filters: {'id': 'eq.$memberId'},
     );
+  }
+
+  /// Set whether a member is injured
+  /// When injured: removes future opt_out activity responses
+  /// When healthy: creates 'yes' responses for future opt_out activity instances
+  Future<void> setMemberInjuredStatus(String memberId, bool isInjured) async {
+    // Get member details first
+    final memberResult = await _db.client.select(
+      'team_members',
+      select: 'user_id,team_id',
+      filters: {'id': 'eq.$memberId'},
+    );
+
+    if (memberResult.isEmpty) {
+      throw Exception('Member not found');
+    }
+
+    final userId = memberResult.first['user_id'] as String;
+    final teamId = memberResult.first['team_id'] as String;
+
+    // Update the injured status
+    await _db.client.update(
+      'team_members',
+      {'is_injured': isInjured},
+      filters: {'id': 'eq.$memberId'},
+    );
+
+    // Get today's date for filtering future instances
+    final today = DateTime.now().toIso8601String().split('T').first;
+
+    // Get all activities for this team that are opt_out
+    final activities = await _db.client.select(
+      'activities',
+      select: 'id',
+      filters: {
+        'team_id': 'eq.$teamId',
+        'response_type': 'eq.opt_out',
+      },
+    );
+
+    if (activities.isEmpty) return;
+
+    final activityIds = activities.map((a) => a['id'] as String).toList();
+
+    // Get future instances for these activities
+    final futureInstances = await _db.client.select(
+      'activity_instances',
+      select: 'id',
+      filters: {
+        'activity_id': 'in.(${activityIds.join(',')})',
+        'date': 'gte.$today',
+        'status': 'eq.scheduled',
+      },
+    );
+
+    if (futureInstances.isEmpty) return;
+
+    final instanceIds = futureInstances.map((i) => i['id'] as String).toList();
+
+    if (isInjured) {
+      // Delete future opt_out responses for this member
+      await _db.client.delete(
+        'activity_responses',
+        filters: {
+          'instance_id': 'in.(${instanceIds.join(',')})',
+          'user_id': 'eq.$userId',
+        },
+      );
+    } else {
+      // Create 'yes' responses for future opt_out instances where member has no response
+      for (final instanceId in instanceIds) {
+        // Check if response already exists
+        final existing = await _db.client.select(
+          'activity_responses',
+          select: 'id',
+          filters: {
+            'instance_id': 'eq.$instanceId',
+            'user_id': 'eq.$userId',
+          },
+        );
+
+        if (existing.isEmpty) {
+          // Create new response
+          await _db.client.insert('activity_responses', {
+            'id': _uuid.v4(),
+            'instance_id': instanceId,
+            'user_id': userId,
+            'response': 'yes',
+          });
+        }
+      }
+    }
   }
 
   /// Remove a member completely (hard delete)

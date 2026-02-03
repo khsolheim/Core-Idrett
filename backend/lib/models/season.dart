@@ -47,6 +47,69 @@ class Season {
   }
 }
 
+/// Leaderboard category enum
+enum LeaderboardCategory {
+  total,
+  attendance,
+  competition,
+  training,
+  match,
+  social;
+
+  String get value {
+    switch (this) {
+      case LeaderboardCategory.total:
+        return 'total';
+      case LeaderboardCategory.attendance:
+        return 'attendance';
+      case LeaderboardCategory.competition:
+        return 'competition';
+      case LeaderboardCategory.training:
+        return 'training';
+      case LeaderboardCategory.match:
+        return 'match';
+      case LeaderboardCategory.social:
+        return 'social';
+    }
+  }
+
+  static LeaderboardCategory fromString(String value) {
+    switch (value) {
+      case 'total':
+        return LeaderboardCategory.total;
+      case 'attendance':
+        return LeaderboardCategory.attendance;
+      case 'competition':
+        return LeaderboardCategory.competition;
+      case 'training':
+        return LeaderboardCategory.training;
+      case 'match':
+        return LeaderboardCategory.match;
+      case 'social':
+        return LeaderboardCategory.social;
+      default:
+        return LeaderboardCategory.total;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case LeaderboardCategory.total:
+        return 'Total';
+      case LeaderboardCategory.attendance:
+        return 'Oppmøte';
+      case LeaderboardCategory.competition:
+        return 'Konkurranse';
+      case LeaderboardCategory.training:
+        return 'Trening';
+      case LeaderboardCategory.match:
+        return 'Kamp';
+      case LeaderboardCategory.social:
+        return 'Sosialt';
+    }
+  }
+}
+
 /// Leaderboard model for tracking different competition types
 class Leaderboard {
   final String id;
@@ -56,6 +119,7 @@ class Leaderboard {
   final String? description;
   final bool isMain;
   final int sortOrder;
+  final LeaderboardCategory category;
   final DateTime createdAt;
 
   Leaderboard({
@@ -66,6 +130,7 @@ class Leaderboard {
     this.description,
     required this.isMain,
     required this.sortOrder,
+    this.category = LeaderboardCategory.total,
     required this.createdAt,
   });
 
@@ -78,6 +143,8 @@ class Leaderboard {
       description: row['description'] as String?,
       isMain: row['is_main'] as bool? ?? false,
       sortOrder: row['sort_order'] as int? ?? 0,
+      category: LeaderboardCategory.fromString(
+          row['category'] as String? ?? 'total'),
       createdAt: DateTime.parse(row['created_at'] as String),
     );
   }
@@ -91,6 +158,8 @@ class Leaderboard {
       'description': description,
       'is_main': isMain,
       'sort_order': sortOrder,
+      'category': category.value,
+      'category_display': category.displayName,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -109,6 +178,13 @@ class LeaderboardEntry {
   final String? userAvatarUrl;
   final int? rank;
 
+  // Extended stats from ranked view
+  final double? attendanceRate;
+  final int? currentStreak;
+  final bool? optedOut;
+  final String? trend; // 'up', 'down', 'same'
+  final int? rankChange;
+
   LeaderboardEntry({
     required this.id,
     required this.leaderboardId,
@@ -118,6 +194,11 @@ class LeaderboardEntry {
     this.userName,
     this.userAvatarUrl,
     this.rank,
+    this.attendanceRate,
+    this.currentStreak,
+    this.optedOut,
+    this.trend,
+    this.rankChange,
   });
 
   factory LeaderboardEntry.fromRow(Map<String, dynamic> row, {int? rank}) {
@@ -129,7 +210,12 @@ class LeaderboardEntry {
       updatedAt: DateTime.parse(row['updated_at'] as String),
       userName: row['user_name'] as String?,
       userAvatarUrl: row['user_avatar_url'] as String?,
-      rank: rank,
+      rank: rank ?? row['rank'] as int?,
+      attendanceRate: (row['attendance_rate'] as num?)?.toDouble(),
+      currentStreak: row['current_streak'] as int?,
+      optedOut: row['leaderboard_opt_out'] as bool?,
+      trend: row['trend'] as String?,
+      rankChange: row['rank_change'] as int?,
     );
   }
 
@@ -143,6 +229,11 @@ class LeaderboardEntry {
       if (userName != null) 'user_name': userName,
       if (userAvatarUrl != null) 'user_avatar_url': userAvatarUrl,
       if (rank != null) 'rank': rank,
+      if (attendanceRate != null) 'attendance_rate': attendanceRate,
+      if (currentStreak != null) 'current_streak': currentStreak,
+      if (optedOut != null) 'opted_out': optedOut,
+      if (trend != null) 'trend': trend,
+      if (rankChange != null) 'rank_change': rankChange,
     };
   }
 }

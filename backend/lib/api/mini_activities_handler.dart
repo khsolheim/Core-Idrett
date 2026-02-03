@@ -47,9 +47,17 @@ class MiniActivitiesHandler {
     router.delete('/<miniActivityId>/reset-teams', _resetTeamDivision);
     router.post('/<miniActivityId>/add-participant', _addLateParticipant);
     router.put('/<miniActivityId>/teams/<miniTeamId>/name', _updateTeamName);
+    router.post('/<miniActivityId>/teams', _createTeam);
+    router.delete('/<miniActivityId>/teams/<miniTeamId>', _deleteTeam);
+    router.put('/<miniActivityId>/participants/<participantId>/move', _moveParticipant);
 
-    // Scores
+    // Scores and Results
     router.post('/<miniActivityId>/scores', _recordScores);
+    router.post('/<miniActivityId>/result', _setWinner);
+    router.delete('/<miniActivityId>/result', _clearResult);
+
+    // History
+    router.get('/history/team/<teamId>', _getHistory);
 
     // Adjustments (bonus/penalty)
     router.get('/<miniActivityId>/adjustments', _getAdjustments);
@@ -703,6 +711,161 @@ class MiniActivitiesHandler {
       final templates = await _miniActivityService.getTemplatesForTeam(teamId);
       final updatedTemplate = templates.firstWhere((t) => t.id == templateId);
       return Response.ok(jsonEncode(updatedTemplate.toJson()));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  // ============ NEW: TEAM MANAGEMENT ============
+
+  Future<Response> _createTeam(Request request, String miniActivityId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final body = await request.readAsString();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      final name = data['name'] as String?;
+      if (name == null || name.isEmpty) {
+        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (name)'}));
+      }
+
+      await _miniActivityService.createTeam(
+        miniActivityId: miniActivityId,
+        name: name,
+      );
+
+      final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
+      return Response.ok(jsonEncode(detail));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _deleteTeam(Request request, String miniActivityId, String miniTeamId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final body = await request.readAsString();
+      Map<String, dynamic>? data;
+      if (body.isNotEmpty) {
+        data = jsonDecode(body) as Map<String, dynamic>?;
+      }
+
+      await _miniActivityService.deleteTeam(
+        miniActivityId: miniActivityId,
+        teamId: miniTeamId,
+        moveParticipantsToTeamId: data?['move_participants_to_team_id'] as String?,
+      );
+
+      final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
+      return Response.ok(jsonEncode(detail));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _moveParticipant(Request request, String miniActivityId, String participantId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final body = await request.readAsString();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      final targetTeamId = data['target_team_id'] as String?;
+      if (targetTeamId == null) {
+        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (target_team_id)'}));
+      }
+
+      await _miniActivityService.moveParticipantToTeam(
+        participantId: participantId,
+        newTeamId: targetTeamId,
+      );
+
+      final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
+      return Response.ok(jsonEncode(detail));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  // ============ NEW: RESULT MANAGEMENT ============
+
+  Future<Response> _setWinner(Request request, String miniActivityId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final body = await request.readAsString();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      final winnerTeamId = data['winner_team_id'] as String?;
+      final addToLeaderboard = data['add_to_leaderboard'] as bool? ?? false;
+
+      await _miniActivityService.setWinner(
+        miniActivityId: miniActivityId,
+        winnerTeamId: winnerTeamId,
+        addToLeaderboard: addToLeaderboard,
+      );
+
+      final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
+      return Response.ok(jsonEncode(detail));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  Future<Response> _clearResult(Request request, String miniActivityId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      await _miniActivityService.clearResult(miniActivityId);
+
+      final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
+      return Response.ok(jsonEncode(detail));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+    }
+  }
+
+  // ============ NEW: HISTORY ============
+
+  Future<Response> _getHistory(Request request, String teamId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      if (!await _isTeamMember(userId, teamId)) {
+        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      }
+
+      final templateId = request.url.queryParameters['template_id'];
+      final limitStr = request.url.queryParameters['limit'];
+      final limit = limitStr != null ? int.tryParse(limitStr) ?? 20 : 20;
+
+      final history = await _miniActivityService.getHistory(
+        teamId: teamId,
+        templateId: templateId,
+        limit: limit,
+      );
+
+      return Response.ok(jsonEncode(history));
     } catch (e) {
       return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
     }

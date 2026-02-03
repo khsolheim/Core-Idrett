@@ -32,6 +32,10 @@ import '../features/documents/presentation/documents_screen.dart';
 import '../features/export/presentation/export_screen.dart';
 import '../features/tests/presentation/tests_screen.dart';
 import '../features/tests/presentation/test_detail_screen.dart';
+import '../features/points/presentation/points_config_screen.dart';
+import '../features/achievements/presentation/achievements_screen.dart';
+import '../features/achievements/presentation/achievement_admin_screen.dart';
+import '../features/absence/presentation/absence_management_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -309,6 +313,38 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'points-config',
+                name: 'points-config',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  return PointsConfigScreen(teamId: teamId);
+                },
+              ),
+              GoRoute(
+                path: 'achievements',
+                name: 'achievements',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  return AchievementsScreen(teamId: teamId);
+                },
+              ),
+              GoRoute(
+                path: 'achievements-admin',
+                name: 'achievements-admin',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  return AchievementAdminScreen(teamId: teamId);
+                },
+              ),
+              GoRoute(
+                path: 'absence-management',
+                name: 'absence-management',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  return AbsenceManagementScreen(teamId: teamId);
+                },
               ),
             ],
           ),

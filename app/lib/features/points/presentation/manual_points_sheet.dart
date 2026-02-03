@@ -5,6 +5,9 @@ import '../../../data/models/points_config.dart';
 import '../../../data/models/team.dart';
 import '../providers/points_provider.dart';
 
+/// Maximum points that can be assigned in a single adjustment
+const int kMaxManualPointsAdjustment = 1000;
+
 /// Bottom sheet for admin to manually adjust points for a player
 class ManualPointsSheet extends ConsumerStatefulWidget {
   final String teamId;
@@ -159,7 +162,7 @@ class _ManualPointsSheetState extends ConsumerState<ManualPointsSheet> {
               controller: _pointsController,
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
-                hintText: 'Antall poeng',
+                hintText: 'Antall poeng (maks $kMaxManualPointsAdjustment)',
                 prefixIcon: Icon(
                   _adjustmentType == AdjustmentType.penalty
                       ? Icons.remove
@@ -269,6 +272,13 @@ class _ManualPointsSheetState extends ConsumerState<ManualPointsSheet> {
     final points = int.tryParse(_pointsController.text.trim());
     if (points == null || points <= 0) {
       ErrorDisplayService.showWarning('Du må skrive et gyldig antall poeng');
+      return;
+    }
+
+    if (points > kMaxManualPointsAdjustment) {
+      ErrorDisplayService.showWarning(
+        'Maksimalt $kMaxManualPointsAdjustment poeng per justering',
+      );
       return;
     }
 

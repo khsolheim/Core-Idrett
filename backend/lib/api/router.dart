@@ -17,6 +17,9 @@ import '../services/export_service.dart';
 import '../services/tournament_service.dart';
 import '../services/stopwatch_service.dart';
 import '../services/mini_activity_statistics_service.dart';
+import '../services/points_config_service.dart';
+import '../services/absence_service.dart';
+import '../services/achievement_service.dart';
 import 'auth_handler.dart';
 import 'teams_handler.dart';
 import 'activities_handler.dart';
@@ -33,6 +36,9 @@ import 'exports_handler.dart';
 import 'tournaments_handler.dart';
 import 'stopwatch_handler.dart';
 import 'mini_activity_statistics_handler.dart';
+import 'points_config_handler.dart';
+import 'absence_handler.dart';
+import 'achievements_handler.dart';
 
 Router createRouter(Database db) {
   final authService = AuthService(db);
@@ -51,6 +57,9 @@ Router createRouter(Database db) {
   final tournamentService = TournamentService(db);
   final stopwatchService = StopwatchService(db);
   final miniActivityStatisticsService = MiniActivityStatisticsService(db);
+  final pointsConfigService = PointsConfigService(db);
+  final absenceService = AbsenceService(db);
+  final achievementService = AchievementService(db);
 
   final router = Router();
 
@@ -106,6 +115,18 @@ Router createRouter(Database db) {
   // Leaderboard routes
   final leaderboardsHandler = LeaderboardsHandler(leaderboardService, authService, teamService);
   router.mount('/leaderboards', leaderboardsHandler.router.call);
+
+  // Points config routes
+  final pointsConfigHandler = PointsConfigHandler(pointsConfigService, authService, teamService);
+  router.mount('/points', pointsConfigHandler.router.call);
+
+  // Absence routes
+  final absenceHandler = AbsenceHandler(absenceService, authService, teamService);
+  router.mount('/absence', absenceHandler.router.call);
+
+  // Achievement routes
+  final achievementsHandler = AchievementsHandler(achievementService, authService, teamService);
+  router.mount('/achievements', achievementsHandler.router.call);
 
   // Test routes
   final testsHandler = TestsHandler(testService, authService, teamService);

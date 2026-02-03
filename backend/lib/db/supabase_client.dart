@@ -87,6 +87,29 @@ class SupabaseClient {
     return List<Map<String, dynamic>>.from(result);
   }
 
+  /// Execute a batch INSERT query (multiple rows at once)
+  Future<List<Map<String, dynamic>>> insertMany(
+    String table,
+    List<Map<String, dynamic>> data,
+  ) async {
+    if (data.isEmpty) return [];
+
+    final url = '$_baseUrl/rest/v1/$table';
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: _headers,
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode >= 400) {
+      throw SupabaseException('Batch insert failed: ${response.body}', response.statusCode);
+    }
+
+    final result = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(result);
+  }
+
   /// Execute an UPDATE query
   Future<List<Map<String, dynamic>>> update(
     String table,

@@ -421,7 +421,24 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
           ),
           title: Row(
             children: [
-              Text(member.userName),
+              Expanded(child: Text(member.userName)),
+              if (member.isInjured) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'Skadet',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.orange[700],
+                    ),
+                  ),
+                ),
+              ],
               if (isInactive) ...[
                 const SizedBox(width: 8),
                 Container(
@@ -468,6 +485,23 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
                       member,
                       isFineBoss: value,
                     ),
+                  ),
+
+                  const Divider(),
+
+                  // Injured status toggle
+                  SwitchListTile(
+                    title: const Text('Skadet'),
+                    subtitle: const Text('Ekskluderes fra automatisk pamelding'),
+                    value: member.isInjured,
+                    activeTrackColor: Colors.orange.withValues(alpha: 0.5),
+                    thumbColor: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.selected)) {
+                        return Colors.orange;
+                      }
+                      return null;
+                    }),
+                    onChanged: (value) => _setMemberInjuredStatus(member, value),
                   ),
 
                   const Divider(),
@@ -690,6 +724,28 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
         const SnackBar(
           content: Text('Kunne ikke oppdatere tilganger'),
           backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _setMemberInjuredStatus(TeamMember member, bool isInjured) async {
+    final notifier = ref.read(teamNotifierProvider.notifier);
+    final success = await notifier.setInjuredStatus(
+      widget.teamId,
+      member.id,
+      isInjured,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? (isInjured ? '${member.userName} markert som skadet' : '${member.userName} markert som frisk')
+                : 'Kunne ikke oppdatere skadet-status',
+          ),
+          backgroundColor: success ? null : Colors.red,
         ),
       );
     }

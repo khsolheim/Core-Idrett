@@ -228,6 +228,7 @@ class MiniActivity {
   final int? maxParticipants;
   final bool handicapEnabled;
   final DateTime? archivedAt;
+  final String? winnerTeamId; // Manually set winner (null = draw or no result yet)
 
   MiniActivity({
     required this.id,
@@ -252,6 +253,7 @@ class MiniActivity {
     this.maxParticipants,
     this.handicapEnabled = false,
     this.archivedAt,
+    this.winnerTeamId,
   });
 
   factory MiniActivity.fromJson(Map<String, dynamic> json) {
@@ -298,6 +300,7 @@ class MiniActivity {
       archivedAt: json['archived_at'] != null
           ? DateTime.parse(json['archived_at'] as String)
           : null,
+      winnerTeamId: json['winner_team_id'] as String?,
     );
   }
 
@@ -321,6 +324,7 @@ class MiniActivity {
       'max_participants': maxParticipants,
       'handicap_enabled': handicapEnabled,
       'archived_at': archivedAt?.toIso8601String(),
+      'winner_team_id': winnerTeamId,
     };
   }
 
@@ -328,6 +332,37 @@ class MiniActivity {
   bool get isTeamBased => type == MiniActivityType.team;
   bool get isStandalone => instanceId == null && teamId != null;
   bool get isArchived => archivedAt != null;
+  bool get hasResult => winnerTeamId != null || (teams?.any((t) => t.finalScore != null) ?? false);
+  bool get isDraw => hasResult && winnerTeamId == null && teams != null && _allTeamsHaveSameScore();
+
+  bool _allTeamsHaveSameScore() {
+    if (teams == null || teams!.isEmpty) return false;
+    final scores = teams!.map((t) => t.finalScore).where((s) => s != null).toSet();
+    return scores.length <= 1;
+  }
+
+  /// Get the winner team if there is one
+  MiniActivityTeam? get winnerTeam {
+    if (winnerTeamId != null && teams != null) {
+      return teams!.cast<MiniActivityTeam?>().firstWhere(
+            (t) => t?.id == winnerTeamId,
+            orElse: () => null,
+          );
+    }
+    // Determine winner by score if no explicit winner
+    if (teams != null && teams!.isNotEmpty) {
+      final teamsWithScores = teams!.where((t) => t.finalScore != null).toList();
+      if (teamsWithScores.length == teams!.length && teamsWithScores.isNotEmpty) {
+        teamsWithScores.sort((a, b) => (b.finalScore ?? 0).compareTo(a.finalScore ?? 0));
+        final highestScore = teamsWithScores.first.finalScore;
+        final winnersCount = teamsWithScores.where((t) => t.finalScore == highestScore).length;
+        if (winnersCount == 1) {
+          return teamsWithScores.first;
+        }
+      }
+    }
+    return null;
+  }
 
   MiniActivity copyWith({
     String? id,
@@ -352,6 +387,7 @@ class MiniActivity {
     int? maxParticipants,
     bool? handicapEnabled,
     DateTime? archivedAt,
+    String? winnerTeamId,
   }) {
     return MiniActivity(
       id: id ?? this.id,
@@ -376,6 +412,7 @@ class MiniActivity {
       maxParticipants: maxParticipants ?? this.maxParticipants,
       handicapEnabled: handicapEnabled ?? this.handicapEnabled,
       archivedAt: archivedAt ?? this.archivedAt,
+      winnerTeamId: winnerTeamId ?? this.winnerTeamId,
     );
   }
 }
@@ -610,5 +647,78 @@ class MiniActivityHandicap {
       return '+${handicapValue.toStringAsFixed(1)}';
     }
     return handicapValue.toStringAsFixed(1);
+  }
+}
+
+// History entry for showing previous results
+class MiniActivityHistoryEntry {
+  final String id;
+  final String name;
+  final DateTime createdAt;
+  final String? winnerTeamId;
+  final List<MiniActivityHistoryTeam> teams;
+
+  MiniActivityHistoryEntry({
+    required this.id,
+    required this.name,
+    required this.createdAt,
+    this.winnerTeamId,
+    required this.teams,
+  });
+
+  factory MiniActivityHistoryEntry.fromJson(Map<String, dynamic> json) {
+    List<MiniActivityHistoryTeam> teams = [];
+    if (json['teams'] != null) {
+      teams = (json['teams'] as List)
+          .map((t) => MiniActivityHistoryTeam.fromJson(
+              t is Map<String, dynamic> ? t : Map<String, dynamic>.from(t as Map)))
+          .toList();
+    }
+
+    return MiniActivityHistoryEntry(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      winnerTeamId: json['winner_team_id'] as String?,
+      teams: teams,
+    );
+  }
+
+  bool get hasResult => winnerTeamId != null || teams.any((t) => t.finalScore != null);
+
+  MiniActivityHistoryTeam? get winnerTeam {
+    if (winnerTeamId != null) {
+      return teams.cast<MiniActivityHistoryTeam?>().firstWhere(
+            (t) => t?.id == winnerTeamId,
+            orElse: () => null,
+          );
+    }
+    // Determine by score
+    final teamsWithScores = teams.where((t) => t.finalScore != null).toList();
+    if (teamsWithScores.isNotEmpty) {
+      teamsWithScores.sort((a, b) => (b.finalScore ?? 0).compareTo(a.finalScore ?? 0));
+      return teamsWithScores.first;
+    }
+    return null;
+  }
+}
+
+class MiniActivityHistoryTeam {
+  final String id;
+  final String? name;
+  final int? finalScore;
+
+  MiniActivityHistoryTeam({
+    required this.id,
+    this.name,
+    this.finalScore,
+  });
+
+  factory MiniActivityHistoryTeam.fromJson(Map<String, dynamic> json) {
+    return MiniActivityHistoryTeam(
+      id: json['id'] as String,
+      name: json['name'] as String?,
+      finalScore: json['final_score'] as int?,
+    );
   }
 }

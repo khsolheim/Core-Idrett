@@ -178,40 +178,82 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
   void _showTeamSettings(BuildContext context, Team team) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.event_available),
-              title: const Text('Oppmøte'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/teams/${widget.teamId}/attendance');
-              },
-            ),
-            if (team.userIsAdmin) ...[
-              const Divider(),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               ListTile(
-                leading: const Icon(Icons.sports_esports),
-                title: const Text('Mini-aktivitet maler'),
-                subtitle: const Text('Maler for raske konkurranser'),
+                leading: const Icon(Icons.event_available),
+                title: const Text('Oppmote'),
                 onTap: () {
                   Navigator.pop(context);
-                  context.push('/teams/${widget.teamId}/templates');
+                  context.push('/teams/${widget.teamId}/attendance');
                 },
               ),
-              const Divider(),
               ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Rediger lag'),
+                leading: const Icon(Icons.emoji_events),
+                title: const Text('Achievements'),
+                subtitle: const Text('Se badges og milepaeler'),
                 onTap: () {
                   Navigator.pop(context);
-                  context.push('/teams/${widget.teamId}/edit');
+                  context.push('/teams/${widget.teamId}/achievements');
                 },
               ),
+              if (team.userIsAdmin) ...[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.workspace_premium),
+                  title: const Text('Administrer achievements'),
+                  subtitle: const Text('Opprett og rediger achievements'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.pushNamed(
+                      'achievements-admin',
+                      pathParameters: {'teamId': widget.teamId},
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.sports_esports),
+                  title: const Text('Mini-aktivitet maler'),
+                  subtitle: const Text('Maler for raske konkurranser'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/teams/${widget.teamId}/templates');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.tune),
+                  title: const Text('Poenginnstillinger'),
+                  subtitle: const Text('Konfigurer poengsystem'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/teams/${widget.teamId}/points-config');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.event_busy),
+                  title: const Text('Fravaersadministrasjon'),
+                  subtitle: const Text('Godkjenn fravaer'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/teams/${widget.teamId}/absence-management');
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.edit),
+                  title: const Text('Rediger lag'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/teams/${widget.teamId}/edit');
+                  },
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
