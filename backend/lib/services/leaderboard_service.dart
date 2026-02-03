@@ -753,11 +753,13 @@ class LeaderboardService {
   /// Get leaderboard with monthly trends
   Future<List<LeaderboardEntry>> getLeaderboardWithTrends(
     String teamId, {
+    LeaderboardCategory? category,
     String? seasonId,
     int? limit,
   }) async {
     final entries = await getRankedEntries(
       teamId,
+      category: category,
       seasonId: seasonId,
       limit: limit,
     );

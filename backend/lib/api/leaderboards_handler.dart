@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
+import '../models/season.dart';
 import '../services/leaderboard_service.dart';
 import '../services/auth_service.dart';
 import '../services/team_service.dart';
@@ -676,12 +677,24 @@ class LeaderboardsHandler {
       }
 
       final seasonId = request.url.queryParameters['season_id'];
+      final categoryParam = request.url.queryParameters['category'];
       final limitParam = request.url.queryParameters['limit'];
       final offsetParam = request.url.queryParameters['offset'];
+      final includeOptedOutParam = request.url.queryParameters['include_opted_out'];
+
+      // Parse category if provided
+      LeaderboardCategory? category;
+      if (categoryParam != null) {
+        category = LeaderboardCategory.values.where(
+          (c) => c.name == categoryParam,
+        ).firstOrNull;
+      }
 
       final entries = await _leaderboardService.getRankedEntries(
         teamId,
+        category: category,
         seasonId: seasonId,
+        excludeOptedOut: includeOptedOutParam != 'true',
         limit: limitParam != null ? int.tryParse(limitParam) : null,
         offset: offsetParam != null ? int.tryParse(offsetParam) ?? 0 : 0,
       );
@@ -719,10 +732,20 @@ class LeaderboardsHandler {
       }
 
       final seasonId = request.url.queryParameters['season_id'];
+      final categoryParam = request.url.queryParameters['category'];
       final limitParam = request.url.queryParameters['limit'];
+
+      // Parse category if provided
+      LeaderboardCategory? category;
+      if (categoryParam != null) {
+        category = LeaderboardCategory.values.where(
+          (c) => c.name == categoryParam,
+        ).firstOrNull;
+      }
 
       final entries = await _leaderboardService.getLeaderboardWithTrends(
         teamId,
+        category: category,
         seasonId: seasonId,
         limit: limitParam != null ? int.tryParse(limitParam) : null,
       );
