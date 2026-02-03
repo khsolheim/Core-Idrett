@@ -30,6 +30,7 @@ class AchievementsHandler {
     // User achievement routes
     router.get('/users/<userId>', _getUserAchievements);
     router.get('/users/<userId>/progress', _getUserProgress);
+    router.get('/users/<userId>/summary', _getUserSummary);
     router.post('/teams/<teamId>/award', _awardAchievement);
     router.post('/teams/<teamId>/check/<userId>', _checkAndAwardAchievements);
 
@@ -395,6 +396,38 @@ class AchievementsHandler {
       return Response.internalServerError(
         body:
             jsonEncode({'error': 'Kunne ikke hente achievement-progress: $e'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }
+
+  Future<Response> _getUserSummary(
+      Request request, String targetUserId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final teamId = request.url.queryParameters['team_id'];
+      final seasonId = request.url.queryParameters['season_id'];
+
+      final summary = await _achievementService.getUserAchievementsSummary(
+        targetUserId,
+        teamId: teamId,
+        seasonId: seasonId,
+      );
+
+      return Response.ok(
+        jsonEncode(summary),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Kunne ikke hente achievement-sammendrag: $e'}),
         headers: {'Content-Type': 'application/json'},
       );
     }

@@ -49,6 +49,18 @@ class PointsConfigService {
     return TeamPointsConfig.fromRow(result.first);
   }
 
+  /// Get point configuration by ID
+  Future<TeamPointsConfig?> getConfigById(String configId) async {
+    final result = await _db.client.select(
+      'team_points_config',
+      filters: {'id': 'eq.$configId'},
+      limit: 1,
+    );
+
+    if (result.isEmpty) return null;
+    return TeamPointsConfig.fromRow(result.first);
+  }
+
   /// Get or create default configuration for a team
   Future<TeamPointsConfig> getOrCreateConfig(
     String teamId, {

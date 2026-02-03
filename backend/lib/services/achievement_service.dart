@@ -707,4 +707,70 @@ class AchievementService {
 
     return counts;
   }
+
+  /// Get a summary of user's achievements
+  Future<Map<String, dynamic>> getUserAchievementsSummary(
+    String userId, {
+    String? teamId,
+    String? seasonId,
+  }) async {
+    // Get all achievements
+    final achievements = await getUserAchievements(
+      userId,
+      teamId: teamId,
+      seasonId: seasonId,
+    );
+
+    // Count by tier
+    int bronzeCount = 0;
+    int silverCount = 0;
+    int goldCount = 0;
+    int platinumCount = 0;
+    int totalBonusPoints = 0;
+
+    for (final achievement in achievements) {
+      totalBonusPoints += achievement.pointsAwarded;
+      switch (achievement.achievementTier) {
+        case AchievementTier.bronze:
+          bronzeCount++;
+          break;
+        case AchievementTier.silver:
+          silverCount++;
+          break;
+        case AchievementTier.gold:
+          goldCount++;
+          break;
+        case AchievementTier.platinum:
+          platinumCount++;
+          break;
+        case null:
+          break;
+      }
+    }
+
+    // Get recent achievements (last 5)
+    final recentAchievements = achievements.take(5).toList();
+
+    // Get progress
+    final progress = await getUserProgress(
+      userId,
+      teamId: teamId,
+      seasonId: seasonId,
+    );
+
+    // Filter to in-progress achievements
+    final inProgress = progress.where((p) => p.progressPercent < 1.0).toList();
+
+    return {
+      'user_id': userId,
+      'total_achievements': achievements.length,
+      'bronze_count': bronzeCount,
+      'silver_count': silverCount,
+      'gold_count': goldCount,
+      'platinum_count': platinumCount,
+      'total_bonus_points': totalBonusPoints,
+      'recent_achievements': recentAchievements.map((a) => a.toJson()).toList(),
+      'in_progress': inProgress.map((p) => p.toJson()).toList(),
+    };
+  }
 }

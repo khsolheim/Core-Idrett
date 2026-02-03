@@ -196,6 +196,22 @@ class PointsConfigHandler {
         );
       }
 
+      // Fetch config to get teamId for authorization check
+      final existingConfig = await _pointsConfigService.getConfigById(configId);
+      if (existingConfig == null) {
+        return Response.notFound(
+          jsonEncode({'error': 'Konfigurasjon ikke funnet'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      if (!await _isTeamAdmin(userId, existingConfig.teamId)) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Kun admin kan endre poengkonfigurasjon'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
       final body = jsonDecode(await request.readAsString());
 
       final config = await _pointsConfigService.updateConfig(
@@ -243,6 +259,22 @@ class PointsConfigHandler {
       if (userId == null) {
         return Response.forbidden(
           jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      // Fetch config to get teamId for authorization check
+      final existingConfig = await _pointsConfigService.getConfigById(configId);
+      if (existingConfig == null) {
+        return Response.notFound(
+          jsonEncode({'error': 'Konfigurasjon ikke funnet'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      if (!await _isTeamAdmin(userId, existingConfig.teamId)) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Kun admin kan slette poengkonfigurasjon'}),
           headers: {'Content-Type': 'application/json'},
         );
       }

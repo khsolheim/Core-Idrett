@@ -180,10 +180,10 @@ class AbsenceService {
     );
   }
 
-  /// Get an absence record by ID
+  /// Get an absence record by ID (with full details from view)
   Future<AbsenceRecord?> getAbsenceById(String absenceId) async {
     final result = await _db.client.select(
-      'absence_records',
+      'v_absence_details',
       filters: {'id': 'eq.$absenceId'},
     );
 
@@ -344,5 +344,54 @@ class AbsenceService {
 
     if (result.isEmpty) return null;
     return result.first['team_id'] as String?;
+  }
+
+  /// Get absence summary for a team
+  Future<Map<String, dynamic>> getAbsenceSummary(
+    String teamId, {
+    String? seasonId,
+  }) async {
+    final absences = await getAbsenceDetails(teamId: teamId);
+
+    int totalAbsences = absences.length;
+    int pendingCount = 0;
+    int approvedCount = 0;
+    int rejectedCount = 0;
+    int validAbsenceCount = 0;
+
+    // Count by category
+    final categoryCounts = <String, int>{};
+
+    for (final absence in absences) {
+      switch (absence.status) {
+        case AbsenceStatus.pending:
+          pendingCount++;
+          break;
+        case AbsenceStatus.approved:
+        case AbsenceStatus.autoApproved:
+          approvedCount++;
+          if (absence.countsAsValid ?? false) {
+            validAbsenceCount++;
+          }
+          break;
+        case AbsenceStatus.rejected:
+          rejectedCount++;
+          break;
+      }
+
+      if (absence.categoryName != null) {
+        categoryCounts[absence.categoryName!] =
+            (categoryCounts[absence.categoryName!] ?? 0) + 1;
+      }
+    }
+
+    return {
+      'total_absences': totalAbsences,
+      'pending_count': pendingCount,
+      'approved_count': approvedCount,
+      'rejected_count': rejectedCount,
+      'valid_absence_count': validAbsenceCount,
+      'by_category': categoryCounts,
+    };
   }
 }

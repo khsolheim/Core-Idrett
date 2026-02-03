@@ -137,7 +137,7 @@ class AbsenceRepository {
   }
 
   Future<AbsenceRecord> approveAbsence(String absenceId) async {
-    final response = await _client.post(
+    final response = await _client.patch(
       '/absence/$absenceId/approve',
       data: {},
     );
@@ -148,7 +148,7 @@ class AbsenceRepository {
     String absenceId, {
     String? reason,
   }) async {
-    final response = await _client.post(
+    final response = await _client.patch(
       '/absence/$absenceId/reject',
       data: {
         if (reason != null) 'reason': reason,

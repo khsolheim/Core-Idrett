@@ -29,6 +29,8 @@ class AbsenceHandler {
     // Absence record routes
     router.get('/teams/<teamId>', _getAbsences);
     router.get('/teams/<teamId>/pending', _getPendingAbsences);
+    router.get('/teams/<teamId>/summary', _getAbsenceSummary);
+    router.get('/teams/<teamId>/users/<userId>/valid-count', _getValidAbsenceCountForTeam);
     router.post('/register', _registerAbsence);
     router.get('/<absenceId>', _getAbsenceById);
     router.patch('/<absenceId>/approve', _approveAbsence);
@@ -37,6 +39,7 @@ class AbsenceHandler {
 
     // User absence routes
     router.get('/users/<userId>/instances/<instanceId>', _getAbsenceForInstance);
+    router.get('/users/<userId>/instances/<instanceId>/valid', _hasValidAbsence);
     router.get('/users/<userId>/valid-count', _getValidAbsenceCount);
 
     return router;
@@ -508,6 +511,26 @@ class AbsenceHandler {
         );
       }
 
+      // Fetch absence to check authorization
+      final absence = await _absenceService.getAbsenceById(absenceId);
+      if (absence == null) {
+        return Response.notFound(
+          jsonEncode({'error': 'Fravær ikke funnet'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      // Allow deletion by owner or team admin
+      final isOwner = absence.userId == userId;
+      final isAdmin = absence.teamId != null &&
+          await _isTeamAdmin(userId, absence.teamId!);
+      if (!isOwner && !isAdmin) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Kun eier eller admin kan slette fravær'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
       await _absenceService.deleteAbsence(absenceId);
 
       return Response.ok(
@@ -589,6 +612,107 @@ class AbsenceHandler {
     } catch (e) {
       return Response.internalServerError(
         body: jsonEncode({'error': 'Kunne ikke telle gyldige fravær: $e'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }
+
+  Future<Response> _getValidAbsenceCountForTeam(
+      Request request, String teamId, String targetUserId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final team = await _teamService.getTeamById(teamId, userId);
+      if (team == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final count = await _absenceService.countValidAbsences(
+        targetUserId,
+        teamId,
+        seasonId: request.url.queryParameters['season_id'],
+      );
+
+      return Response.ok(
+        jsonEncode({'count': count}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Kunne ikke telle gyldige fravær: $e'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }
+
+  Future<Response> _hasValidAbsence(
+      Request request, String targetUserId, String instanceId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final hasValid = await _absenceService.hasValidAbsence(
+        targetUserId,
+        instanceId,
+      );
+
+      return Response.ok(
+        jsonEncode({'has_valid_absence': hasValid}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Kunne ikke sjekke gyldig fravær: $e'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }
+
+  Future<Response> _getAbsenceSummary(Request request, String teamId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final team = await _teamService.getTeamById(teamId, userId);
+      if (team == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final seasonId = request.url.queryParameters['season_id'];
+      final summary = await _absenceService.getAbsenceSummary(
+        teamId,
+        seasonId: seasonId,
+      );
+
+      return Response.ok(
+        jsonEncode(summary),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Kunne ikke hente fraværssammendrag: $e'}),
         headers: {'Content-Type': 'application/json'},
       );
     }
