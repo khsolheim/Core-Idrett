@@ -88,7 +88,7 @@ Frontend API URL is configured in `/app/lib/core/config.dart` (defaults to `http
 
 | Resource | Endpoints |
 |----------|-----------|
-| Auth | `/auth/register`, `/auth/login`, `/auth/me`, `/auth/profile` |
+| Auth | `/auth/register`, `/auth/login`, `/auth/me`, `/auth/profile`, `/auth/invite/:code` |
 | Teams | `/teams`, `/teams/:id`, `/teams/:id/members`, `/teams/:id/settings` |
 | Activities | `/activities/team/:teamId`, `/activities/instances/:id/respond` |
 | Messages | `/messages/teams/:teamId`, `/messages/all-conversations`, `/messages/direct/:recipientId` |
@@ -103,3 +103,38 @@ Three team roles with increasing permissions:
 - **admin**: All permissions + manage team settings, members, activities, fine rules
 
 Role is stored in `team_members.role` and checked via `TeamService.getTeamById()` which returns `user_role`.
+
+## Version Requirements
+
+- Flutter 3.10+
+- Dart 3.0+
+
+## Additional Patterns
+
+### Provider Invalidation
+After mutations, providers call `ref.invalidate()` on related providers to refresh data. This ensures UI stays in sync across features (e.g., after adding a fine, invalidate both fine list and team statistics providers).
+
+### API Client Error Mapping
+`ApiClient` in `/app/lib/data/api/api_client.dart` maps HTTP status codes to domain exceptions:
+- 400 → `ValidationException`
+- 401 → `TokenExpiredException`
+- 403 → `PermissionException`
+- 404 → `ResourceNotFoundException`
+- 409 → `ConflictException`
+
+Server error codes (from response body `code` field) are extracted and used by feature-specific error handlers.
+
+### Exception Hierarchy
+Base class `AppException` in `/app/lib/core/errors/` with specialized subclasses:
+- `NetworkException` - connectivity issues
+- `AuthException` → `TokenExpiredException`, `InvalidCredentialsException`
+- `ResourceException` → `ResourceNotFoundException`, `PermissionException`
+- `ValidationException` - invalid input data
+
+### Token Lifecycle
+- Tokens stored in `SharedPreferences` via `AuthLocalDataSource`
+- Injected as `Authorization: Bearer <token>` header by `ApiClient`
+- `ApiClient` has expiration callback that triggers logout on 401 responses
+
+### Backend Dependency Injection
+`/backend/lib/api/router.dart` instantiates all services at startup and injects them into handlers. Services receive the Supabase client and any dependent services through constructor injection.
