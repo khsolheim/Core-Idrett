@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/absence.dart';
+import '../../teams/providers/team_provider.dart';
 import '../providers/absence_provider.dart';
 
 class AbsenceManagementScreen extends ConsumerStatefulWidget {
@@ -32,9 +33,35 @@ class _AbsenceManagementScreenState
 
   @override
   Widget build(BuildContext context) {
+    final teamAsync = ref.watch(teamDetailProvider(widget.teamId));
+    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    final theme = Theme.of(context);
+
+    // Admin guard
+    if (teamAsync.hasValue && !isAdmin) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Fraværsadministrasjon')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 64, color: theme.colorScheme.outline),
+              const SizedBox(height: 16),
+              Text('Du har ikke tilgang til denne siden', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(
+                'Kun administratorer kan administrere fravær',
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fravaersadministrasjon'),
+        title: const Text('Fraværsadministrasjon'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -56,14 +83,119 @@ class _AbsenceManagementScreenState
 
 // ============ PENDING ABSENCES TAB ============
 
-class _PendingAbsencesTab extends ConsumerWidget {
+class _PendingAbsencesTab extends ConsumerStatefulWidget {
   final String teamId;
 
   const _PendingAbsencesTab({required this.teamId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final pendingAsync = ref.watch(pendingAbsencesProvider(teamId));
+  ConsumerState<_PendingAbsencesTab> createState() => _PendingAbsencesTabState();
+}
+
+class _PendingAbsencesTabState extends ConsumerState<_PendingAbsencesTab> {
+  final Set<String> _selectedIds = {};
+  bool _isSelectMode = false;
+  bool _isBulkProcessing = false;
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) {
+          _isSelectMode = false;
+        }
+      } else {
+        _selectedIds.add(id);
+        _isSelectMode = true;
+      }
+    });
+  }
+
+  void _selectAll(List<AbsenceRecord> absences) {
+    setState(() {
+      _selectedIds.addAll(absences.map((a) => a.id));
+      _isSelectMode = true;
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedIds.clear();
+      _isSelectMode = false;
+    });
+  }
+
+  Future<void> _bulkApprove() async {
+    if (_selectedIds.isEmpty) return;
+
+    setState(() => _isBulkProcessing = true);
+
+    int successCount = 0;
+    for (final id in _selectedIds.toList()) {
+      try {
+        await ref.read(absenceRecordNotifierProvider.notifier).approveAbsence(
+              widget.teamId,
+              id,
+            );
+        successCount++;
+      } catch (_) {
+        // Continue with next item
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isBulkProcessing = false;
+        _selectedIds.clear();
+        _isSelectMode = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$successCount fravær godkjent')),
+      );
+    }
+  }
+
+  Future<void> _bulkReject() async {
+    if (_selectedIds.isEmpty) return;
+
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (context) => _RejectReasonDialog(),
+    );
+
+    if (reason == null) return;
+
+    setState(() => _isBulkProcessing = true);
+
+    int successCount = 0;
+    for (final id in _selectedIds.toList()) {
+      try {
+        await ref.read(absenceRecordNotifierProvider.notifier).rejectAbsence(
+              widget.teamId,
+              id,
+              reason: reason.isNotEmpty ? reason : null,
+            );
+        successCount++;
+      } catch (_) {
+        // Continue with next item
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isBulkProcessing = false;
+        _selectedIds.clear();
+        _isSelectMode = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$successCount fravær avvist')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pendingAsync = ref.watch(pendingAbsencesProvider(widget.teamId));
     final theme = Theme.of(context);
 
     return pendingAsync.when(
@@ -80,12 +212,12 @@ class _PendingAbsencesTab extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Ingen ventende fravaer',
+                  'Ingen ventende fravær',
                   style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Alle fravaersmeldinger er behandlet',
+                  'Alle fraværsmeldinger er behandlet',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.outline,
                   ),
@@ -95,20 +227,91 @@ class _PendingAbsencesTab extends ConsumerWidget {
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(pendingAbsencesProvider(teamId));
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: absences.length,
-            itemBuilder: (context, index) {
-              return _PendingAbsenceCard(
-                teamId: teamId,
-                absence: absences[index],
-              );
-            },
-          ),
+        return Column(
+          children: [
+            // Bulk actions bar
+            if (_isSelectMode || absences.length > 1)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                ),
+                child: Row(
+                  children: [
+                    if (_isSelectMode) ...[
+                      Text(
+                        '${_selectedIds.length} valgt',
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: _clearSelection,
+                        child: const Text('Fjern valg'),
+                      ),
+                      const Spacer(),
+                      if (_isBulkProcessing)
+                        const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else ...[
+                        OutlinedButton.icon(
+                          onPressed: _bulkReject,
+                          icon: const Icon(Icons.close, size: 18),
+                          label: const Text('Avvis'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: theme.colorScheme.error,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton.icon(
+                          onPressed: _bulkApprove,
+                          icon: const Icon(Icons.check, size: 18),
+                          label: const Text('Godkjenn'),
+                        ),
+                      ],
+                    ] else ...[
+                      Text(
+                        '${absences.length} ventende',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () => _selectAll(absences),
+                        icon: const Icon(Icons.select_all, size: 18),
+                        label: const Text('Velg alle'),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+            // List
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(pendingAbsencesProvider(widget.teamId));
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: absences.length,
+                  itemBuilder: (context, index) {
+                    final absence = absences[index];
+                    return _PendingAbsenceCard(
+                      teamId: widget.teamId,
+                      absence: absence,
+                      isSelected: _selectedIds.contains(absence.id),
+                      isSelectMode: _isSelectMode,
+                      onToggleSelect: () => _toggleSelection(absence.id),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -118,11 +321,11 @@ class _PendingAbsencesTab extends ConsumerWidget {
           children: [
             const Icon(Icons.error_outline, size: 48),
             const SizedBox(height: 16),
-            Text('Kunne ikke laste fravaer: $error'),
+            Text('Kunne ikke laste fravær: $error'),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: () => ref.invalidate(pendingAbsencesProvider(teamId)),
-              child: const Text('Prov igjen'),
+              onPressed: () => ref.invalidate(pendingAbsencesProvider(widget.teamId)),
+              child: const Text('Prøv igjen'),
             ),
           ],
         ),
@@ -134,10 +337,16 @@ class _PendingAbsencesTab extends ConsumerWidget {
 class _PendingAbsenceCard extends ConsumerStatefulWidget {
   final String teamId;
   final AbsenceRecord absence;
+  final bool isSelected;
+  final bool isSelectMode;
+  final VoidCallback? onToggleSelect;
 
   const _PendingAbsenceCard({
     required this.teamId,
     required this.absence,
+    this.isSelected = false,
+    this.isSelectMode = false,
+    this.onToggleSelect,
   });
 
   @override
@@ -157,7 +366,7 @@ class _PendingAbsenceCardState extends ConsumerState<_PendingAbsenceCard> {
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fravaer godkjent')),
+          const SnackBar(content: Text('Fravær godkjent')),
         );
       }
     } catch (e) {
@@ -193,7 +402,7 @@ class _PendingAbsenceCardState extends ConsumerState<_PendingAbsenceCard> {
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fravaer avvist')),
+          const SnackBar(content: Text('Fravær avvist')),
         );
       }
     } catch (e) {
@@ -219,14 +428,28 @@ class _PendingAbsenceCardState extends ConsumerState<_PendingAbsenceCard> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
+      color: widget.isSelected
+          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+          : null,
+      child: InkWell(
+        onLongPress: widget.onToggleSelect,
+        onTap: widget.isSelectMode ? widget.onToggleSelect : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (widget.isSelectMode) ...[
+                    Checkbox(
+                      value: widget.isSelected,
+                      onChanged: (_) => widget.onToggleSelect?.call(),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  CircleAvatar(
                   backgroundImage: absence.userAvatarUrl != null
                       ? NetworkImage(absence.userAvatarUrl!)
                       : null,
@@ -299,33 +522,36 @@ class _PendingAbsenceCardState extends ConsumerState<_PendingAbsenceCard> {
                 ),
               ),
             ],
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: _isLoading ? null : _reject,
-                  icon: const Icon(Icons.close),
-                  label: const Text('Avvis'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
+            if (!widget.isSelectMode) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _reject,
+                    icon: const Icon(Icons.close),
+                    label: const Text('Avvis'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                FilledButton.icon(
-                  onPressed: _isLoading ? null : _approve,
-                  icon: _isLoading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.check),
-                  label: const Text('Godkjenn'),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 12),
+                  FilledButton.icon(
+                    onPressed: _isLoading ? null : _approve,
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.check),
+                    label: const Text('Godkjenn'),
+                  ),
+                ],
+              ),
+            ],
           ],
+        ),
         ),
       ),
     );
@@ -349,7 +575,7 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Avvis fravaer'),
+      title: const Text('Avvis fravær'),
       content: TextField(
         controller: _controller,
         decoration: const InputDecoration(
@@ -406,7 +632,7 @@ class _CategoriesTab extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Legg til kategorier for fravaerstyper',
+                            'Legg til kategorier for fraværstyper',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.outline,
                             ),
@@ -453,7 +679,7 @@ class _CategoriesTab extends ConsumerWidget {
             FilledButton(
               onPressed: () =>
                   ref.invalidate(absenceCategoriesProvider(teamId)),
-              child: const Text('Prov igjen'),
+              child: const Text('Prøv igjen'),
             ),
           ],
         ),
@@ -511,7 +737,7 @@ class _CategoryCard extends ConsumerWidget {
               ),
             if (category.countsAsValid)
               Chip(
-                label: const Text('Gyldig fravaer'),
+                label: const Text('Gyldig fravær'),
                 labelStyle: theme.textTheme.labelSmall,
                 backgroundColor: theme.colorScheme.primaryContainer,
                 padding: EdgeInsets.zero,
@@ -577,7 +803,7 @@ class _CategoryCard extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Slett kategori'),
-        content: Text('Er du sikker pa at du vil slette "${category.name}"?'),
+        content: Text('Er du sikker på at du vil slette "${category.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -642,7 +868,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
   Future<void> _save() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Navn er pakrevd')),
+        const SnackBar(content: Text('Navn er påkrevd')),
       );
       return;
     }
@@ -700,14 +926,14 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
           const SizedBox(height: 16),
           SwitchListTile(
             title: const Text('Krever godkjenning'),
-            subtitle: const Text('Admin ma godkjenne dette fravaeret'),
+            subtitle: const Text('Admin må godkjenne dette fraværet'),
             value: _requiresApproval,
             onChanged: (value) => setState(() => _requiresApproval = value),
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
             title: const Text('Teller som gyldig'),
-            subtitle: const Text('Fjernes fra oppmoteberegning'),
+            subtitle: const Text('Fjernes fra oppmøteberegning'),
             value: _countsAsValid,
             onChanged: (value) => setState(() => _countsAsValid = value),
             contentPadding: EdgeInsets.zero,

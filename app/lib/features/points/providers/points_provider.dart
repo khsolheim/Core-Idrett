@@ -338,6 +338,11 @@ class ManualAdjustmentNotifier extends StateNotifier<AsyncValue<ManualPointAdjus
           (userId: userId, teamId: teamId, seasonId: seasonId)));
       _ref.invalidate(userAttendanceStatsProvider(
           (teamId: teamId, userId: userId, seasonId: seasonId)));
+      // Also invalidate leaderboards since points changed
+      _ref.invalidate(rankedLeaderboardProvider(
+          (teamId: teamId, category: null, seasonId: seasonId)));
+      _ref.invalidate(leaderboardWithTrendsProvider(
+          (teamId: teamId, category: null, seasonId: seasonId)));
       return adjustment;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

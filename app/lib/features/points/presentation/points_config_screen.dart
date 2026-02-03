@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/points_config.dart';
+import '../../teams/providers/team_provider.dart';
 import '../providers/points_provider.dart';
 
 class PointsConfigScreen extends ConsumerStatefulWidget {
@@ -32,7 +33,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
   bool _excludeValidAbsence = true;
 
   bool _isLoading = false;
-  String? _configId;
+  bool _hasLoadedInitialConfig = false;
 
   @override
   void initState() {
@@ -59,7 +60,6 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
   }
 
   void _loadConfig(TeamPointsConfig config) {
-    _configId = config.id;
     _trainingPointsController.text = config.trainingPoints.toString();
     _matchPointsController.text = config.matchPoints.toString();
     _socialPointsController.text = config.socialPoints.toString();
@@ -75,6 +75,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
     _requireAbsenceReason = config.requireAbsenceReason;
     _requireAbsenceApproval = config.requireAbsenceApproval;
     _excludeValidAbsence = config.excludeValidAbsenceFromPercentage;
+    _hasLoadedInitialConfig = true;
   }
 
   Future<void> _saveConfig() async {
@@ -126,7 +127,40 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
   @override
   Widget build(BuildContext context) {
     final configAsync = ref.watch(teamPointsConfigProvider(widget.teamId));
+    final teamAsync = ref.watch(teamDetailProvider(widget.teamId));
     final theme = Theme.of(context);
+
+    // Admin guard
+    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    if (teamAsync.hasValue && !isAdmin) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Poenginnstillinger')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 64,
+                color: theme.colorScheme.outline,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Du har ikke tilgang til denne siden',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Kun administratorer kan endre poenginnstillinger',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -150,12 +184,18 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
       ),
       body: configAsync.when(
         data: (config) {
-          // Load config values only once
-          if (_configId == null) {
+          // Load config values only once when data first arrives
+          // Using addPostFrameCallback to avoid setState during build
+          if (!_hasLoadedInitialConfig) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _loadConfig(config);
-              setState(() {});
+              if (mounted && !_hasLoadedInitialConfig) {
+                setState(() {
+                  _loadConfig(config);
+                });
+              }
             });
+            // Return loading indicator while waiting for config to load
+            return const Center(child: CircularProgressIndicator());
           }
 
           return ListView(
@@ -359,7 +399,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
                     SwitchListTile(
                       title: const Text('Automatisk poengtildeling'),
                       subtitle: const Text(
-                        'Gi poeng automatisk ved oppmoteregistrering',
+                        'Gi poeng automatisk ved oppmøteregistrering',
                       ),
                       value: _autoAwardAttendance,
                       onChanged: (value) {
@@ -370,7 +410,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
                     SwitchListTile(
                       title: const Text('Tillat opt-out'),
                       subtitle: const Text(
-                        'Spillere kan velge a skjule seg fra leaderboard',
+                        'Spillere kan velge å skjule seg fra leaderboard',
                       ),
                       value: _allowOptOut,
                       onChanged: (value) {
@@ -384,14 +424,14 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               const SizedBox(height: 24),
 
               // Absence settings
-              _SectionHeader(title: 'Fravaer'),
+              _SectionHeader(title: 'Fravær'),
               Card(
                 child: Column(
                   children: [
                     SwitchListTile(
                       title: const Text('Krev begrunnelse'),
                       subtitle: const Text(
-                        'Spillere ma oppgi arsak ved fravaer',
+                        'Spillere må oppgi årsak ved fravær',
                       ),
                       value: _requireAbsenceReason,
                       onChanged: (value) {
@@ -402,7 +442,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
                     SwitchListTile(
                       title: const Text('Krev godkjenning'),
                       subtitle: const Text(
-                        'Admin ma godkjenne fravaer for det teller',
+                        'Admin må godkjenne fravær før det teller',
                       ),
                       value: _requireAbsenceApproval,
                       onChanged: (value) {
@@ -411,9 +451,9 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
                     ),
                     const Divider(height: 1),
                     SwitchListTile(
-                      title: const Text('Ekskluder gyldig fravaer'),
+                      title: const Text('Ekskluder gyldig fravær'),
                       subtitle: const Text(
-                        'Gyldig fravaer tas ikke med i prosentberegning',
+                        'Gyldig fravær tas ikke med i prosentberegning',
                       ),
                       value: _excludeValidAbsence,
                       onChanged: (value) {
@@ -449,7 +489,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               FilledButton(
                 onPressed: () =>
                     ref.invalidate(teamPointsConfigProvider(widget.teamId)),
-                child: const Text('Prov igjen'),
+                child: const Text('Prøv igjen'),
               ),
             ],
           ),
