@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../data/models/mini_activity.dart';
 import '../../providers/mini_activity_provider.dart';
 
@@ -292,10 +293,7 @@ class _ActivityCard extends StatelessWidget {
   }
 
   void _openActivity(BuildContext context) {
-    // TODO: Navigate to mini-activity detail screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Åpner: ${activity.name}')),
-    );
+    context.push('/teams/${activity.teamId}/mini-activities/${activity.id}');
   }
 }
 

@@ -129,6 +129,19 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                path: 'mini-activities/:miniActivityId',
+                name: 'standalone-mini-activity-detail',
+                builder: (context, state) {
+                  final teamId = state.pathParameters['teamId']!;
+                  final miniActivityId = state.pathParameters['miniActivityId']!;
+                  return MiniActivityDetailScreen(
+                    miniActivityId: miniActivityId,
+                    teamId: teamId,
+                    // instanceId is null for standalone mini-activities
+                  );
+                },
+              ),
+              GoRoute(
                 path: 'leaderboard',
                 name: 'leaderboard',
                 builder: (context, state) {

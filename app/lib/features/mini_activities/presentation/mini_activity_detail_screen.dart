@@ -8,13 +8,13 @@ import '../providers/mini_activity_provider.dart';
 
 class MiniActivityDetailScreen extends ConsumerWidget {
   final String miniActivityId;
-  final String instanceId;
+  final String? instanceId; // Nullable for standalone mini-activities
   final String teamId;
 
   const MiniActivityDetailScreen({
     super.key,
     required this.miniActivityId,
-    required this.instanceId,
+    this.instanceId, // Optional for standalone mini-activities
     required this.teamId,
   });
 
@@ -77,12 +77,12 @@ class MiniActivityDetailScreen extends ConsumerWidget {
 
 class _MiniActivityDetailContent extends ConsumerStatefulWidget {
   final MiniActivity miniActivity;
-  final String instanceId;
+  final String? instanceId; // Nullable for standalone mini-activities
   final String teamId;
 
   const _MiniActivityDetailContent({
     required this.miniActivity,
-    required this.instanceId,
+    this.instanceId,
     required this.teamId,
   });
 
@@ -379,6 +379,7 @@ class _MiniActivityDetailContentState extends ConsumerState<_MiniActivityDetailC
       builder: (context) => _RecordScoresSheet(
         miniActivity: widget.miniActivity,
         instanceId: widget.instanceId,
+        teamId: widget.teamId,
       ),
     );
   }
@@ -389,6 +390,7 @@ class _MiniActivityDetailContentState extends ConsumerState<_MiniActivityDetailC
       builder: (context) => _SetWinnerDialog(
         miniActivity: widget.miniActivity,
         instanceId: widget.instanceId,
+        teamId: widget.teamId,
         winnerTeamId: winnerTeamId,
       ),
     );
@@ -413,6 +415,7 @@ class _MiniActivityDetailContentState extends ConsumerState<_MiniActivityDetailC
               await ref.read(resultManagementProvider.notifier).clearResult(
                     miniActivityId: widget.miniActivity.id,
                     instanceId: widget.instanceId,
+                    teamId: widget.teamId,
                   );
             },
             style: FilledButton.styleFrom(
@@ -451,6 +454,7 @@ class _MiniActivityDetailContentState extends ConsumerState<_MiniActivityDetailC
                 await ref.read(teamManagementProvider.notifier).createTeam(
                       miniActivityId: widget.miniActivity.id,
                       instanceId: widget.instanceId,
+                      teamId: widget.teamId,
                       name: controller.text,
                     );
               }
@@ -466,7 +470,7 @@ class _MiniActivityDetailContentState extends ConsumerState<_MiniActivityDetailC
 class _TeamCard extends ConsumerWidget {
   final MiniActivityTeam team;
   final MiniActivity miniActivity;
-  final String instanceId;
+  final String? instanceId; // Nullable for standalone mini-activities
   final String teamId;
   final bool isEditMode;
   final bool isWinner;
@@ -476,7 +480,7 @@ class _TeamCard extends ConsumerWidget {
   const _TeamCard({
     required this.team,
     required this.miniActivity,
-    required this.instanceId,
+    this.instanceId,
     required this.teamId,
     required this.isEditMode,
     required this.isWinner,
@@ -687,6 +691,7 @@ class _TeamCard extends ConsumerWidget {
                 await ref.read(miniActivityOperationsProvider.notifier).updateTeamName(
                       miniActivityId: miniActivity.id,
                       instanceId: instanceId,
+                      teamId: teamId,
                       miniTeamId: team.id,
                       name: controller.text,
                     );
@@ -740,6 +745,7 @@ class _TeamCard extends ConsumerWidget {
               await ref.read(teamManagementProvider.notifier).deleteTeam(
                     miniActivityId: miniActivity.id,
                     instanceId: instanceId,
+                    teamId: teamId,
                     miniTeamId: team.id,
                   );
             },
@@ -782,6 +788,7 @@ class _TeamCard extends ConsumerWidget {
                     await ref.read(teamManagementProvider.notifier).deleteTeam(
                           miniActivityId: miniActivity.id,
                           instanceId: instanceId,
+                          teamId: teamId,
                           miniTeamId: team.id,
                           moveParticipantsToTeamId: t.id,
                         );
@@ -837,6 +844,7 @@ class _TeamCard extends ConsumerWidget {
                     await ref.read(teamManagementProvider.notifier).moveParticipant(
                           miniActivityId: miniActivity.id,
                           instanceId: instanceId,
+                          teamId: teamId,
                           participantId: participant.id,
                           targetTeamId: t.id,
                         );
@@ -898,12 +906,14 @@ class _TeamCard extends ConsumerWidget {
 // Set Winner Dialog
 class _SetWinnerDialog extends ConsumerStatefulWidget {
   final MiniActivity miniActivity;
-  final String instanceId;
+  final String? instanceId; // Nullable for standalone mini-activities
+  final String teamId; // For invalidating standalone provider
   final String? winnerTeamId;
 
   const _SetWinnerDialog({
     required this.miniActivity,
-    required this.instanceId,
+    this.instanceId,
+    required this.teamId,
     required this.winnerTeamId,
   });
 
@@ -962,6 +972,7 @@ class _SetWinnerDialogState extends ConsumerState<_SetWinnerDialog> {
                   await ref.read(resultManagementProvider.notifier).setWinner(
                         miniActivityId: widget.miniActivity.id,
                         instanceId: widget.instanceId,
+                        teamId: widget.teamId,
                         winnerTeamId: widget.winnerTeamId,
                         addToLeaderboard: _addToLeaderboard,
                       );
@@ -985,13 +996,13 @@ class _SetWinnerDialogState extends ConsumerState<_SetWinnerDialog> {
 // Add Participant Sheet
 class _AddParticipantSheet extends ConsumerWidget {
   final MiniActivity miniActivity;
-  final String instanceId;
+  final String? instanceId; // Nullable for standalone mini-activities
   final String teamId;
   final String targetTeamId;
 
   const _AddParticipantSheet({
     required this.miniActivity,
-    required this.instanceId,
+    this.instanceId,
     required this.teamId,
     required this.targetTeamId,
   });
@@ -1057,6 +1068,7 @@ class _AddParticipantSheet extends ConsumerWidget {
                           await ref.read(miniActivityOperationsProvider.notifier).addLateParticipant(
                                 miniActivityId: miniActivity.id,
                                 instanceId: instanceId,
+                                teamId: teamId,
                                 userId: member.userId,
                                 miniTeamId: targetTeamId,
                               );
@@ -1076,12 +1088,12 @@ class _AddParticipantSheet extends ConsumerWidget {
 
 class _TeamDivisionSheet extends ConsumerStatefulWidget {
   final String miniActivityId;
-  final String instanceId;
+  final String? instanceId; // Nullable for standalone mini-activities
   final String teamId;
 
   const _TeamDivisionSheet({
     required this.miniActivityId,
-    required this.instanceId,
+    this.instanceId,
     required this.teamId,
   });
 
@@ -1093,6 +1105,7 @@ class _TeamDivisionSheetState extends ConsumerState<_TeamDivisionSheet> {
   DivisionMethod _method = DivisionMethod.random;
   int _numberOfTeams = 2;
   bool _isLoading = false;
+  final Set<String> _selectedMemberIds = {}; // For standalone activities
 
   List<String> _getParticipantIds(ActivityInstance instance) {
     if (instance.responses == null) return [];
@@ -1105,7 +1118,11 @@ class _TeamDivisionSheetState extends ConsumerState<_TeamDivisionSheet> {
   Future<void> _divide(List<String> participantIds) async {
     if (participantIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingen deltakere har svart "Ja"')),
+        SnackBar(
+          content: Text(widget.instanceId != null
+              ? 'Ingen deltakere har svart "Ja"'
+              : 'Velg minst én deltaker'),
+        ),
       );
       return;
     }
@@ -1135,7 +1152,13 @@ class _TeamDivisionSheetState extends ConsumerState<_TeamDivisionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final instanceAsync = ref.watch(instanceDetailProvider(widget.instanceId));
+    // For standalone activities (no instanceId), fetch team members
+    if (widget.instanceId == null) {
+      return _buildStandaloneContent(context);
+    }
+
+    // For instance-based activities, fetch from instance responses
+    final instanceAsync = ref.watch(instanceDetailProvider(widget.instanceId!));
 
     return instanceAsync.when(
       loading: () => const Padding(
@@ -1153,129 +1176,236 @@ class _TeamDivisionSheetState extends ConsumerState<_TeamDivisionSheet> {
                 .toList() ??
             [];
 
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Del inn lag',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Metode',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        ...DivisionMethod.values.map((method) {
-                          return RadioListTile<DivisionMethod>(
-                            value: method,
-                            groupValue: _method,
-                            onChanged: (value) {
-                              if (value != null) setState(() => _method = value);
-                            },
-                            title: Text(method.displayName),
-                            subtitle: Text(method.description),
-                          );
-                        }),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            const Text('Antall lag:'),
-                            const Spacer(),
-                            IconButton(
-                              onPressed: _numberOfTeams > 2
-                                  ? () => setState(() => _numberOfTeams--)
-                                  : null,
-                              icon: const Icon(Icons.remove),
-                            ),
-                            Text(
-                              '$_numberOfTeams',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            IconButton(
-                              onPressed: () => setState(() => _numberOfTeams++),
-                              icon: const Icon(Icons.add),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${yesResponses.length} deltakere har svart "Ja"',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
-                        ),
-                        if (yesResponses.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: yesResponses.map((r) {
-                              return Chip(
-                                avatar: CircleAvatar(
-                                  backgroundImage: r.userAvatarUrl != null
-                                      ? NetworkImage(r.userAvatarUrl!)
-                                      : null,
-                                  child: r.userAvatarUrl == null
-                                      ? Text(
-                                          r.userName?.substring(0, 1).toUpperCase() ?? '?',
-                                          style: const TextStyle(fontSize: 12),
-                                        )
-                                      : null,
-                                ),
-                                label: Text(r.userName ?? 'Ukjent'),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ],
-                    ),
+        return _buildSheetContent(
+          context: context,
+          participantIds: participantIds,
+          participantCount: yesResponses.length,
+          participantLabel: '${yesResponses.length} deltakere har svart "Ja"',
+          participantChips: yesResponses.map((r) {
+            return Chip(
+              avatar: CircleAvatar(
+                backgroundImage: r.userAvatarUrl != null
+                    ? NetworkImage(r.userAvatarUrl!)
+                    : null,
+                child: r.userAvatarUrl == null
+                    ? Text(
+                        r.userName?.substring(0, 1).toUpperCase() ?? '?',
+                        style: const TextStyle(fontSize: 12),
+                      )
+                    : null,
+              ),
+              label: Text(r.userName ?? 'Ukjent'),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildStandaloneContent(BuildContext context) {
+    final membersAsync = ref.watch(teamMembersProvider(widget.teamId));
+
+    return membersAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text('Feil ved lasting av lagmedlemmer: $error'),
+      ),
+      data: (members) {
+        return _buildSheetContent(
+          context: context,
+          participantIds: _selectedMemberIds.toList(),
+          participantCount: _selectedMemberIds.length,
+          participantLabel: '${_selectedMemberIds.length} av ${members.length} valgt',
+          memberSelectionWidget: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Velg deltakere',
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: _isLoading ? null : () => _divide(participantIds),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Del inn'),
-                ),
-              ],
-            ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_selectedMemberIds.length == members.length) {
+                          _selectedMemberIds.clear();
+                        } else {
+                          _selectedMemberIds.addAll(members.map((m) => m.userId));
+                        }
+                      });
+                    },
+                    child: Text(_selectedMemberIds.length == members.length
+                        ? 'Velg ingen'
+                        : 'Velg alle'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: members.map((member) {
+                  final isSelected = _selectedMemberIds.contains(member.userId);
+                  return FilterChip(
+                    selected: isSelected,
+                    avatar: CircleAvatar(
+                      backgroundImage: member.userAvatarUrl != null
+                          ? NetworkImage(member.userAvatarUrl!)
+                          : null,
+                      child: member.userAvatarUrl == null
+                          ? Text(
+                              member.userName.substring(0, 1).toUpperCase(),
+                              style: const TextStyle(fontSize: 12),
+                            )
+                          : null,
+                    ),
+                    label: Text(member.userName),
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedMemberIds.add(member.userId);
+                        } else {
+                          _selectedMemberIds.remove(member.userId);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSheetContent({
+    required BuildContext context,
+    required List<String> participantIds,
+    required int participantCount,
+    required String participantLabel,
+    List<Widget>? participantChips,
+    Widget? memberSelectionWidget,
+  }) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Del inn lag',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Member selection for standalone activities
+                    if (memberSelectionWidget != null) ...[
+                      memberSelectionWidget,
+                      const SizedBox(height: 16),
+                    ],
+                    Text(
+                      'Metode',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    ...DivisionMethod.values.map((method) {
+                      return RadioListTile<DivisionMethod>(
+                        value: method,
+                        groupValue: _method,
+                        onChanged: (value) {
+                          if (value != null) setState(() => _method = value);
+                        },
+                        title: Text(method.displayName),
+                        subtitle: Text(method.description),
+                      );
+                    }),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Text('Antall lag:'),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: _numberOfTeams > 2
+                              ? () => setState(() => _numberOfTeams--)
+                              : null,
+                          icon: const Icon(Icons.remove),
+                        ),
+                        Text(
+                          '$_numberOfTeams',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        IconButton(
+                          onPressed: () => setState(() => _numberOfTeams++),
+                          icon: const Icon(Icons.add),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      participantLabel,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                    ),
+                    if (participantChips != null && participantChips.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: participantChips,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: _isLoading ? null : () => _divide(participantIds),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Del inn'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class _RecordScoresSheet extends ConsumerStatefulWidget {
   final MiniActivity miniActivity;
-  final String instanceId;
+  final String? instanceId; // Nullable for standalone mini-activities
+  final String teamId; // For invalidating standalone provider
 
   const _RecordScoresSheet({
     required this.miniActivity,
-    required this.instanceId,
+    this.instanceId,
+    required this.teamId,
   });
 
   @override
@@ -1319,6 +1449,7 @@ class _RecordScoresSheetState extends ConsumerState<_RecordScoresSheet> {
     final success = await ref.read(recordScoresProvider.notifier).recordScores(
           miniActivityId: widget.miniActivity.id,
           instanceId: widget.instanceId,
+          teamId: widget.teamId,
           teamScores: teamScores,
           addToLeaderboard: _addToLeaderboard,
         );

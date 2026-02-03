@@ -130,7 +130,7 @@ class TeamDivisionNotifier extends Notifier<AsyncValue<MiniActivity?>> {
 
   Future<MiniActivity?> divideTeams({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
     required DivisionMethod method,
     required int numberOfTeams,
     required List<String> participantUserIds,
@@ -146,7 +146,12 @@ class TeamDivisionNotifier extends Notifier<AsyncValue<MiniActivity?>> {
         teamId: teamId,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      // Invalidate the appropriate provider based on whether it's standalone or instance-based
+      if (instanceId != null) {
+        ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      } else if (teamId != null) {
+        ref.invalidate(teamStandaloneMiniActivitiesProvider(teamId));
+      }
       state = AsyncValue.data(result);
       return result;
     } catch (e, st) {
@@ -170,7 +175,8 @@ class RecordScoresNotifier extends Notifier<AsyncValue<void>> {
 
   Future<bool> recordScores({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     Map<String, int>? teamScores,
     Map<String, int>? participantPoints,
     bool addToLeaderboard = false,
@@ -184,7 +190,12 @@ class RecordScoresNotifier extends Notifier<AsyncValue<void>> {
         addToLeaderboard: addToLeaderboard,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      // Invalidate the appropriate provider based on whether it's standalone or instance-based
+      if (instanceId != null) {
+        ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      } else if (teamId != null) {
+        ref.invalidate(teamStandaloneMiniActivitiesProvider(teamId));
+      }
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -224,9 +235,19 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
     return const AsyncValue.data(null);
   }
 
+  /// Helper to invalidate the appropriate provider based on context
+  void _invalidateAppropriateProvider(String? instanceId, String? teamId) {
+    if (instanceId != null) {
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+    } else if (teamId != null) {
+      ref.invalidate(teamStandaloneMiniActivitiesProvider(teamId));
+    }
+  }
+
   Future<MiniActivity?> updateMiniActivity({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     String? name,
     String? description,
     int? maxParticipants,
@@ -252,7 +273,7 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
         handicapEnabled: handicapEnabled,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -263,13 +284,14 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> archiveMiniActivity({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
   }) async {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.archiveMiniActivity(miniActivityId);
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -280,13 +302,14 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> unarchiveMiniActivity({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
   }) async {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.unarchiveMiniActivity(miniActivityId);
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -297,13 +320,14 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> duplicateMiniActivity({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     String? newName,
   }) async {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.duplicateMiniActivity(miniActivityId, newName: newName);
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -314,13 +338,14 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> resetTeamDivision({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
   }) async {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.resetTeamDivision(miniActivityId);
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -331,7 +356,8 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> addLateParticipant({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     required String userId,
     required String miniTeamId,
   }) async {
@@ -343,7 +369,7 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
         miniTeamId: miniTeamId,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -354,7 +380,8 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> updateTeamName({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     required String miniTeamId,
     required String name,
   }) async {
@@ -366,7 +393,7 @@ class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
         name: name,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -619,9 +646,19 @@ class TeamManagementNotifier extends Notifier<AsyncValue<void>> {
     return const AsyncValue.data(null);
   }
 
+  /// Helper to invalidate the appropriate provider based on context
+  void _invalidateAppropriateProvider(String? instanceId, String? teamId) {
+    if (instanceId != null) {
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+    } else if (teamId != null) {
+      ref.invalidate(teamStandaloneMiniActivitiesProvider(teamId));
+    }
+  }
+
   Future<MiniActivity?> createTeam({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     required String name,
   }) async {
     state = const AsyncValue.loading();
@@ -631,7 +668,7 @@ class TeamManagementNotifier extends Notifier<AsyncValue<void>> {
         name: name,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -642,7 +679,8 @@ class TeamManagementNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> deleteTeam({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     required String miniTeamId,
     String? moveParticipantsToTeamId,
   }) async {
@@ -654,7 +692,7 @@ class TeamManagementNotifier extends Notifier<AsyncValue<void>> {
         moveParticipantsToTeamId: moveParticipantsToTeamId,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -665,7 +703,8 @@ class TeamManagementNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> moveParticipant({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     required String participantId,
     required String targetTeamId,
   }) async {
@@ -677,7 +716,7 @@ class TeamManagementNotifier extends Notifier<AsyncValue<void>> {
         targetTeamId: targetTeamId,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -700,9 +739,19 @@ class ResultManagementNotifier extends Notifier<AsyncValue<void>> {
     return const AsyncValue.data(null);
   }
 
+  /// Helper to invalidate the appropriate provider based on context
+  void _invalidateAppropriateProvider(String? instanceId, String? teamId) {
+    if (instanceId != null) {
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+    } else if (teamId != null) {
+      ref.invalidate(teamStandaloneMiniActivitiesProvider(teamId));
+    }
+  }
+
   Future<MiniActivity?> setWinner({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
     String? winnerTeamId,
     bool addToLeaderboard = false,
   }) async {
@@ -714,7 +763,7 @@ class ResultManagementNotifier extends Notifier<AsyncValue<void>> {
         addToLeaderboard: addToLeaderboard,
       );
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -725,13 +774,14 @@ class ResultManagementNotifier extends Notifier<AsyncValue<void>> {
 
   Future<MiniActivity?> clearResult({
     required String miniActivityId,
-    required String instanceId,
+    String? instanceId, // Nullable for standalone mini-activities
+    String? teamId, // For invalidating standalone provider
   }) async {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.clearResult(miniActivityId);
       ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      _invalidateAppropriateProvider(instanceId, teamId);
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
