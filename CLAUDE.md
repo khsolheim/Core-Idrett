@@ -7,14 +7,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Core - Idrett is a Norwegian sports team management application with a Flutter frontend and Dart backend, using Supabase (PostgreSQL) for the database.
 
 ### Features
-- **Team Management**: Teams with admin/fine_boss/player roles
+- **Team Management**: Teams with admin/coach/fine_boss/player roles
 - **Activities**: Training, matches, events with recurring schedules and attendance tracking
 - **Mini-Activities**: Sub-activities within events (games, drills) with points/scoring
-- **Statistics**: Leaderboards, attendance rates, player profiles
+- **Tournaments**: Tournament brackets with match scheduling and results
+- **Statistics**: Leaderboards, attendance rates, player profiles, seasons
 - **Fine System**: Customizable rules, payment tracking, team accounting
 - **Chat**: Team chat + direct messages with reply/edit/delete
 - **Documents**: File upload/download per team
 - **Tests**: Physical test tracking (løpetest, spenst, etc.)
+- **Achievements**: Player achievement system
+- **Absence**: Absence reporting and management
+- **Export**: Data export functionality
 
 ## Development Commands
 
@@ -38,7 +42,7 @@ flutter test integration_test/app_test.dart  # Run integration tests
 ```
 
 ### Database
-SQL migrations are in `/database/migrations/` (files 001-009). Apply sequentially via Supabase dashboard or the setup script in `/database/setup.sh`.
+SQL migrations are in `/database/migrations/` (files 001-017). Apply sequentially via Supabase dashboard or the setup script in `/database/setup.sh`.
 
 ## Architecture
 
@@ -90,15 +94,21 @@ Frontend API URL is configured in `/app/lib/core/config.dart` (defaults to `http
 |----------|-----------|
 | Auth | `/auth/register`, `/auth/login`, `/auth/me`, `/auth/profile`, `/auth/invite/:code` |
 | Teams | `/teams`, `/teams/:id`, `/teams/:id/members`, `/teams/:id/settings` |
-| Activities | `/activities/team/:teamId`, `/activities/instances/:id/respond` |
+| Activities | `/activities/team/:teamId`, `/activities/:id`, `/activities/instances/:id/respond` |
+| Mini-Activities | `/mini-activities/instance/:instanceId`, `/mini-activities/:id` |
+| Tournaments | `/tournaments/team/:teamId`, `/tournaments/:id` |
 | Messages | `/messages/teams/:teamId`, `/messages/all-conversations`, `/messages/direct/:recipientId` |
 | Fines | `/fines/team/:teamId`, `/fines/team/:teamId/rules` |
-| Statistics | `/statistics/team/:teamId/leaderboard`, `/statistics/team/:teamId/attendance` |
+| Statistics | `/statistics/team/:teamId/leaderboard`, `/statistics/team/:teamId/attendance`, `/statistics/team/:teamId/member/:memberId` |
+| Documents | `/documents/team/:teamId`, `/documents/:id` |
+| Achievements | `/achievements/team/:teamId` |
+| Absences | `/absences/team/:teamId` |
 
 ## Role System
 
-Three team roles with increasing permissions:
+Four team roles with increasing permissions:
 - **player**: View team, respond to activities, view own stats
+- **coach**: Player permissions + view all member stats, manage activities
 - **fine_boss**: Player permissions + manage fines, report fines for others
 - **admin**: All permissions + manage team settings, members, activities, fine rules
 
