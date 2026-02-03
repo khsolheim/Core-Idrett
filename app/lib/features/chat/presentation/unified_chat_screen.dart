@@ -127,7 +127,7 @@ class _ConversationListPanelState extends ConsumerState<_ConversationListPanel> 
                         border: InputBorder.none,
                       ),
                       onChanged: (value) {
-                        ref.read(conversationSearchQueryProvider.notifier).state = value;
+                        ref.read(conversationSearchQueryProvider.notifier).setQuery(value);
                       },
                     )
                   : const Text('Chat'),
@@ -139,7 +139,7 @@ class _ConversationListPanelState extends ConsumerState<_ConversationListPanel> 
                       _isSearching = !_isSearching;
                       if (!_isSearching) {
                         _searchController.clear();
-                        ref.read(conversationSearchQueryProvider.notifier).state = '';
+                        ref.read(conversationSearchQueryProvider.notifier).clear();
                       }
                     });
                   },
@@ -164,7 +164,7 @@ class _ConversationListPanelState extends ConsumerState<_ConversationListPanel> 
                   isDense: true,
                 ),
                 onChanged: (value) {
-                  ref.read(conversationSearchQueryProvider.notifier).state = value;
+                  ref.read(conversationSearchQueryProvider.notifier).setQuery(value);
                 },
               ),
             ),
@@ -206,8 +206,8 @@ class _ConversationListPanelState extends ConsumerState<_ConversationListPanel> 
                         conversation: conversation,
                         isSelected: isSelected,
                         onTap: () {
-                          ref.read(selectedConversationProvider.notifier).state =
-                              conversation;
+                          ref.read(selectedConversationProvider.notifier).select(
+                              conversation);
                         },
                       );
                     },
@@ -530,7 +530,7 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currentUser = ref.watch(authStateProvider).valueOrNull;
+    final currentUser = ref.watch(authStateProvider).value;
 
     final AsyncValue<List<Message>> messagesState;
     if (widget.conversation.isTeamChat) {
@@ -546,7 +546,7 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () {
-                  ref.read(selectedConversationProvider.notifier).state = null;
+                  ref.read(selectedConversationProvider.notifier).clear();
                 },
               )
             : null,
@@ -1019,7 +1019,7 @@ class _NewConversationSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(teamMembersProvider(teamId));
-    final currentUser = ref.watch(authStateProvider).valueOrNull;
+    final currentUser = ref.watch(authStateProvider).value;
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(
@@ -1093,8 +1093,8 @@ class _NewConversationSheet extends ConsumerWidget {
                             avatarUrl: member.userAvatarUrl,
                             unreadCount: 0,
                           );
-                          ref.read(selectedConversationProvider.notifier).state =
-                              conversation;
+                          ref.read(selectedConversationProvider.notifier).select(
+                              conversation);
                           // Refresh conversations list
                           ref.invalidate(allConversationsProvider(teamId));
                         },

@@ -49,8 +49,8 @@ class ActivityDetailScreen extends ConsumerWidget {
         data: (instance) => _ActivityDetailContent(
           instance: instance,
           teamId: teamId,
-          team: teamAsync.valueOrNull,
-          user: userAsync.valueOrNull,
+          team: teamAsync.value,
+          user: userAsync.value,
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -816,7 +816,7 @@ class _AbsenceButton extends ConsumerWidget {
       instanceAbsenceProvider((userId: userId, instanceId: instanceId)),
     );
     final configAsync = ref.watch(teamPointsConfigProvider(teamId));
-    final requireReason = configAsync.valueOrNull?.requireAbsenceReason ?? false;
+    final requireReason = configAsync.value?.requireAbsenceReason ?? false;
 
     return existingAbsenceAsync.when(
       data: (existingAbsence) {

@@ -131,7 +131,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
     final theme = Theme.of(context);
 
     // Admin guard
-    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
     if (teamAsync.hasValue && !isAdmin) {
       return Scaffold(
         appBar: AppBar(title: const Text('Poenginnstillinger')),

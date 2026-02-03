@@ -64,14 +64,17 @@ final qualificationRoundsProvider = FutureProvider.family<List<QualificationRoun
   return repository.getQualificationRounds(tournamentId);
 });
 
-// ============ STATE NOTIFIERS ============
+// ============ NOTIFIERS ============
 
-// StateNotifier for tournament management
-class TournamentNotifier extends StateNotifier<AsyncValue<void>> {
-  final TournamentRepository _repository;
-  final Ref _ref;
+// Notifier for tournament management
+class TournamentNotifier extends Notifier<AsyncValue<void>> {
+  late final TournamentRepository _repository;
 
-  TournamentNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(tournamentRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<Tournament?> createTournament({
     required String miniActivityId,
@@ -91,7 +94,7 @@ class TournamentNotifier extends StateNotifier<AsyncValue<void>> {
         seedingMethod: seedingMethod,
         maxParticipants: maxParticipants,
       );
-      _ref.invalidate(tournamentForMiniActivityProvider(miniActivityId));
+      ref.invalidate(tournamentForMiniActivityProvider(miniActivityId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -121,8 +124,8 @@ class TournamentNotifier extends StateNotifier<AsyncValue<void>> {
         seedingMethod: seedingMethod,
         maxParticipants: maxParticipants,
       );
-      _ref.invalidate(tournamentProvider(tournamentId));
-      _ref.invalidate(tournamentForMiniActivityProvider(miniActivityId));
+      ref.invalidate(tournamentProvider(tournamentId));
+      ref.invalidate(tournamentForMiniActivityProvider(miniActivityId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -138,8 +141,8 @@ class TournamentNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.deleteTournament(tournamentId);
-      _ref.invalidate(tournamentProvider(tournamentId));
-      _ref.invalidate(tournamentForMiniActivityProvider(miniActivityId));
+      ref.invalidate(tournamentProvider(tournamentId));
+      ref.invalidate(tournamentForMiniActivityProvider(miniActivityId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -160,9 +163,9 @@ class TournamentNotifier extends StateNotifier<AsyncValue<void>> {
         participantIds: participantIds,
         seeds: seeds,
       );
-      _ref.invalidate(tournamentProvider(tournamentId));
-      _ref.invalidate(tournamentRoundsProvider(tournamentId));
-      _ref.invalidate(tournamentMatchesProvider(tournamentId));
+      ref.invalidate(tournamentProvider(tournamentId));
+      ref.invalidate(tournamentRoundsProvider(tournamentId));
+      ref.invalidate(tournamentMatchesProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -172,16 +175,19 @@ class TournamentNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final tournamentNotifierProvider = StateNotifierProvider<TournamentNotifier, AsyncValue<void>>((ref) {
-  return TournamentNotifier(ref.watch(tournamentRepositoryProvider), ref);
+final tournamentNotifierProvider = NotifierProvider<TournamentNotifier, AsyncValue<void>>(() {
+  return TournamentNotifier();
 });
 
-// StateNotifier for match operations
-class MatchNotifier extends StateNotifier<AsyncValue<void>> {
-  final TournamentRepository _repository;
-  final Ref _ref;
+// Notifier for match operations
+class MatchNotifier extends Notifier<AsyncValue<void>> {
+  late final TournamentRepository _repository;
 
-  MatchNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(tournamentRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<TournamentMatch?> updateMatch({
     required String matchId,
@@ -200,8 +206,8 @@ class MatchNotifier extends StateNotifier<AsyncValue<void>> {
         status: status,
         scheduledTime: scheduledTime,
       );
-      _ref.invalidate(matchDetailProvider(matchId));
-      _ref.invalidate(tournamentMatchesProvider(tournamentId));
+      ref.invalidate(matchDetailProvider(matchId));
+      ref.invalidate(tournamentMatchesProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -217,8 +223,8 @@ class MatchNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.startMatch(matchId);
-      _ref.invalidate(matchDetailProvider(matchId));
-      _ref.invalidate(tournamentMatchesProvider(tournamentId));
+      ref.invalidate(matchDetailProvider(matchId));
+      ref.invalidate(tournamentMatchesProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -238,9 +244,9 @@ class MatchNotifier extends StateNotifier<AsyncValue<void>> {
         matchId: matchId,
         winnerId: winnerId,
       );
-      _ref.invalidate(matchDetailProvider(matchId));
-      _ref.invalidate(tournamentMatchesProvider(tournamentId));
-      _ref.invalidate(tournamentProvider(tournamentId));
+      ref.invalidate(matchDetailProvider(matchId));
+      ref.invalidate(tournamentMatchesProvider(tournamentId));
+      ref.invalidate(tournamentProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -262,9 +268,9 @@ class MatchNotifier extends StateNotifier<AsyncValue<void>> {
         winnerId: winnerId,
         reason: reason,
       );
-      _ref.invalidate(matchDetailProvider(matchId));
-      _ref.invalidate(tournamentMatchesProvider(tournamentId));
-      _ref.invalidate(tournamentProvider(tournamentId));
+      ref.invalidate(matchDetailProvider(matchId));
+      ref.invalidate(tournamentMatchesProvider(tournamentId));
+      ref.invalidate(tournamentProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -290,9 +296,9 @@ class MatchNotifier extends StateNotifier<AsyncValue<void>> {
         teamBScore: teamBScore,
         winnerId: winnerId,
       );
-      _ref.invalidate(matchGamesProvider(matchId));
-      _ref.invalidate(matchDetailProvider(matchId));
-      _ref.invalidate(tournamentMatchesProvider(tournamentId));
+      ref.invalidate(matchGamesProvider(matchId));
+      ref.invalidate(matchDetailProvider(matchId));
+      ref.invalidate(tournamentMatchesProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -302,16 +308,19 @@ class MatchNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final matchNotifierProvider = StateNotifierProvider<MatchNotifier, AsyncValue<void>>((ref) {
-  return MatchNotifier(ref.watch(tournamentRepositoryProvider), ref);
+final matchNotifierProvider = NotifierProvider<MatchNotifier, AsyncValue<void>>(() {
+  return MatchNotifier();
 });
 
-// StateNotifier for group operations
-class GroupNotifier extends StateNotifier<AsyncValue<void>> {
-  final TournamentRepository _repository;
-  final Ref _ref;
+// Notifier for group operations
+class GroupNotifier extends Notifier<AsyncValue<void>> {
+  late final TournamentRepository _repository;
 
-  GroupNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(tournamentRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<TournamentGroup?> createGroup({
     required String tournamentId,
@@ -327,7 +336,7 @@ class GroupNotifier extends StateNotifier<AsyncValue<void>> {
         advanceCount: advanceCount,
         sortOrder: sortOrder,
       );
-      _ref.invalidate(tournamentGroupsProvider(tournamentId));
+      ref.invalidate(tournamentGroupsProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -351,7 +360,7 @@ class GroupNotifier extends StateNotifier<AsyncValue<void>> {
         advanceCount: advanceCount,
         sortOrder: sortOrder,
       );
-      _ref.invalidate(tournamentGroupsProvider(tournamentId));
+      ref.invalidate(tournamentGroupsProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -367,7 +376,7 @@ class GroupNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.deleteGroup(groupId);
-      _ref.invalidate(tournamentGroupsProvider(tournamentId));
+      ref.invalidate(tournamentGroupsProvider(tournamentId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -387,8 +396,8 @@ class GroupNotifier extends StateNotifier<AsyncValue<void>> {
         groupId: groupId,
         teamId: teamId,
       );
-      _ref.invalidate(tournamentGroupsProvider(tournamentId));
-      _ref.invalidate(groupStandingsProvider(groupId));
+      ref.invalidate(tournamentGroupsProvider(tournamentId));
+      ref.invalidate(groupStandingsProvider(groupId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -408,8 +417,8 @@ class GroupNotifier extends StateNotifier<AsyncValue<void>> {
         groupId: groupId,
         teamId: teamId,
       );
-      _ref.invalidate(tournamentGroupsProvider(tournamentId));
-      _ref.invalidate(groupStandingsProvider(groupId));
+      ref.invalidate(tournamentGroupsProvider(tournamentId));
+      ref.invalidate(groupStandingsProvider(groupId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -425,8 +434,8 @@ class GroupNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.generateGroupFixtures(groupId);
-      _ref.invalidate(tournamentGroupsProvider(tournamentId));
-      _ref.invalidate(groupMatchesProvider(groupId));
+      ref.invalidate(tournamentGroupsProvider(tournamentId));
+      ref.invalidate(groupMatchesProvider(groupId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -449,9 +458,9 @@ class GroupNotifier extends StateNotifier<AsyncValue<void>> {
         teamAScore: teamAScore,
         teamBScore: teamBScore,
       );
-      _ref.invalidate(groupMatchesProvider(groupId));
-      _ref.invalidate(groupStandingsProvider(groupId));
-      _ref.invalidate(tournamentGroupsProvider(tournamentId));
+      ref.invalidate(groupMatchesProvider(groupId));
+      ref.invalidate(groupStandingsProvider(groupId));
+      ref.invalidate(tournamentGroupsProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -461,16 +470,19 @@ class GroupNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final groupNotifierProvider = StateNotifierProvider<GroupNotifier, AsyncValue<void>>((ref) {
-  return GroupNotifier(ref.watch(tournamentRepositoryProvider), ref);
+final groupNotifierProvider = NotifierProvider<GroupNotifier, AsyncValue<void>>(() {
+  return GroupNotifier();
 });
 
-// StateNotifier for qualification operations
-class QualificationNotifier extends StateNotifier<AsyncValue<void>> {
-  final TournamentRepository _repository;
-  final Ref _ref;
+// Notifier for qualification operations
+class QualificationNotifier extends Notifier<AsyncValue<void>> {
+  late final TournamentRepository _repository;
 
-  QualificationNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(tournamentRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<QualificationRound?> createQualificationRound({
     required String tournamentId,
@@ -486,7 +498,7 @@ class QualificationNotifier extends StateNotifier<AsyncValue<void>> {
         advanceCount: advanceCount,
         sortDirection: sortDirection,
       );
-      _ref.invalidate(qualificationRoundsProvider(tournamentId));
+      ref.invalidate(qualificationRoundsProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -508,7 +520,7 @@ class QualificationNotifier extends StateNotifier<AsyncValue<void>> {
         userId: userId,
         resultValue: resultValue,
       );
-      _ref.invalidate(qualificationRoundsProvider(tournamentId));
+      ref.invalidate(qualificationRoundsProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -524,8 +536,8 @@ class QualificationNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.finalizeQualification(qualificationRoundId);
-      _ref.invalidate(qualificationRoundsProvider(tournamentId));
-      _ref.invalidate(tournamentProvider(tournamentId));
+      ref.invalidate(qualificationRoundsProvider(tournamentId));
+      ref.invalidate(tournamentProvider(tournamentId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -535,6 +547,6 @@ class QualificationNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final qualificationNotifierProvider = StateNotifierProvider<QualificationNotifier, AsyncValue<void>>((ref) {
-  return QualificationNotifier(ref.watch(tournamentRepositoryProvider), ref);
+final qualificationNotifierProvider = NotifierProvider<QualificationNotifier, AsyncValue<void>>(() {
+  return QualificationNotifier();
 });

@@ -5,15 +5,19 @@ import '../../../data/models/notification.dart';
 import '../data/notification_repository.dart';
 
 // FCM token provider
-final fcmTokenProvider = StateNotifierProvider<FcmTokenNotifier, String?>((ref) {
-  return FcmTokenNotifier(ref);
+final fcmTokenProvider = NotifierProvider<FcmTokenNotifier, String?>(() {
+  return FcmTokenNotifier();
 });
 
-class FcmTokenNotifier extends StateNotifier<String?> {
-  final Ref _ref;
+class FcmTokenNotifier extends Notifier<String?> {
+  late final NotificationRepository _repo;
   bool _initialized = false;
 
-  FcmTokenNotifier(this._ref) : super(null);
+  @override
+  String? build() {
+    _repo = ref.watch(notificationRepositoryProvider);
+    return null;
+  }
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -49,7 +53,7 @@ class FcmTokenNotifier extends StateNotifier<String?> {
     state = token;
     try {
       final platform = Platform.isIOS ? 'ios' : 'android';
-      await _ref.read(notificationRepositoryProvider).registerToken(
+      await _repo.registerToken(
         token: token,
         platform: platform,
       );
@@ -71,7 +75,7 @@ class FcmTokenNotifier extends StateNotifier<String?> {
   Future<void> removeToken() async {
     if (state != null) {
       try {
-        await _ref.read(notificationRepositoryProvider).removeToken(state!);
+        await _repo.removeToken(state!);
       } catch (e) {
         // Ignore errors when removing token
       }
@@ -89,12 +93,14 @@ final notificationPreferencesProvider = FutureProvider.family<
 });
 
 // Notification preferences notifier
-class NotificationPreferencesNotifier extends StateNotifier<AsyncValue<NotificationPreferences?>> {
-  final NotificationRepository _repo;
-  final Ref _ref;
+class NotificationPreferencesNotifier extends Notifier<AsyncValue<NotificationPreferences?>> {
+  late final NotificationRepository _repo;
 
-  NotificationPreferencesNotifier(this._repo, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<NotificationPreferences?> build() {
+    _repo = ref.watch(notificationRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> updatePreferences({
     String? teamId,
@@ -118,7 +124,7 @@ class NotificationPreferencesNotifier extends StateNotifier<AsyncValue<Notificat
       );
       state = AsyncValue.data(prefs);
       // Invalidate the preferences provider to refresh
-      _ref.invalidate(notificationPreferencesProvider(teamId));
+      ref.invalidate(notificationPreferencesProvider(teamId));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -128,7 +134,6 @@ class NotificationPreferencesNotifier extends StateNotifier<AsyncValue<Notificat
 }
 
 final notificationPreferencesNotifierProvider =
-    StateNotifierProvider<NotificationPreferencesNotifier, AsyncValue<NotificationPreferences?>>((ref) {
-  final repo = ref.watch(notificationRepositoryProvider);
-  return NotificationPreferencesNotifier(repo, ref);
+    NotifierProvider<NotificationPreferencesNotifier, AsyncValue<NotificationPreferences?>>(() {
+  return NotificationPreferencesNotifier();
 });

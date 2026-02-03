@@ -88,7 +88,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatNotifierProvider(widget.teamId));
-    final currentUser = ref.watch(authStateProvider).valueOrNull;
+    final currentUser = ref.watch(authStateProvider).value;
     final theme = Theme.of(context);
 
     return Scaffold(

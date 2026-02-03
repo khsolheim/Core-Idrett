@@ -25,7 +25,7 @@ Future<void> initializeTestLocales() async {
 /// Creates a test app wrapper with provider overrides
 class TestApp extends StatelessWidget {
   final Widget child;
-  final List<Override> overrides;
+  final List<Object> overrides;
   final GoRouter? router;
 
   const TestApp({
@@ -38,7 +38,7 @@ class TestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
-      overrides: overrides,
+      overrides: overrides.cast(),
       child: MaterialApp(
         home: child,
         theme: AppTheme.lightTheme,
@@ -50,7 +50,7 @@ class TestApp extends StatelessWidget {
 
 /// Creates a test app with full router for navigation tests
 class TestAppWithRouter extends ConsumerWidget {
-  final List<Override> overrides;
+  final List<Object> overrides;
   final String? initialLocation;
 
   const TestAppWithRouter({
@@ -74,10 +74,10 @@ class TestAppWithRouter extends ConsumerWidget {
 /// Wraps a widget with ProviderScope for testing
 Widget createTestWidget(
   Widget widget, {
-  List<Override> overrides = const [],
+  List<Object> overrides = const [],
 }) {
   return ProviderScope(
-    overrides: overrides,
+    overrides: overrides.cast(),
     child: MaterialApp(
       home: widget,
       theme: AppTheme.lightTheme,
@@ -88,11 +88,11 @@ Widget createTestWidget(
 
 /// Creates a test widget with routing support
 Widget createRoutedTestWidget({
-  required List<Override> overrides,
+  required List<Object> overrides,
   String initialLocation = '/login',
 }) {
   return ProviderScope(
-    overrides: overrides,
+    overrides: overrides.cast(),
     child: const TestAppWithRouter(),
   );
 }
@@ -205,7 +205,7 @@ class TestScenario {
   }
 
   /// Get provider overrides
-  List<Override> get overrides => mocks.overrides;
+  List<Object> get overrides => mocks.overrides;
 }
 
 /// Extension methods for WidgetTester to simplify common test operations

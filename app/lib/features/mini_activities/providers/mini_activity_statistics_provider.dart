@@ -174,14 +174,17 @@ final teamMiniActivityStatsProvider = FutureProvider.family<TeamMiniActivityStat
   return repository.getTeamStats(teamId: teamId);
 });
 
-// ============ STATE NOTIFIERS ============
+// ============ NOTIFIERS ============
 
-// StateNotifier for recalculating stats
-class StatisticsRecalculateNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityStatisticsRepository _repository;
-  final Ref _ref;
+// Notifier for recalculating stats
+class StatisticsRecalculateNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityStatisticsRepository _repository;
 
-  StatisticsRecalculateNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityStatisticsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> recalculateStats({
     required String teamId,
@@ -197,18 +200,18 @@ class StatisticsRecalculateNotifier extends StateNotifier<AsyncValue<void>> {
       );
 
       // Invalidate relevant providers
-      _ref.invalidate(teamMiniActivityStatsProvider(teamId));
-      _ref.invalidate(topRivalriesProvider(teamId));
+      ref.invalidate(teamMiniActivityStatsProvider(teamId));
+      ref.invalidate(topRivalriesProvider(teamId));
 
       if (userId != null) {
-        _ref.invalidate(playerStatsProvider(PlayerStatsParams(teamId: teamId, userId: userId)));
-        _ref.invalidate(playerStatsAggregateProvider(PlayerStatsParams(teamId: teamId, userId: userId)));
-        _ref.invalidate(userHeadToHeadRecordsProvider(PlayerStatsParams(teamId: teamId, userId: userId)));
-        _ref.invalidate(userHistoryProvider(PlayerStatsParams(teamId: teamId, userId: userId)));
+        ref.invalidate(playerStatsProvider(PlayerStatsParams(teamId: teamId, userId: userId)));
+        ref.invalidate(playerStatsAggregateProvider(PlayerStatsParams(teamId: teamId, userId: userId)));
+        ref.invalidate(userHeadToHeadRecordsProvider(PlayerStatsParams(teamId: teamId, userId: userId)));
+        ref.invalidate(userHistoryProvider(PlayerStatsParams(teamId: teamId, userId: userId)));
       }
 
       if (miniActivityId != null) {
-        _ref.invalidate(miniActivityHistoryProvider(miniActivityId));
+        ref.invalidate(miniActivityHistoryProvider(miniActivityId));
       }
 
       state = const AsyncValue.data(null);
@@ -220,8 +223,8 @@ class StatisticsRecalculateNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final statisticsRecalculateProvider = StateNotifierProvider<StatisticsRecalculateNotifier, AsyncValue<void>>((ref) {
-  return StatisticsRecalculateNotifier(ref.watch(miniActivityStatisticsRepositoryProvider), ref);
+final statisticsRecalculateProvider = NotifierProvider<StatisticsRecalculateNotifier, AsyncValue<void>>(() {
+  return StatisticsRecalculateNotifier();
 });
 
 // ============ COMPUTED PROVIDERS ============

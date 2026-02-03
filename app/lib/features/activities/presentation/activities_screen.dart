@@ -120,8 +120,8 @@ class _ActivityInstanceCard extends ConsumerWidget {
     final userAsync = ref.watch(authStateProvider);
 
     // Check if user can manage this activity
-    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
-    final userId = userAsync.valueOrNull?.id;
+    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
+    final userId = userAsync.value?.id;
     final isCreator = userId != null && instance.createdBy == userId;
     final canManage = isAdmin || isCreator;
 

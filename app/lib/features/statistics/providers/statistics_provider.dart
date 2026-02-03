@@ -42,11 +42,14 @@ final matchStatsProvider = FutureProvider.family<List<MatchStats>, String>((ref,
 });
 
 // Record match stats notifier
-class RecordMatchStatsNotifier extends StateNotifier<AsyncValue<MatchStats?>> {
-  final StatisticsRepository _repo;
-  final Ref _ref;
+class RecordMatchStatsNotifier extends Notifier<AsyncValue<MatchStats?>> {
+  late final StatisticsRepository _repo;
 
-  RecordMatchStatsNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<MatchStats?> build() {
+    _repo = ref.watch(statisticsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<MatchStats?> recordStats({
     required String instanceId,
@@ -70,7 +73,7 @@ class RecordMatchStatsNotifier extends StateNotifier<AsyncValue<MatchStats?>> {
       );
       state = AsyncValue.data(stats);
       // Invalidate related providers
-      _ref.invalidate(matchStatsProvider(instanceId));
+      ref.invalidate(matchStatsProvider(instanceId));
       return stats;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -79,9 +82,8 @@ class RecordMatchStatsNotifier extends StateNotifier<AsyncValue<MatchStats?>> {
   }
 }
 
-final recordMatchStatsProvider = StateNotifierProvider<RecordMatchStatsNotifier, AsyncValue<MatchStats?>>((ref) {
-  final repo = ref.watch(statisticsRepositoryProvider);
-  return RecordMatchStatsNotifier(repo, ref);
+final recordMatchStatsProvider = NotifierProvider<RecordMatchStatsNotifier, AsyncValue<MatchStats?>>(() {
+  return RecordMatchStatsNotifier();
 });
 
 // ============ SEASONS ============
@@ -96,11 +98,14 @@ final activeSeasonProvider = FutureProvider.family<Season?, String>((ref, teamId
   return repo.getActiveSeason(teamId);
 });
 
-class SeasonNotifier extends StateNotifier<AsyncValue<void>> {
-  final StatisticsRepository _repo;
-  final Ref _ref;
+class SeasonNotifier extends Notifier<AsyncValue<void>> {
+  late final StatisticsRepository _repo;
 
-  SeasonNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repo = ref.watch(statisticsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<Season?> createSeason({
     required String teamId,
@@ -119,9 +124,9 @@ class SeasonNotifier extends StateNotifier<AsyncValue<void>> {
         setActive: setActive,
       );
       state = const AsyncValue.data(null);
-      _ref.invalidate(seasonsProvider(teamId));
+      ref.invalidate(seasonsProvider(teamId));
       if (setActive) {
-        _ref.invalidate(activeSeasonProvider(teamId));
+        ref.invalidate(activeSeasonProvider(teamId));
       }
       return season;
     } catch (e, st) {
@@ -145,8 +150,8 @@ class SeasonNotifier extends StateNotifier<AsyncValue<void>> {
         endDate: endDate,
       );
       state = const AsyncValue.data(null);
-      _ref.invalidate(seasonsProvider(teamId));
-      _ref.invalidate(activeSeasonProvider(teamId));
+      ref.invalidate(seasonsProvider(teamId));
+      ref.invalidate(activeSeasonProvider(teamId));
       return season;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -159,8 +164,8 @@ class SeasonNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       await _repo.activateSeason(seasonId);
       state = const AsyncValue.data(null);
-      _ref.invalidate(seasonsProvider(teamId));
-      _ref.invalidate(activeSeasonProvider(teamId));
+      ref.invalidate(seasonsProvider(teamId));
+      ref.invalidate(activeSeasonProvider(teamId));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -169,9 +174,8 @@ class SeasonNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final seasonNotifierProvider = StateNotifierProvider<SeasonNotifier, AsyncValue<void>>((ref) {
-  final repo = ref.watch(statisticsRepositoryProvider);
-  return SeasonNotifier(repo, ref);
+final seasonNotifierProvider = NotifierProvider<SeasonNotifier, AsyncValue<void>>(() {
+  return SeasonNotifier();
 });
 
 // ============ MULTIPLE LEADERBOARDS ============
@@ -198,11 +202,14 @@ final leaderboardEntriesProvider =
   return repo.getLeaderboardEntries(leaderboardId);
 });
 
-class LeaderboardNotifier extends StateNotifier<AsyncValue<void>> {
-  final StatisticsRepository _repo;
-  final Ref _ref;
+class LeaderboardNotifier extends Notifier<AsyncValue<void>> {
+  late final StatisticsRepository _repo;
 
-  LeaderboardNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repo = ref.watch(statisticsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<Leaderboard?> createLeaderboard({
     required String teamId,
@@ -221,9 +228,9 @@ class LeaderboardNotifier extends StateNotifier<AsyncValue<void>> {
         isMain: isMain,
       );
       state = const AsyncValue.data(null);
-      _ref.invalidate(leaderboardsProvider(teamId));
+      ref.invalidate(leaderboardsProvider(teamId));
       if (isMain) {
-        _ref.invalidate(mainLeaderboardProvider(teamId));
+        ref.invalidate(mainLeaderboardProvider(teamId));
       }
       return leaderboard;
     } catch (e, st) {
@@ -237,8 +244,8 @@ class LeaderboardNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       await _repo.deleteLeaderboard(leaderboardId);
       state = const AsyncValue.data(null);
-      _ref.invalidate(leaderboardsProvider(teamId));
-      _ref.invalidate(mainLeaderboardProvider(teamId));
+      ref.invalidate(leaderboardsProvider(teamId));
+      ref.invalidate(mainLeaderboardProvider(teamId));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -247,9 +254,8 @@ class LeaderboardNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final leaderboardNotifierProvider = StateNotifierProvider<LeaderboardNotifier, AsyncValue<void>>((ref) {
-  final repo = ref.watch(statisticsRepositoryProvider);
-  return LeaderboardNotifier(repo, ref);
+final leaderboardNotifierProvider = NotifierProvider<LeaderboardNotifier, AsyncValue<void>>(() {
+  return LeaderboardNotifier();
 });
 
 // ============ TEST TEMPLATES ============
@@ -271,11 +277,14 @@ final testRankingProvider =
   return repo.getTestRanking(templateId);
 });
 
-class TestNotifier extends StateNotifier<AsyncValue<void>> {
-  final StatisticsRepository _repo;
-  final Ref _ref;
+class TestNotifier extends Notifier<AsyncValue<void>> {
+  late final StatisticsRepository _repo;
 
-  TestNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repo = ref.watch(statisticsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<TestTemplate?> createTemplate({
     required String teamId,
@@ -294,7 +303,7 @@ class TestNotifier extends StateNotifier<AsyncValue<void>> {
         higherIsBetter: higherIsBetter,
       );
       state = const AsyncValue.data(null);
-      _ref.invalidate(testTemplatesProvider(teamId));
+      ref.invalidate(testTemplatesProvider(teamId));
       return template;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -307,7 +316,7 @@ class TestNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       await _repo.deleteTestTemplate(templateId);
       state = const AsyncValue.data(null);
-      _ref.invalidate(testTemplatesProvider(teamId));
+      ref.invalidate(testTemplatesProvider(teamId));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -332,8 +341,8 @@ class TestNotifier extends StateNotifier<AsyncValue<void>> {
         notes: notes,
       );
       state = const AsyncValue.data(null);
-      _ref.invalidate(testResultsProvider(templateId));
-      _ref.invalidate(testRankingProvider(templateId));
+      ref.invalidate(testResultsProvider(templateId));
+      ref.invalidate(testRankingProvider(templateId));
       return result;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -342,7 +351,6 @@ class TestNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final testNotifierProvider = StateNotifierProvider<TestNotifier, AsyncValue<void>>((ref) {
-  final repo = ref.watch(statisticsRepositoryProvider);
-  return TestNotifier(repo, ref);
+final testNotifierProvider = NotifierProvider<TestNotifier, AsyncValue<void>>(() {
+  return TestNotifier();
 });

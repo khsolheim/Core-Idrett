@@ -38,40 +38,42 @@ class DocumentsParams {
 }
 
 /// Document notifier for managing document state
-class DocumentNotifier extends StateNotifier<AsyncValue<List<TeamDocument>>> {
-  final DocumentRepository _repo;
+class DocumentNotifier extends AsyncNotifier<List<TeamDocument>> {
+  DocumentNotifier(this._teamId);
   final String _teamId;
-  final Ref _ref;
+
+  late final DocumentRepository _repo;
   String? _currentCategory;
 
-  DocumentNotifier(this._repo, this._teamId, this._ref)
-      : super(const AsyncValue.loading()) {
-    _loadDocuments();
+  @override
+  Future<List<TeamDocument>> build() async {
+    _repo = ref.watch(documentRepositoryProvider);
+
+    // Load documents
+    return await _repo.getDocuments(
+      _teamId,
+      category: _currentCategory,
+    );
   }
 
   String? get currentCategory => _currentCategory;
 
-  Future<void> _loadDocuments() async {
-    try {
-      state = const AsyncValue.loading();
-      final documents = await _repo.getDocuments(
-        _teamId,
-        category: _currentCategory,
-      );
-      state = AsyncValue.data(documents);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
-  }
-
   Future<void> setCategory(String? category) async {
     _currentCategory = category;
-    await _loadDocuments();
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _repo.getDocuments(
+      _teamId,
+      category: _currentCategory,
+    ));
   }
 
   Future<void> refresh() async {
-    await _loadDocuments();
-    _ref.invalidate(documentCategoriesProvider(_teamId));
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _repo.getDocuments(
+      _teamId,
+      category: _currentCategory,
+    ));
+    ref.invalidate(documentCategoriesProvider(_teamId));
   }
 
   Future<bool> uploadDocument({
@@ -91,9 +93,9 @@ class DocumentNotifier extends StateNotifier<AsyncValue<List<TeamDocument>>> {
         category: category,
       );
 
-      final currentDocs = state.valueOrNull ?? [];
+      final currentDocs = state.value ?? [];
       state = AsyncValue.data([document, ...currentDocs]);
-      _ref.invalidate(documentCategoriesProvider(_teamId));
+      ref.invalidate(documentCategoriesProvider(_teamId));
       return true;
     } catch (e) {
       return false;
@@ -119,9 +121,9 @@ class DocumentNotifier extends StateNotifier<AsyncValue<List<TeamDocument>>> {
         category: category,
       );
 
-      final currentDocs = state.valueOrNull ?? [];
+      final currentDocs = state.value ?? [];
       state = AsyncValue.data([document, ...currentDocs]);
-      _ref.invalidate(documentCategoriesProvider(_teamId));
+      ref.invalidate(documentCategoriesProvider(_teamId));
       return true;
     } catch (e) {
       return false;
@@ -142,14 +144,14 @@ class DocumentNotifier extends StateNotifier<AsyncValue<List<TeamDocument>>> {
         category: category,
       );
 
-      final currentDocs = state.valueOrNull ?? [];
+      final currentDocs = state.value ?? [];
       final index = currentDocs.indexWhere((d) => d.id == documentId);
       if (index != -1) {
         final updatedList = List<TeamDocument>.from(currentDocs);
         updatedList[index] = updated;
         state = AsyncValue.data(updatedList);
       }
-      _ref.invalidate(documentCategoriesProvider(_teamId));
+      ref.invalidate(documentCategoriesProvider(_teamId));
       return true;
     } catch (e) {
       return false;
@@ -160,11 +162,11 @@ class DocumentNotifier extends StateNotifier<AsyncValue<List<TeamDocument>>> {
     try {
       await _repo.deleteDocument(documentId);
 
-      final currentDocs = state.valueOrNull ?? [];
+      final currentDocs = state.value ?? [];
       state = AsyncValue.data(
         currentDocs.where((d) => d.id != documentId).toList(),
       );
-      _ref.invalidate(documentCategoriesProvider(_teamId));
+      ref.invalidate(documentCategoriesProvider(_teamId));
       return true;
     } catch (e) {
       return false;
@@ -181,8 +183,5 @@ class DocumentNotifier extends StateNotifier<AsyncValue<List<TeamDocument>>> {
 }
 
 final documentNotifierProvider =
-    StateNotifierProvider.family<DocumentNotifier, AsyncValue<List<TeamDocument>>, String>(
-        (ref, teamId) {
-  final repo = ref.watch(documentRepositoryProvider);
-  return DocumentNotifier(repo, teamId, ref);
-});
+    AsyncNotifierProvider.family<DocumentNotifier, List<TeamDocument>, String>(
+        DocumentNotifier.new);

@@ -30,7 +30,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   void _initializeFields() {
     if (_initialized) return;
-    final user = ref.read(authStateProvider).valueOrNull;
+    final user = ref.read(authStateProvider).value;
     if (user == null) return;
 
     _initialized = true;

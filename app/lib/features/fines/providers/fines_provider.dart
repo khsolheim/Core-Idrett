@@ -69,11 +69,14 @@ final userFinesSummariesProvider = FutureProvider.family<List<UserFinesSummary>,
 });
 
 // Fine Rule Actions
-class FineRuleNotifier extends StateNotifier<AsyncValue<FineRule?>> {
-  final FinesRepository _repo;
-  final Ref _ref;
+class FineRuleNotifier extends Notifier<AsyncValue<FineRule?>> {
+  late final FinesRepository _repo;
 
-  FineRuleNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<FineRule?> build() {
+    _repo = ref.watch(finesRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<FineRule?> createRule({
     required String teamId,
@@ -90,8 +93,8 @@ class FineRuleNotifier extends StateNotifier<AsyncValue<FineRule?>> {
         description: description,
       );
       state = AsyncValue.data(rule);
-      _ref.invalidate(fineRulesProvider(teamId));
-      _ref.invalidate(allFineRulesProvider(teamId));
+      ref.invalidate(fineRulesProvider(teamId));
+      ref.invalidate(allFineRulesProvider(teamId));
       return rule;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -117,8 +120,8 @@ class FineRuleNotifier extends StateNotifier<AsyncValue<FineRule?>> {
         active: active,
       );
       state = AsyncValue.data(rule);
-      _ref.invalidate(fineRulesProvider(teamId));
-      _ref.invalidate(allFineRulesProvider(teamId));
+      ref.invalidate(fineRulesProvider(teamId));
+      ref.invalidate(allFineRulesProvider(teamId));
       return rule;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -131,8 +134,8 @@ class FineRuleNotifier extends StateNotifier<AsyncValue<FineRule?>> {
     try {
       await _repo.deleteFineRule(ruleId);
       state = const AsyncValue.data(null);
-      _ref.invalidate(fineRulesProvider(teamId));
-      _ref.invalidate(allFineRulesProvider(teamId));
+      ref.invalidate(fineRulesProvider(teamId));
+      ref.invalidate(allFineRulesProvider(teamId));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -141,17 +144,17 @@ class FineRuleNotifier extends StateNotifier<AsyncValue<FineRule?>> {
   }
 }
 
-final fineRuleNotifierProvider = StateNotifierProvider<FineRuleNotifier, AsyncValue<FineRule?>>((ref) {
-  final repo = ref.watch(finesRepositoryProvider);
-  return FineRuleNotifier(repo, ref);
-});
+final fineRuleNotifierProvider = NotifierProvider<FineRuleNotifier, AsyncValue<FineRule?>>(FineRuleNotifier.new);
 
 // Fine Actions
-class FineNotifier extends StateNotifier<AsyncValue<Fine?>> {
-  final FinesRepository _repo;
-  final Ref _ref;
+class FineNotifier extends Notifier<AsyncValue<Fine?>> {
+  late final FinesRepository _repo;
 
-  FineNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<Fine?> build() {
+    _repo = ref.watch(finesRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<Fine?> createFine({
     required String teamId,
@@ -209,24 +212,24 @@ class FineNotifier extends StateNotifier<AsyncValue<Fine?>> {
   }
 
   void _invalidateFineProviders(String teamId) {
-    _ref.invalidate(teamFinesProvider(teamId));
-    _ref.invalidate(pendingFinesProvider(teamId));
-    _ref.invalidate(teamFinesSummaryProvider(teamId));
-    _ref.invalidate(userFinesSummariesProvider(teamId));
+    ref.invalidate(teamFinesProvider(teamId));
+    ref.invalidate(pendingFinesProvider(teamId));
+    ref.invalidate(teamFinesSummaryProvider(teamId));
+    ref.invalidate(userFinesSummariesProvider(teamId));
   }
 }
 
-final fineNotifierProvider = StateNotifierProvider<FineNotifier, AsyncValue<Fine?>>((ref) {
-  final repo = ref.watch(finesRepositoryProvider);
-  return FineNotifier(repo, ref);
-});
+final fineNotifierProvider = NotifierProvider<FineNotifier, AsyncValue<Fine?>>(FineNotifier.new);
 
 // Appeal Actions
-class AppealNotifier extends StateNotifier<AsyncValue<FineAppeal?>> {
-  final FinesRepository _repo;
-  final Ref _ref;
+class AppealNotifier extends Notifier<AsyncValue<FineAppeal?>> {
+  late final FinesRepository _repo;
 
-  AppealNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<FineAppeal?> build() {
+    _repo = ref.watch(finesRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<FineAppeal?> createAppeal({
     required String fineId,
@@ -237,9 +240,9 @@ class AppealNotifier extends StateNotifier<AsyncValue<FineAppeal?>> {
     try {
       final appeal = await _repo.createAppeal(fineId: fineId, reason: reason);
       state = AsyncValue.data(appeal);
-      _ref.invalidate(teamFinesProvider(teamId));
-      _ref.invalidate(fineDetailProvider(fineId));
-      _ref.invalidate(pendingAppealsProvider(teamId));
+      ref.invalidate(teamFinesProvider(teamId));
+      ref.invalidate(fineDetailProvider(fineId));
+      ref.invalidate(pendingAppealsProvider(teamId));
       return appeal;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -261,10 +264,10 @@ class AppealNotifier extends StateNotifier<AsyncValue<FineAppeal?>> {
         extraFee: extraFee,
       );
       state = AsyncValue.data(appeal);
-      _ref.invalidate(pendingAppealsProvider(teamId));
-      _ref.invalidate(teamFinesProvider(teamId));
-      _ref.invalidate(teamFinesSummaryProvider(teamId));
-      _ref.invalidate(userFinesSummariesProvider(teamId));
+      ref.invalidate(pendingAppealsProvider(teamId));
+      ref.invalidate(teamFinesProvider(teamId));
+      ref.invalidate(teamFinesSummaryProvider(teamId));
+      ref.invalidate(userFinesSummariesProvider(teamId));
       return appeal;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -273,17 +276,17 @@ class AppealNotifier extends StateNotifier<AsyncValue<FineAppeal?>> {
   }
 }
 
-final appealNotifierProvider = StateNotifierProvider<AppealNotifier, AsyncValue<FineAppeal?>>((ref) {
-  final repo = ref.watch(finesRepositoryProvider);
-  return AppealNotifier(repo, ref);
-});
+final appealNotifierProvider = NotifierProvider<AppealNotifier, AsyncValue<FineAppeal?>>(AppealNotifier.new);
 
 // Payment Actions
-class PaymentNotifier extends StateNotifier<AsyncValue<FinePayment?>> {
-  final FinesRepository _repo;
-  final Ref _ref;
+class PaymentNotifier extends Notifier<AsyncValue<FinePayment?>> {
+  late final FinesRepository _repo;
 
-  PaymentNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<FinePayment?> build() {
+    _repo = ref.watch(finesRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<FinePayment?> recordPayment({
     required String fineId,
@@ -294,10 +297,10 @@ class PaymentNotifier extends StateNotifier<AsyncValue<FinePayment?>> {
     try {
       final payment = await _repo.recordPayment(fineId: fineId, amount: amount);
       state = AsyncValue.data(payment);
-      _ref.invalidate(teamFinesProvider(teamId));
-      _ref.invalidate(fineDetailProvider(fineId));
-      _ref.invalidate(teamFinesSummaryProvider(teamId));
-      _ref.invalidate(userFinesSummariesProvider(teamId));
+      ref.invalidate(teamFinesProvider(teamId));
+      ref.invalidate(fineDetailProvider(fineId));
+      ref.invalidate(teamFinesSummaryProvider(teamId));
+      ref.invalidate(userFinesSummariesProvider(teamId));
       return payment;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -306,7 +309,4 @@ class PaymentNotifier extends StateNotifier<AsyncValue<FinePayment?>> {
   }
 }
 
-final paymentNotifierProvider = StateNotifierProvider<PaymentNotifier, AsyncValue<FinePayment?>>((ref) {
-  final repo = ref.watch(finesRepositoryProvider);
-  return PaymentNotifier(repo, ref);
-});
+final paymentNotifierProvider = NotifierProvider<PaymentNotifier, AsyncValue<FinePayment?>>(PaymentNotifier.new);

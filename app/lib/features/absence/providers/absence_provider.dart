@@ -17,12 +17,14 @@ final absenceCategoriesProvider =
   return repo.getCategories(teamId);
 });
 
-class AbsenceCategoryNotifier extends StateNotifier<AsyncValue<AbsenceCategory?>> {
-  final AbsenceRepository _repo;
-  final Ref _ref;
+class AbsenceCategoryNotifier extends Notifier<AsyncValue<AbsenceCategory?>> {
+  late final AbsenceRepository _repo;
 
-  AbsenceCategoryNotifier(this._repo, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<AbsenceCategory?> build() {
+    _repo = ref.watch(absenceRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<AbsenceCategory?> createCategory({
     required String teamId,
@@ -41,7 +43,7 @@ class AbsenceCategoryNotifier extends StateNotifier<AsyncValue<AbsenceCategory?>
         sortOrder: sortOrder,
       );
       state = AsyncValue.data(category);
-      _ref.invalidate(absenceCategoriesProvider(teamId));
+      ref.invalidate(absenceCategoriesProvider(teamId));
       return category;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -67,7 +69,7 @@ class AbsenceCategoryNotifier extends StateNotifier<AsyncValue<AbsenceCategory?>
         sortOrder: sortOrder,
       );
       state = AsyncValue.data(category);
-      _ref.invalidate(absenceCategoriesProvider(teamId));
+      ref.invalidate(absenceCategoriesProvider(teamId));
       return category;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -80,7 +82,7 @@ class AbsenceCategoryNotifier extends StateNotifier<AsyncValue<AbsenceCategory?>
     try {
       await _repo.deleteCategory(categoryId);
       state = const AsyncValue.data(null);
-      _ref.invalidate(absenceCategoriesProvider(teamId));
+      ref.invalidate(absenceCategoriesProvider(teamId));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -90,11 +92,8 @@ class AbsenceCategoryNotifier extends StateNotifier<AsyncValue<AbsenceCategory?>
 }
 
 final absenceCategoryNotifierProvider =
-    StateNotifierProvider<AbsenceCategoryNotifier, AsyncValue<AbsenceCategory?>>(
-        (ref) {
-  final repo = ref.watch(absenceRepositoryProvider);
-  return AbsenceCategoryNotifier(repo, ref);
-});
+    NotifierProvider<AbsenceCategoryNotifier, AsyncValue<AbsenceCategory?>>(
+        AbsenceCategoryNotifier.new);
 
 // ============ ABSENCE RECORDS ============
 
@@ -128,12 +127,14 @@ final instanceAbsenceProvider = FutureProvider.family<AbsenceRecord?,
   return repo.getAbsenceForInstance(params.userId, params.instanceId);
 });
 
-class AbsenceRecordNotifier extends StateNotifier<AsyncValue<AbsenceRecord?>> {
-  final AbsenceRepository _repo;
-  final Ref _ref;
+class AbsenceRecordNotifier extends Notifier<AsyncValue<AbsenceRecord?>> {
+  late final AbsenceRepository _repo;
 
-  AbsenceRecordNotifier(this._repo, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<AbsenceRecord?> build() {
+    _repo = ref.watch(absenceRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<AbsenceRecord?> registerAbsence({
     required String teamId,
@@ -153,10 +154,10 @@ class AbsenceRecordNotifier extends StateNotifier<AsyncValue<AbsenceRecord?>> {
       );
       state = AsyncValue.data(record);
       // Invalidate related providers
-      _ref.invalidate(pendingAbsencesProvider(teamId));
-      _ref.invalidate(teamAbsencesProvider(
+      ref.invalidate(pendingAbsencesProvider(teamId));
+      ref.invalidate(teamAbsencesProvider(
           (teamId: teamId, userId: userId, status: null, seasonId: null)));
-      _ref.invalidate(
+      ref.invalidate(
           instanceAbsenceProvider((userId: userId, instanceId: instanceId)));
       return record;
     } catch (e, st) {
@@ -170,8 +171,8 @@ class AbsenceRecordNotifier extends StateNotifier<AsyncValue<AbsenceRecord?>> {
     try {
       final record = await _repo.approveAbsence(absenceId);
       state = AsyncValue.data(record);
-      _ref.invalidate(pendingAbsencesProvider(teamId));
-      _ref.invalidate(absenceDetailsProvider(absenceId));
+      ref.invalidate(pendingAbsencesProvider(teamId));
+      ref.invalidate(absenceDetailsProvider(absenceId));
       return record;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -188,8 +189,8 @@ class AbsenceRecordNotifier extends StateNotifier<AsyncValue<AbsenceRecord?>> {
     try {
       final record = await _repo.rejectAbsence(absenceId, reason: reason);
       state = AsyncValue.data(record);
-      _ref.invalidate(pendingAbsencesProvider(teamId));
-      _ref.invalidate(absenceDetailsProvider(absenceId));
+      ref.invalidate(pendingAbsencesProvider(teamId));
+      ref.invalidate(absenceDetailsProvider(absenceId));
       return record;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -207,9 +208,9 @@ class AbsenceRecordNotifier extends StateNotifier<AsyncValue<AbsenceRecord?>> {
     try {
       await _repo.deleteAbsence(absenceId);
       state = const AsyncValue.data(null);
-      _ref.invalidate(pendingAbsencesProvider(teamId));
-      _ref.invalidate(absenceDetailsProvider(absenceId));
-      _ref.invalidate(
+      ref.invalidate(pendingAbsencesProvider(teamId));
+      ref.invalidate(absenceDetailsProvider(absenceId));
+      ref.invalidate(
           instanceAbsenceProvider((userId: userId, instanceId: instanceId)));
       return true;
     } catch (e, st) {
@@ -220,11 +221,8 @@ class AbsenceRecordNotifier extends StateNotifier<AsyncValue<AbsenceRecord?>> {
 }
 
 final absenceRecordNotifierProvider =
-    StateNotifierProvider<AbsenceRecordNotifier, AsyncValue<AbsenceRecord?>>(
-        (ref) {
-  final repo = ref.watch(absenceRepositoryProvider);
-  return AbsenceRecordNotifier(repo, ref);
-});
+    NotifierProvider<AbsenceRecordNotifier, AsyncValue<AbsenceRecord?>>(
+        AbsenceRecordNotifier.new);
 
 // ============ ABSENCE SUMMARY ============
 

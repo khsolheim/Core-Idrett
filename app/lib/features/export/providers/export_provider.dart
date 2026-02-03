@@ -38,12 +38,16 @@ class ExportState {
 }
 
 /// Export notifier
-class ExportNotifier extends StateNotifier<ExportState> {
-  final ExportRepository _repo;
+class ExportNotifier extends Notifier<ExportState> {
+  ExportNotifier(this._teamId);
   final String _teamId;
-  final Ref _ref;
+  late final ExportRepository _repo;
 
-  ExportNotifier(this._repo, this._teamId, this._ref) : super(const ExportState());
+  @override
+  ExportState build() {
+    _repo = ref.watch(exportRepositoryProvider);
+    return const ExportState();
+  }
 
   Future<ExportData?> exportLeaderboard({
     String? seasonId,
@@ -58,7 +62,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         leaderboardId: leaderboardId,
       );
       state = state.copyWith(isExporting: false, lastExport: data);
-      _ref.invalidate(exportHistoryProvider(_teamId));
+      ref.invalidate(exportHistoryProvider(_teamId));
       return data;
     } catch (e) {
       state = state.copyWith(isExporting: false, error: e.toString());
@@ -81,7 +85,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         toDate: toDate,
       );
       state = state.copyWith(isExporting: false, lastExport: data);
-      _ref.invalidate(exportHistoryProvider(_teamId));
+      ref.invalidate(exportHistoryProvider(_teamId));
       return data;
     } catch (e) {
       state = state.copyWith(isExporting: false, error: e.toString());
@@ -104,7 +108,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         toDate: toDate,
       );
       state = state.copyWith(isExporting: false, lastExport: data);
-      _ref.invalidate(exportHistoryProvider(_teamId));
+      ref.invalidate(exportHistoryProvider(_teamId));
       return data;
     } catch (e) {
       state = state.copyWith(isExporting: false, error: e.toString());
@@ -125,7 +129,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         toDate: toDate,
       );
       state = state.copyWith(isExporting: false, lastExport: data);
-      _ref.invalidate(exportHistoryProvider(_teamId));
+      ref.invalidate(exportHistoryProvider(_teamId));
       return data;
     } catch (e) {
       state = state.copyWith(isExporting: false, error: e.toString());
@@ -139,7 +143,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
     try {
       final data = await _repo.exportMembers(_teamId);
       state = state.copyWith(isExporting: false, lastExport: data);
-      _ref.invalidate(exportHistoryProvider(_teamId));
+      ref.invalidate(exportHistoryProvider(_teamId));
       return data;
     } catch (e) {
       state = state.copyWith(isExporting: false, error: e.toString());
@@ -156,7 +160,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
     try {
       final csv = await _repo.exportToCsv(_teamId, type, extraParams: extraParams);
       state = state.copyWith(isExporting: false);
-      _ref.invalidate(exportHistoryProvider(_teamId));
+      ref.invalidate(exportHistoryProvider(_teamId));
       return csv;
     } catch (e) {
       state = state.copyWith(isExporting: false, error: e.toString());
@@ -170,7 +174,4 @@ class ExportNotifier extends StateNotifier<ExportState> {
 }
 
 final exportNotifierProvider =
-    StateNotifierProvider.family<ExportNotifier, ExportState, String>((ref, teamId) {
-  final repo = ref.watch(exportRepositoryProvider);
-  return ExportNotifier(repo, teamId, ref);
-});
+    NotifierProvider.family<ExportNotifier, ExportState, String>(ExportNotifier.new);

@@ -16,30 +16,31 @@ final unreadCountProvider = FutureProvider.family<int, String>((ref, teamId) asy
 });
 
 // Chat state notifier for real-time-like updates
-class ChatNotifier extends StateNotifier<AsyncValue<List<Message>>> {
-  final ChatRepository _repo;
+class ChatNotifier extends AsyncNotifier<List<Message>> {
+  ChatNotifier(this._teamId);
   final String _teamId;
-  final Ref _ref;
+
+  late final ChatRepository _repo;
   Timer? _pollTimer;
   DateTime? _lastMessageTime;
 
-  ChatNotifier(this._repo, this._teamId, this._ref)
-      : super(const AsyncValue.loading()) {
-    _loadMessages();
-  }
+  @override
+  Future<List<Message>> build() async {
+    _repo = ref.watch(chatRepositoryProvider);
 
-  Future<void> _loadMessages() async {
-    try {
-      final messages = await _repo.getMessages(_teamId);
-      state = AsyncValue.data(messages);
-      if (messages.isNotEmpty) {
-        _lastMessageTime = messages.first.createdAt;
-      }
-      // Start polling for new messages
-      _startPolling();
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    // Clean up timer when disposed
+    ref.onDispose(() {
+      _pollTimer?.cancel();
+    });
+
+    // Load messages
+    final messages = await _repo.getMessages(_teamId);
+    if (messages.isNotEmpty) {
+      _lastMessageTime = messages.first.createdAt;
     }
+    // Start polling for new messages
+    _startPolling();
+    return messages;
   }
 
   void _startPolling() {
@@ -57,7 +58,7 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Message>>> {
       );
 
       if (newMessages.isNotEmpty) {
-        final currentMessages = state.valueOrNull ?? [];
+        final currentMessages = state.value ?? [];
         // Add new messages at the beginning (newest first)
         final updatedMessages = [...newMessages, ...currentMessages];
         state = AsyncValue.data(updatedMessages);
@@ -76,7 +77,7 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Message>>> {
         replyToId: replyToId,
       );
 
-      final currentMessages = state.valueOrNull ?? [];
+      final currentMessages = state.value ?? [];
       state = AsyncValue.data([message, ...currentMessages]);
       _lastMessageTime = message.createdAt;
       return true;
@@ -92,7 +93,7 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Message>>> {
         content: content,
       );
 
-      final currentMessages = state.valueOrNull ?? [];
+      final currentMessages = state.value ?? [];
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         final updated = List<Message>.from(currentMessages);
@@ -110,7 +111,7 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Message>>> {
       await _repo.deleteMessage(messageId, teamId: _teamId);
 
       // Update message to show as deleted
-      final currentMessages = state.valueOrNull ?? [];
+      final currentMessages = state.value ?? [];
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         final updated = List<Message>.from(currentMessages);
@@ -139,28 +140,22 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<Message>>> {
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    await _loadMessages();
+    state = await AsyncValue.guard(() => _repo.getMessages(_teamId));
+    if (state.hasValue && state.value!.isNotEmpty) {
+      _lastMessageTime = state.value!.first.createdAt;
+    }
   }
 
   Future<void> markAsRead() async {
     try {
       await _repo.markAsRead(_teamId);
-      _ref.invalidate(unreadCountProvider(_teamId));
+      ref.invalidate(unreadCountProvider(_teamId));
     } catch (e) {
       // Ignore errors
     }
   }
-
-  @override
-  void dispose() {
-    _pollTimer?.cancel();
-    super.dispose();
-  }
 }
 
 final chatNotifierProvider =
-    StateNotifierProvider.family<ChatNotifier, AsyncValue<List<Message>>, String>(
-        (ref, teamId) {
-  final repo = ref.watch(chatRepositoryProvider);
-  return ChatNotifier(repo, teamId, ref);
-});
+    AsyncNotifierProvider.family<ChatNotifier, List<Message>, String>(
+        ChatNotifier.new);

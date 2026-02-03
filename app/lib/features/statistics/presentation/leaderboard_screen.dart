@@ -36,8 +36,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     _tabController = TabController(length: _categories.length, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        ref.read(selectedLeaderboardCategoryProvider.notifier).state =
-            _categories[_tabController.index].$1;
+        ref.read(selectedLeaderboardCategoryProvider.notifier).select(
+            _categories[_tabController.index].$1);
       }
     });
   }
@@ -51,7 +51,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   @override
   Widget build(BuildContext context) {
     final teamAsync = ref.watch(teamDetailProvider(widget.teamId));
-    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -127,11 +127,11 @@ class _CategoryLeaderboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeSeasonAsync = ref.watch(activeSeasonProvider(teamId));
-    final seasonId = activeSeasonAsync.valueOrNull?.id;
+    final seasonId = activeSeasonAsync.value?.id;
     final entriesAsync = ref.watch(rankedLeaderboardProvider(
       (teamId: teamId, category: category, seasonId: seasonId),
     ));
-    final currentUser = ref.watch(authStateProvider).valueOrNull;
+    final currentUser = ref.watch(authStateProvider).value;
     final theme = Theme.of(context);
 
     return entriesAsync.when(

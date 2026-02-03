@@ -24,12 +24,14 @@ final teamPointsConfigProvider =
   return repo.getConfig(teamId);
 });
 
-class PointsConfigNotifier extends StateNotifier<AsyncValue<TeamPointsConfig?>> {
-  final PointsRepository _repo;
-  final Ref _ref;
+class PointsConfigNotifier extends Notifier<AsyncValue<TeamPointsConfig?>> {
+  late final PointsRepository _repo;
 
-  PointsConfigNotifier(this._repo, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<TeamPointsConfig?> build() {
+    _repo = ref.watch(pointsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<TeamPointsConfig?> createOrUpdateConfig({
     required String teamId,
@@ -72,8 +74,8 @@ class PointsConfigNotifier extends StateNotifier<AsyncValue<TeamPointsConfig?>> 
         newPlayerStartMode: newPlayerStartMode?.toJsonString(),
       );
       state = AsyncValue.data(config);
-      _ref.invalidate(teamPointsConfigProvider(teamId));
-      _ref.invalidate(pointsConfigProvider((teamId: teamId, seasonId: seasonId)));
+      ref.invalidate(teamPointsConfigProvider(teamId));
+      ref.invalidate(pointsConfigProvider((teamId: teamId, seasonId: seasonId)));
       return config;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -86,7 +88,7 @@ class PointsConfigNotifier extends StateNotifier<AsyncValue<TeamPointsConfig?>> 
     try {
       await _repo.deleteConfig(configId);
       state = const AsyncValue.data(null);
-      _ref.invalidate(teamPointsConfigProvider(teamId));
+      ref.invalidate(teamPointsConfigProvider(teamId));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -96,10 +98,9 @@ class PointsConfigNotifier extends StateNotifier<AsyncValue<TeamPointsConfig?>> 
 }
 
 final pointsConfigNotifierProvider =
-    StateNotifierProvider<PointsConfigNotifier, AsyncValue<TeamPointsConfig?>>(
-        (ref) {
-  final repo = ref.watch(pointsRepositoryProvider);
-  return PointsConfigNotifier(repo, ref);
+    NotifierProvider<PointsConfigNotifier, AsyncValue<TeamPointsConfig?>>(
+        () {
+  return PointsConfigNotifier();
 });
 
 // ============ ATTENDANCE STATS ============
@@ -124,12 +125,14 @@ final userAttendancePointsProvider = FutureProvider.family<List<AttendancePoints
   );
 });
 
-class AttendancePointsNotifier extends StateNotifier<AsyncValue<AttendancePoints?>> {
-  final PointsRepository _repo;
-  final Ref _ref;
+class AttendancePointsNotifier extends Notifier<AsyncValue<AttendancePoints?>> {
+  late final PointsRepository _repo;
 
-  AttendancePointsNotifier(this._repo, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<AttendancePoints?> build() {
+    _repo = ref.watch(pointsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<AttendancePoints?> awardPoints({
     required String teamId,
@@ -153,9 +156,9 @@ class AttendancePointsNotifier extends StateNotifier<AsyncValue<AttendancePoints
       );
       state = AsyncValue.data(points);
       // Invalidate related providers
-      _ref.invalidate(userAttendanceStatsProvider(
+      ref.invalidate(userAttendanceStatsProvider(
           (teamId: teamId, userId: userId, seasonId: seasonId)));
-      _ref.invalidate(userAttendancePointsProvider(
+      ref.invalidate(userAttendancePointsProvider(
           (userId: userId, teamId: teamId, seasonId: seasonId)));
       return points;
     } catch (e, st) {
@@ -166,10 +169,9 @@ class AttendancePointsNotifier extends StateNotifier<AsyncValue<AttendancePoints
 }
 
 final attendancePointsNotifierProvider =
-    StateNotifierProvider<AttendancePointsNotifier, AsyncValue<AttendancePoints?>>(
-        (ref) {
-  final repo = ref.watch(pointsRepositoryProvider);
-  return AttendancePointsNotifier(repo, ref);
+    NotifierProvider<AttendancePointsNotifier, AsyncValue<AttendancePoints?>>(
+        () {
+  return AttendancePointsNotifier();
 });
 
 // ============ OPT-OUT ============
@@ -181,18 +183,21 @@ final optOutStatusProvider =
   return repo.getOptOut(params.teamId, params.userId);
 });
 
-class OptOutNotifier extends StateNotifier<AsyncValue<void>> {
-  final PointsRepository _repo;
-  final Ref _ref;
+class OptOutNotifier extends Notifier<AsyncValue<void>> {
+  late final PointsRepository _repo;
 
-  OptOutNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repo = ref.watch(pointsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> setOptOut(String teamId, String userId, bool optOut) async {
     state = const AsyncValue.loading();
     try {
       await _repo.setOptOut(teamId, userId, optOut);
       state = const AsyncValue.data(null);
-      _ref.invalidate(optOutStatusProvider((teamId: teamId, userId: userId)));
+      ref.invalidate(optOutStatusProvider((teamId: teamId, userId: userId)));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -202,9 +207,8 @@ class OptOutNotifier extends StateNotifier<AsyncValue<void>> {
 }
 
 final optOutNotifierProvider =
-    StateNotifierProvider<OptOutNotifier, AsyncValue<void>>((ref) {
-  final repo = ref.watch(pointsRepositoryProvider);
-  return OptOutNotifier(repo, ref);
+    NotifierProvider<OptOutNotifier, AsyncValue<void>>(() {
+  return OptOutNotifier();
 });
 
 // ============ RANKED LEADERBOARDS ============
@@ -280,8 +284,18 @@ final userMonthlyStatsProvider = FutureProvider.family<List<MonthlyUserStats>,
 
 // ============ SELECTED CATEGORY STATE ============
 
+class SelectedLeaderboardCategoryNotifier extends Notifier<LeaderboardCategory> {
+  @override
+  LeaderboardCategory build() => LeaderboardCategory.total;
+
+  void select(LeaderboardCategory category) {
+    state = category;
+  }
+}
+
 final selectedLeaderboardCategoryProvider =
-    StateProvider<LeaderboardCategory>((ref) => LeaderboardCategory.total);
+    NotifierProvider<SelectedLeaderboardCategoryNotifier, LeaderboardCategory>(
+        SelectedLeaderboardCategoryNotifier.new);
 
 // ============ MANUAL ADJUSTMENTS ============
 
@@ -305,12 +319,14 @@ final userAdjustmentsProvider = FutureProvider.family<List<ManualPointAdjustment
   );
 });
 
-class ManualAdjustmentNotifier extends StateNotifier<AsyncValue<ManualPointAdjustment?>> {
-  final PointsRepository _repo;
-  final Ref _ref;
+class ManualAdjustmentNotifier extends Notifier<AsyncValue<ManualPointAdjustment?>> {
+  late final PointsRepository _repo;
 
-  ManualAdjustmentNotifier(this._repo, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<ManualPointAdjustment?> build() {
+    _repo = ref.watch(pointsRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<ManualPointAdjustment?> createAdjustment({
     required String teamId,
@@ -332,16 +348,16 @@ class ManualAdjustmentNotifier extends StateNotifier<AsyncValue<ManualPointAdjus
       );
       state = AsyncValue.data(adjustment);
       // Invalidate related providers
-      _ref.invalidate(teamAdjustmentsProvider(
+      ref.invalidate(teamAdjustmentsProvider(
           (teamId: teamId, seasonId: seasonId, limit: null)));
-      _ref.invalidate(userAdjustmentsProvider(
+      ref.invalidate(userAdjustmentsProvider(
           (userId: userId, teamId: teamId, seasonId: seasonId)));
-      _ref.invalidate(userAttendanceStatsProvider(
+      ref.invalidate(userAttendanceStatsProvider(
           (teamId: teamId, userId: userId, seasonId: seasonId)));
       // Also invalidate leaderboards since points changed
-      _ref.invalidate(rankedLeaderboardProvider(
+      ref.invalidate(rankedLeaderboardProvider(
           (teamId: teamId, category: null, seasonId: seasonId)));
-      _ref.invalidate(leaderboardWithTrendsProvider(
+      ref.invalidate(leaderboardWithTrendsProvider(
           (teamId: teamId, category: null, seasonId: seasonId)));
       return adjustment;
     } catch (e, st) {
@@ -352,8 +368,7 @@ class ManualAdjustmentNotifier extends StateNotifier<AsyncValue<ManualPointAdjus
 }
 
 final manualAdjustmentNotifierProvider =
-    StateNotifierProvider<ManualAdjustmentNotifier, AsyncValue<ManualPointAdjustment?>>(
-        (ref) {
-  final repo = ref.watch(pointsRepositoryProvider);
-  return ManualAdjustmentNotifier(repo, ref);
+    NotifierProvider<ManualAdjustmentNotifier, AsyncValue<ManualPointAdjustment?>>(
+        () {
+  return ManualAdjustmentNotifier();
 });

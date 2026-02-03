@@ -233,7 +233,7 @@ class _NewConversationSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(teamMembersProvider(teamId));
-    final currentUser = ref.watch(authStateProvider).valueOrNull;
+    final currentUser = ref.watch(authStateProvider).value;
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(

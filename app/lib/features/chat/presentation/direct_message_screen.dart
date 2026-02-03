@@ -93,7 +93,7 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(directMessageNotifierProvider(widget.recipientId));
-    final currentUser = ref.watch(authStateProvider).valueOrNull;
+    final currentUser = ref.watch(authStateProvider).value;
     final membersAsync = ref.watch(teamMembersProvider(widget.teamId));
     final theme = Theme.of(context);
 

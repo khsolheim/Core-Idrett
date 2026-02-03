@@ -40,14 +40,17 @@ final sessionLeaderboardProvider = FutureProvider.family<List<StopwatchTime>, St
   return repository.getLeaderboard(sessionId);
 });
 
-// ============ STATE NOTIFIERS ============
+// ============ NOTIFIERS ============
 
-// StateNotifier for session management
-class StopwatchSessionNotifier extends StateNotifier<AsyncValue<void>> {
-  final StopwatchRepository _repository;
-  final Ref _ref;
+// Notifier for session management
+class StopwatchSessionNotifier extends Notifier<AsyncValue<void>> {
+  late final StopwatchRepository _repository;
 
-  StopwatchSessionNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(stopwatchRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<StopwatchSession?> createSession({
     String? miniActivityId,
@@ -66,10 +69,10 @@ class StopwatchSessionNotifier extends StateNotifier<AsyncValue<void>> {
         countdownDurationMs: countdownDurationMs,
       );
       if (miniActivityId != null) {
-        _ref.invalidate(miniActivitySessionsProvider(miniActivityId));
+        ref.invalidate(miniActivitySessionsProvider(miniActivityId));
       }
       if (teamId != null) {
-        _ref.invalidate(teamSessionsProvider(teamId));
+        ref.invalidate(teamSessionsProvider(teamId));
       }
       state = const AsyncValue.data(null);
       return result;
@@ -95,13 +98,13 @@ class StopwatchSessionNotifier extends StateNotifier<AsyncValue<void>> {
         sessionType: sessionType,
         countdownDurationMs: countdownDurationMs,
       );
-      _ref.invalidate(stopwatchSessionProvider(sessionId));
-      _ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
+      ref.invalidate(stopwatchSessionProvider(sessionId));
+      ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
       if (miniActivityId != null) {
-        _ref.invalidate(miniActivitySessionsProvider(miniActivityId));
+        ref.invalidate(miniActivitySessionsProvider(miniActivityId));
       }
       if (teamId != null) {
-        _ref.invalidate(teamSessionsProvider(teamId));
+        ref.invalidate(teamSessionsProvider(teamId));
       }
       state = const AsyncValue.data(null);
       return result;
@@ -119,13 +122,13 @@ class StopwatchSessionNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.deleteSession(sessionId);
-      _ref.invalidate(stopwatchSessionProvider(sessionId));
-      _ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
+      ref.invalidate(stopwatchSessionProvider(sessionId));
+      ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
       if (miniActivityId != null) {
-        _ref.invalidate(miniActivitySessionsProvider(miniActivityId));
+        ref.invalidate(miniActivitySessionsProvider(miniActivityId));
       }
       if (teamId != null) {
-        _ref.invalidate(teamSessionsProvider(teamId));
+        ref.invalidate(teamSessionsProvider(teamId));
       }
       state = const AsyncValue.data(null);
       return true;
@@ -136,20 +139,23 @@ class StopwatchSessionNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final stopwatchSessionNotifierProvider = StateNotifierProvider<StopwatchSessionNotifier, AsyncValue<void>>((ref) {
-  return StopwatchSessionNotifier(ref.watch(stopwatchRepositoryProvider), ref);
+final stopwatchSessionNotifierProvider = NotifierProvider<StopwatchSessionNotifier, AsyncValue<void>>(() {
+  return StopwatchSessionNotifier();
 });
 
-// StateNotifier for session control (start/pause/resume/complete)
-class StopwatchControlNotifier extends StateNotifier<AsyncValue<StopwatchSession?>> {
-  final StopwatchRepository _repository;
-  final Ref _ref;
+// Notifier for session control (start/pause/resume/complete)
+class StopwatchControlNotifier extends Notifier<AsyncValue<StopwatchSession?>> {
+  late final StopwatchRepository _repository;
 
-  StopwatchControlNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<StopwatchSession?> build() {
+    _repository = ref.watch(stopwatchRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   void _invalidateSession(String sessionId) {
-    _ref.invalidate(stopwatchSessionProvider(sessionId));
-    _ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
+    ref.invalidate(stopwatchSessionProvider(sessionId));
+    ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
   }
 
   Future<StopwatchSession?> startSession(String sessionId) async {
@@ -209,8 +215,8 @@ class StopwatchControlNotifier extends StateNotifier<AsyncValue<StopwatchSession
     try {
       final result = await _repository.resetSession(sessionId);
       _invalidateSession(sessionId);
-      _ref.invalidate(sessionTimesProvider(sessionId));
-      _ref.invalidate(sessionLeaderboardProvider(sessionId));
+      ref.invalidate(sessionTimesProvider(sessionId));
+      ref.invalidate(sessionLeaderboardProvider(sessionId));
       state = AsyncValue.data(result);
       return result;
     } catch (e, st) {
@@ -220,16 +226,19 @@ class StopwatchControlNotifier extends StateNotifier<AsyncValue<StopwatchSession
   }
 }
 
-final stopwatchControlNotifierProvider = StateNotifierProvider<StopwatchControlNotifier, AsyncValue<StopwatchSession?>>((ref) {
-  return StopwatchControlNotifier(ref.watch(stopwatchRepositoryProvider), ref);
+final stopwatchControlNotifierProvider = NotifierProvider<StopwatchControlNotifier, AsyncValue<StopwatchSession?>>(() {
+  return StopwatchControlNotifier();
 });
 
-// StateNotifier for time recording
-class StopwatchTimeNotifier extends StateNotifier<AsyncValue<void>> {
-  final StopwatchRepository _repository;
-  final Ref _ref;
+// Notifier for time recording
+class StopwatchTimeNotifier extends Notifier<AsyncValue<void>> {
+  late final StopwatchRepository _repository;
 
-  StopwatchTimeNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(stopwatchRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<StopwatchTime?> recordTime({
     required String sessionId,
@@ -247,9 +256,9 @@ class StopwatchTimeNotifier extends StateNotifier<AsyncValue<void>> {
         isSplit: isSplit,
         splitNumber: splitNumber,
       );
-      _ref.invalidate(sessionTimesProvider(sessionId));
-      _ref.invalidate(sessionLeaderboardProvider(sessionId));
-      _ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
+      ref.invalidate(sessionTimesProvider(sessionId));
+      ref.invalidate(sessionLeaderboardProvider(sessionId));
+      ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -269,9 +278,9 @@ class StopwatchTimeNotifier extends StateNotifier<AsyncValue<void>> {
         timeId: timeId,
         timeMs: timeMs,
       );
-      _ref.invalidate(sessionTimesProvider(sessionId));
-      _ref.invalidate(sessionLeaderboardProvider(sessionId));
-      _ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
+      ref.invalidate(sessionTimesProvider(sessionId));
+      ref.invalidate(sessionLeaderboardProvider(sessionId));
+      ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -287,9 +296,9 @@ class StopwatchTimeNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.deleteTime(timeId);
-      _ref.invalidate(sessionTimesProvider(sessionId));
-      _ref.invalidate(sessionLeaderboardProvider(sessionId));
-      _ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
+      ref.invalidate(sessionTimesProvider(sessionId));
+      ref.invalidate(sessionLeaderboardProvider(sessionId));
+      ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -302,9 +311,9 @@ class StopwatchTimeNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.clearTimesForSession(sessionId);
-      _ref.invalidate(sessionTimesProvider(sessionId));
-      _ref.invalidate(sessionLeaderboardProvider(sessionId));
-      _ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
+      ref.invalidate(sessionTimesProvider(sessionId));
+      ref.invalidate(sessionLeaderboardProvider(sessionId));
+      ref.invalidate(stopwatchSessionWithTimesProvider(sessionId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -314,8 +323,8 @@ class StopwatchTimeNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final stopwatchTimeNotifierProvider = StateNotifierProvider<StopwatchTimeNotifier, AsyncValue<void>>((ref) {
-  return StopwatchTimeNotifier(ref.watch(stopwatchRepositoryProvider), ref);
+final stopwatchTimeNotifierProvider = NotifierProvider<StopwatchTimeNotifier, AsyncValue<void>>(() {
+  return StopwatchTimeNotifier();
 });
 
 // Live stopwatch state for UI (local state, not persisted)
@@ -350,8 +359,17 @@ class LiveStopwatchState {
   }
 }
 
-class LiveStopwatchNotifier extends StateNotifier<LiveStopwatchState> {
-  LiveStopwatchNotifier() : super(const LiveStopwatchState());
+class LiveStopwatchNotifier extends Notifier<LiveStopwatchState> {
+  LiveStopwatchNotifier(this._sessionId);
+  final String _sessionId;
+
+  /// The session ID this notifier is associated with
+  String get sessionId => _sessionId;
+
+  @override
+  LiveStopwatchState build() {
+    return const LiveStopwatchState();
+  }
 
   void setElapsed(int ms) {
     state = state.copyWith(elapsedMs: ms);
@@ -378,6 +396,6 @@ class LiveStopwatchNotifier extends StateNotifier<LiveStopwatchState> {
   }
 }
 
-final liveStopwatchProvider = StateNotifierProvider.family<LiveStopwatchNotifier, LiveStopwatchState, String>((ref, sessionId) {
-  return LiveStopwatchNotifier();
+final liveStopwatchProvider = NotifierProvider.family<LiveStopwatchNotifier, LiveStopwatchState, String>((sessionId) {
+  return LiveStopwatchNotifier(sessionId);
 });

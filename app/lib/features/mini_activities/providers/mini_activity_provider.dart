@@ -20,12 +20,15 @@ final miniActivityDetailProvider = FutureProvider.family<MiniActivity, String>((
   return repository.getMiniActivityDetail(miniActivityId);
 });
 
-// StateNotifier for creating templates
-class CreateTemplateNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for creating templates
+class CreateTemplateNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  CreateTemplateNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> createTemplate({
     required String teamId,
@@ -41,7 +44,7 @@ class CreateTemplateNotifier extends StateNotifier<AsyncValue<void>> {
         type: type,
         defaultPoints: defaultPoints,
       );
-      _ref.invalidate(teamTemplatesProvider(teamId));
+      ref.invalidate(teamTemplatesProvider(teamId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -54,7 +57,7 @@ class CreateTemplateNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.deleteTemplate(templateId);
-      _ref.invalidate(teamTemplatesProvider(teamId));
+      ref.invalidate(teamTemplatesProvider(teamId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -64,16 +67,17 @@ class CreateTemplateNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final createTemplateProvider = StateNotifierProvider<CreateTemplateNotifier, AsyncValue<void>>((ref) {
-  return CreateTemplateNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final createTemplateProvider = NotifierProvider<CreateTemplateNotifier, AsyncValue<void>>(CreateTemplateNotifier.new);
 
-// StateNotifier for creating mini-activities
-class CreateMiniActivityNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for creating mini-activities
+class CreateMiniActivityNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  CreateMiniActivityNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> createMiniActivity({
     required String instanceId,
@@ -89,7 +93,7 @@ class CreateMiniActivityNotifier extends StateNotifier<AsyncValue<void>> {
         name: name,
         type: type,
       );
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -102,7 +106,7 @@ class CreateMiniActivityNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.deleteMiniActivity(miniActivityId);
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -112,16 +116,17 @@ class CreateMiniActivityNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final createMiniActivityProvider = StateNotifierProvider<CreateMiniActivityNotifier, AsyncValue<void>>((ref) {
-  return CreateMiniActivityNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final createMiniActivityProvider = NotifierProvider<CreateMiniActivityNotifier, AsyncValue<void>>(CreateMiniActivityNotifier.new);
 
-// StateNotifier for team division
-class TeamDivisionNotifier extends StateNotifier<AsyncValue<MiniActivity?>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for team division
+class TeamDivisionNotifier extends Notifier<AsyncValue<MiniActivity?>> {
+  late final MiniActivityRepository _repository;
 
-  TeamDivisionNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<MiniActivity?> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<MiniActivity?> divideTeams({
     required String miniActivityId,
@@ -140,8 +145,8 @@ class TeamDivisionNotifier extends StateNotifier<AsyncValue<MiniActivity?>> {
         participantUserIds: participantUserIds,
         teamId: teamId,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = AsyncValue.data(result);
       return result;
     } catch (e, st) {
@@ -151,16 +156,17 @@ class TeamDivisionNotifier extends StateNotifier<AsyncValue<MiniActivity?>> {
   }
 }
 
-final teamDivisionProvider = StateNotifierProvider<TeamDivisionNotifier, AsyncValue<MiniActivity?>>((ref) {
-  return TeamDivisionNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final teamDivisionProvider = NotifierProvider<TeamDivisionNotifier, AsyncValue<MiniActivity?>>(TeamDivisionNotifier.new);
 
-// StateNotifier for recording scores
-class RecordScoresNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for recording scores
+class RecordScoresNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  RecordScoresNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> recordScores({
     required String miniActivityId,
@@ -177,8 +183,8 @@ class RecordScoresNotifier extends StateNotifier<AsyncValue<void>> {
         participantPoints: participantPoints,
         addToLeaderboard: addToLeaderboard,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -188,9 +194,7 @@ class RecordScoresNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final recordScoresProvider = StateNotifierProvider<RecordScoresNotifier, AsyncValue<void>>((ref) {
-  return RecordScoresNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final recordScoresProvider = NotifierProvider<RecordScoresNotifier, AsyncValue<void>>(RecordScoresNotifier.new);
 
 // Provider for standalone mini-activities of a team
 final teamStandaloneMiniActivitiesProvider = FutureProvider.family<List<MiniActivity>, String>((ref, teamId) async {
@@ -210,12 +214,15 @@ final miniActivityHandicapsProvider = FutureProvider.family<List<MiniActivityHan
   return repository.getHandicaps(miniActivityId);
 });
 
-// StateNotifier for managing mini-activity operations
-class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for managing mini-activity operations
+class MiniActivityOperationsNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  MiniActivityOperationsNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<MiniActivity?> updateMiniActivity({
     required String miniActivityId,
@@ -244,8 +251,8 @@ class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
         leaderboardId: leaderboardId,
         handicapEnabled: handicapEnabled,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -261,8 +268,8 @@ class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.archiveMiniActivity(miniActivityId);
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -278,8 +285,8 @@ class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.unarchiveMiniActivity(miniActivityId);
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -296,7 +303,7 @@ class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.duplicateMiniActivity(miniActivityId, newName: newName);
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -312,8 +319,8 @@ class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.resetTeamDivision(miniActivityId);
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -335,8 +342,8 @@ class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
         userId: userId,
         miniTeamId: miniTeamId,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -358,8 +365,8 @@ class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
         miniTeamId: miniTeamId,
         name: name,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -369,16 +376,17 @@ class MiniActivityOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final miniActivityOperationsProvider = StateNotifierProvider<MiniActivityOperationsNotifier, AsyncValue<void>>((ref) {
-  return MiniActivityOperationsNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final miniActivityOperationsProvider = NotifierProvider<MiniActivityOperationsNotifier, AsyncValue<void>>(MiniActivityOperationsNotifier.new);
 
-// StateNotifier for adjustments (bonus/penalty)
-class AdjustmentNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for adjustments (bonus/penalty)
+class AdjustmentNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  AdjustmentNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<MiniActivityAdjustment?> awardAdjustment({
     required String miniActivityId,
@@ -396,8 +404,8 @@ class AdjustmentNotifier extends StateNotifier<AsyncValue<void>> {
         points: points,
         reason: reason,
       );
-      _ref.invalidate(miniActivityAdjustmentsProvider(miniActivityId));
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(miniActivityAdjustmentsProvider(miniActivityId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -413,8 +421,8 @@ class AdjustmentNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.deleteAdjustment(adjustmentId);
-      _ref.invalidate(miniActivityAdjustmentsProvider(miniActivityId));
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(miniActivityAdjustmentsProvider(miniActivityId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -424,16 +432,17 @@ class AdjustmentNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final adjustmentProvider = StateNotifierProvider<AdjustmentNotifier, AsyncValue<void>>((ref) {
-  return AdjustmentNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final adjustmentProvider = NotifierProvider<AdjustmentNotifier, AsyncValue<void>>(AdjustmentNotifier.new);
 
-// StateNotifier for handicaps
-class HandicapNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for handicaps
+class HandicapNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  HandicapNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<MiniActivityHandicap?> setHandicap({
     required String miniActivityId,
@@ -447,8 +456,8 @@ class HandicapNotifier extends StateNotifier<AsyncValue<void>> {
         userId: userId,
         handicapValue: handicapValue,
       );
-      _ref.invalidate(miniActivityHandicapsProvider(miniActivityId));
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(miniActivityHandicapsProvider(miniActivityId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -467,8 +476,8 @@ class HandicapNotifier extends StateNotifier<AsyncValue<void>> {
         miniActivityId: miniActivityId,
         userId: userId,
       );
-      _ref.invalidate(miniActivityHandicapsProvider(miniActivityId));
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(miniActivityHandicapsProvider(miniActivityId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -478,16 +487,17 @@ class HandicapNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final handicapProvider = StateNotifierProvider<HandicapNotifier, AsyncValue<void>>((ref) {
-  return HandicapNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final handicapProvider = NotifierProvider<HandicapNotifier, AsyncValue<void>>(HandicapNotifier.new);
 
-// StateNotifier for standalone mini-activities
-class StandaloneMiniActivityNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for standalone mini-activities
+class StandaloneMiniActivityNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  StandaloneMiniActivityNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<MiniActivity?> createStandaloneMiniActivity({
     required String teamId,
@@ -519,7 +529,7 @@ class StandaloneMiniActivityNotifier extends StateNotifier<AsyncValue<void>> {
         leaderboardId: leaderboardId,
         handicapEnabled: handicapEnabled,
       );
-      _ref.invalidate(teamStandaloneMiniActivitiesProvider(teamId));
+      ref.invalidate(teamStandaloneMiniActivitiesProvider(teamId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -529,16 +539,17 @@ class StandaloneMiniActivityNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final standaloneMiniActivityProvider = StateNotifierProvider<StandaloneMiniActivityNotifier, AsyncValue<void>>((ref) {
-  return StandaloneMiniActivityNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final standaloneMiniActivityProvider = NotifierProvider<StandaloneMiniActivityNotifier, AsyncValue<void>>(StandaloneMiniActivityNotifier.new);
 
-// StateNotifier for template operations
-class TemplateOperationsNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+// Notifier for template operations
+class TemplateOperationsNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  TemplateOperationsNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<ActivityTemplate?> updateTemplate({
     required String templateId,
@@ -569,7 +580,7 @@ class TemplateOperationsNotifier extends StateNotifier<AsyncValue<void>> {
         lossPoints: lossPoints,
         leaderboardId: leaderboardId,
       );
-      _ref.invalidate(teamTemplatesProvider(teamId));
+      ref.invalidate(teamTemplatesProvider(teamId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -585,7 +596,7 @@ class TemplateOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.toggleTemplateFavorite(templateId);
-      _ref.invalidate(teamTemplatesProvider(teamId));
+      ref.invalidate(teamTemplatesProvider(teamId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -595,17 +606,18 @@ class TemplateOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final templateOperationsProvider = StateNotifierProvider<TemplateOperationsNotifier, AsyncValue<void>>((ref) {
-  return TemplateOperationsNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final templateOperationsProvider = NotifierProvider<TemplateOperationsNotifier, AsyncValue<void>>(TemplateOperationsNotifier.new);
 
-// ============ NEW: TEAM MANAGEMENT NOTIFIER ============
+// ============ TEAM MANAGEMENT NOTIFIER ============
 
-class TeamManagementNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+class TeamManagementNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  TeamManagementNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<MiniActivity?> createTeam({
     required String miniActivityId,
@@ -618,8 +630,8 @@ class TeamManagementNotifier extends StateNotifier<AsyncValue<void>> {
         miniActivityId: miniActivityId,
         name: name,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -641,8 +653,8 @@ class TeamManagementNotifier extends StateNotifier<AsyncValue<void>> {
         miniTeamId: miniTeamId,
         moveParticipantsToTeamId: moveParticipantsToTeamId,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -664,8 +676,8 @@ class TeamManagementNotifier extends StateNotifier<AsyncValue<void>> {
         participantId: participantId,
         targetTeamId: targetTeamId,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -675,17 +687,18 @@ class TeamManagementNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final teamManagementProvider = StateNotifierProvider<TeamManagementNotifier, AsyncValue<void>>((ref) {
-  return TeamManagementNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final teamManagementProvider = NotifierProvider<TeamManagementNotifier, AsyncValue<void>>(TeamManagementNotifier.new);
 
-// ============ NEW: RESULT MANAGEMENT NOTIFIER ============
+// ============ RESULT MANAGEMENT NOTIFIER ============
 
-class ResultManagementNotifier extends StateNotifier<AsyncValue<void>> {
-  final MiniActivityRepository _repository;
-  final Ref _ref;
+class ResultManagementNotifier extends Notifier<AsyncValue<void>> {
+  late final MiniActivityRepository _repository;
 
-  ResultManagementNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(miniActivityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<MiniActivity?> setWinner({
     required String miniActivityId,
@@ -700,8 +713,8 @@ class ResultManagementNotifier extends StateNotifier<AsyncValue<void>> {
         winnerTeamId: winnerTeamId,
         addToLeaderboard: addToLeaderboard,
       );
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -717,8 +730,8 @@ class ResultManagementNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final result = await _repository.clearResult(miniActivityId);
-      _ref.invalidate(miniActivityDetailProvider(miniActivityId));
-      _ref.invalidate(instanceMiniActivitiesProvider(instanceId));
+      ref.invalidate(miniActivityDetailProvider(miniActivityId));
+      ref.invalidate(instanceMiniActivitiesProvider(instanceId));
       state = const AsyncValue.data(null);
       return result;
     } catch (e, st) {
@@ -728,11 +741,9 @@ class ResultManagementNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final resultManagementProvider = StateNotifierProvider<ResultManagementNotifier, AsyncValue<void>>((ref) {
-  return ResultManagementNotifier(ref.watch(miniActivityRepositoryProvider), ref);
-});
+final resultManagementProvider = NotifierProvider<ResultManagementNotifier, AsyncValue<void>>(ResultManagementNotifier.new);
 
-// ============ NEW: HISTORY PROVIDER ============
+// ============ HISTORY PROVIDER ============
 
 final miniActivityHistoryProvider = FutureProvider.family<List<MiniActivityHistoryEntry>, MiniActivityHistoryParams>((ref, params) async {
   final repository = ref.watch(miniActivityRepositoryProvider);

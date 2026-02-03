@@ -39,12 +39,14 @@ final achievementDefinitionProvider =
 });
 
 class AchievementDefinitionNotifier
-    extends StateNotifier<AsyncValue<AchievementDefinition?>> {
-  final AchievementRepository _repo;
-  final Ref _ref;
+    extends Notifier<AsyncValue<AchievementDefinition?>> {
+  late final AchievementRepository _repo;
 
-  AchievementDefinitionNotifier(this._repo, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<AchievementDefinition?> build() {
+    _repo = ref.watch(achievementRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<AchievementDefinition?> createDefinition({
     required String teamId,
@@ -81,7 +83,7 @@ class AchievementDefinitionNotifier
         repeatCooldownDays: repeatCooldownDays,
       );
       state = AsyncValue.data(definition);
-      _ref.invalidate(teamAchievementsProvider(teamId));
+      ref.invalidate(teamAchievementsProvider(teamId));
       return definition;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -123,8 +125,8 @@ class AchievementDefinitionNotifier
         clearDescription: clearDescription,
       );
       state = AsyncValue.data(definition);
-      _ref.invalidate(teamAchievementsProvider(teamId));
-      _ref.invalidate(achievementDefinitionProvider(definitionId));
+      ref.invalidate(teamAchievementsProvider(teamId));
+      ref.invalidate(achievementDefinitionProvider(definitionId));
       return definition;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -137,7 +139,7 @@ class AchievementDefinitionNotifier
     try {
       await _repo.deleteDefinition(definitionId);
       state = const AsyncValue.data(null);
-      _ref.invalidate(teamAchievementsProvider(teamId));
+      ref.invalidate(teamAchievementsProvider(teamId));
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -146,11 +148,9 @@ class AchievementDefinitionNotifier
   }
 }
 
-final achievementDefinitionNotifierProvider = StateNotifierProvider<
-    AchievementDefinitionNotifier, AsyncValue<AchievementDefinition?>>((ref) {
-  final repo = ref.watch(achievementRepositoryProvider);
-  return AchievementDefinitionNotifier(repo, ref);
-});
+final achievementDefinitionNotifierProvider = NotifierProvider<
+    AchievementDefinitionNotifier, AsyncValue<AchievementDefinition?>>(
+    AchievementDefinitionNotifier.new);
 
 // ============ USER ACHIEVEMENTS ============
 
@@ -186,12 +186,14 @@ final userAchievementsSummaryProvider =
   );
 });
 
-class UserAchievementNotifier extends StateNotifier<AsyncValue<UserAchievement?>> {
-  final AchievementRepository _repo;
-  final Ref _ref;
+class UserAchievementNotifier extends Notifier<AsyncValue<UserAchievement?>> {
+  late final AchievementRepository _repo;
 
-  UserAchievementNotifier(this._repo, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<UserAchievement?> build() {
+    _repo = ref.watch(achievementRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<UserAchievement?> awardAchievement({
     required String teamId,
@@ -213,11 +215,11 @@ class UserAchievementNotifier extends StateNotifier<AsyncValue<UserAchievement?>
       );
       state = AsyncValue.data(achievement);
       // Invalidate related providers
-      _ref.invalidate(userAchievementsProvider(
+      ref.invalidate(userAchievementsProvider(
           (userId: userId, teamId: teamId, seasonId: seasonId)));
-      _ref.invalidate(userAchievementsSummaryProvider(
+      ref.invalidate(userAchievementsSummaryProvider(
           (userId: userId, teamId: teamId, seasonId: seasonId)));
-      _ref.invalidate(teamRecentAchievementsProvider(teamId));
+      ref.invalidate(teamRecentAchievementsProvider(teamId));
       return achievement;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -241,13 +243,13 @@ class UserAchievementNotifier extends StateNotifier<AsyncValue<UserAchievement?>
       );
       state = const AsyncValue.data(null);
       // Invalidate related providers
-      _ref.invalidate(userAchievementsProvider(
+      ref.invalidate(userAchievementsProvider(
           (userId: userId, teamId: teamId, seasonId: seasonId)));
-      _ref.invalidate(userProgressProvider(
+      ref.invalidate(userProgressProvider(
           (userId: userId, teamId: teamId, seasonId: seasonId)));
-      _ref.invalidate(userAchievementsSummaryProvider(
+      ref.invalidate(userAchievementsSummaryProvider(
           (userId: userId, teamId: teamId, seasonId: seasonId)));
-      _ref.invalidate(teamRecentAchievementsProvider(teamId));
+      ref.invalidate(teamRecentAchievementsProvider(teamId));
       return awarded;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -257,11 +259,8 @@ class UserAchievementNotifier extends StateNotifier<AsyncValue<UserAchievement?>
 }
 
 final userAchievementNotifierProvider =
-    StateNotifierProvider<UserAchievementNotifier, AsyncValue<UserAchievement?>>(
-        (ref) {
-  final repo = ref.watch(achievementRepositoryProvider);
-  return UserAchievementNotifier(repo, ref);
-});
+    NotifierProvider<UserAchievementNotifier, AsyncValue<UserAchievement?>>(
+        UserAchievementNotifier.new);
 
 // ============ TEAM ACHIEVEMENTS OVERVIEW ============
 
@@ -291,5 +290,15 @@ final teamAchievementCountsProvider =
 
 // ============ SELECTED CATEGORY STATE ============
 
+class SelectedAchievementCategoryNotifier extends Notifier<AchievementCategory?> {
+  @override
+  AchievementCategory? build() => null;
+
+  void select(AchievementCategory? category) {
+    state = category;
+  }
+}
+
 final selectedAchievementCategoryProvider =
-    StateProvider<AchievementCategory?>((ref) => null);
+    NotifierProvider<SelectedAchievementCategoryNotifier, AchievementCategory?>(
+        SelectedAchievementCategoryNotifier.new);

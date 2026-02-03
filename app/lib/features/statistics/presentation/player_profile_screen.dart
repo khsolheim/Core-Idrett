@@ -25,7 +25,7 @@ class PlayerProfileScreen extends ConsumerWidget {
     final membersAsync = ref.watch(teamMembersProvider(teamId));
     final theme = Theme.of(context);
 
-    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -34,7 +34,7 @@ class PlayerProfileScreen extends ConsumerWidget {
           if (isAdmin)
             IconButton(
               onPressed: () {
-                final members = membersAsync.valueOrNull ?? [];
+                final members = membersAsync.value ?? [];
                 if (members.isNotEmpty) {
                   showManualPointsSheet(
                     context,

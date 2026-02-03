@@ -46,11 +46,14 @@ final teamSettingsProvider = FutureProvider.family<TeamSettings, String>((ref, t
 });
 
 // Team actions
-class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
-  final TeamRepository _repo;
-  final Ref _ref;
+class TeamNotifier extends Notifier<AsyncValue<Team?>> {
+  late final TeamRepository _repo;
 
-  TeamNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<Team?> build() {
+    _repo = ref.watch(teamRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<Team?> createTeam({
     required String name,
@@ -60,7 +63,7 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
     try {
       final team = await _repo.createTeam(name: name, sport: sport);
       state = AsyncValue.data(team);
-      _ref.invalidate(teamsProvider);
+      ref.invalidate(teamsProvider);
       return team;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -88,8 +91,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
         memberId: memberId,
         role: role,
       );
-      _ref.invalidate(teamMembersProvider(teamId));
-      _ref.invalidate(teamMembersWithInactiveProvider(teamId));
+      ref.invalidate(teamMembersProvider(teamId));
+      ref.invalidate(teamMembersWithInactiveProvider(teamId));
       return true;
     } catch (e) {
       return false;
@@ -116,8 +119,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
         trainerTypeId: trainerTypeId,
         clearTrainerType: clearTrainerType,
       );
-      _ref.invalidate(teamMembersProvider(teamId));
-      _ref.invalidate(teamMembersWithInactiveProvider(teamId));
+      ref.invalidate(teamMembersProvider(teamId));
+      ref.invalidate(teamMembersWithInactiveProvider(teamId));
       return true;
     } catch (e) {
       return false;
@@ -128,8 +131,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
   Future<bool> deactivateMember(String teamId, String memberId) async {
     try {
       await _repo.deactivateMember(teamId, memberId);
-      _ref.invalidate(teamMembersProvider(teamId));
-      _ref.invalidate(teamMembersWithInactiveProvider(teamId));
+      ref.invalidate(teamMembersProvider(teamId));
+      ref.invalidate(teamMembersWithInactiveProvider(teamId));
       return true;
     } catch (e) {
       return false;
@@ -140,8 +143,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
   Future<bool> reactivateMember(String teamId, String memberId) async {
     try {
       await _repo.reactivateMember(teamId, memberId);
-      _ref.invalidate(teamMembersProvider(teamId));
-      _ref.invalidate(teamMembersWithInactiveProvider(teamId));
+      ref.invalidate(teamMembersProvider(teamId));
+      ref.invalidate(teamMembersWithInactiveProvider(teamId));
       return true;
     } catch (e) {
       return false;
@@ -152,8 +155,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
   Future<bool> removeMember(String teamId, String memberId) async {
     try {
       await _repo.removeMember(teamId, memberId);
-      _ref.invalidate(teamMembersProvider(teamId));
-      _ref.invalidate(teamMembersWithInactiveProvider(teamId));
+      ref.invalidate(teamMembersProvider(teamId));
+      ref.invalidate(teamMembersWithInactiveProvider(teamId));
       return true;
     } catch (e) {
       return false;
@@ -166,8 +169,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
   Future<bool> setInjuredStatus(String teamId, String memberId, bool isInjured) async {
     try {
       await _repo.setMemberInjuredStatus(teamId, memberId, isInjured);
-      _ref.invalidate(teamMembersProvider(teamId));
-      _ref.invalidate(teamMembersWithInactiveProvider(teamId));
+      ref.invalidate(teamMembersProvider(teamId));
+      ref.invalidate(teamMembersWithInactiveProvider(teamId));
       return true;
     } catch (e) {
       return false;
@@ -181,7 +184,7 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
   }) async {
     try {
       final trainerType = await _repo.createTrainerType(teamId: teamId, name: name);
-      _ref.invalidate(trainerTypesProvider(teamId));
+      ref.invalidate(trainerTypesProvider(teamId));
       return trainerType;
     } catch (e) {
       return null;
@@ -192,9 +195,9 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
   Future<bool> deleteTrainerType(String teamId, String trainerTypeId) async {
     try {
       await _repo.deleteTrainerType(teamId, trainerTypeId);
-      _ref.invalidate(trainerTypesProvider(teamId));
-      _ref.invalidate(teamMembersProvider(teamId));
-      _ref.invalidate(teamMembersWithInactiveProvider(teamId));
+      ref.invalidate(trainerTypesProvider(teamId));
+      ref.invalidate(teamMembersProvider(teamId));
+      ref.invalidate(teamMembersWithInactiveProvider(teamId));
       return true;
     } catch (e) {
       return false;
@@ -208,8 +211,8 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
   }) async {
     try {
       final team = await _repo.updateTeam(teamId: teamId, name: name, sport: sport);
-      _ref.invalidate(teamsProvider);
-      _ref.invalidate(teamDetailProvider(teamId));
+      ref.invalidate(teamsProvider);
+      ref.invalidate(teamDetailProvider(teamId));
       return team;
     } catch (e) {
       return null;
@@ -235,7 +238,7 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
         appealFee: appealFee,
         gameDayMultiplier: gameDayMultiplier,
       );
-      _ref.invalidate(teamSettingsProvider(teamId));
+      ref.invalidate(teamSettingsProvider(teamId));
       return settings;
     } catch (e) {
       return null;
@@ -243,7 +246,6 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
   }
 }
 
-final teamNotifierProvider = StateNotifierProvider<TeamNotifier, AsyncValue<Team?>>((ref) {
-  final repo = ref.watch(teamRepositoryProvider);
-  return TeamNotifier(repo, ref);
+final teamNotifierProvider = NotifierProvider<TeamNotifier, AsyncValue<Team?>>(() {
+  return TeamNotifier();
 });

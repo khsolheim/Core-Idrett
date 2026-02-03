@@ -2,16 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/user.dart';
 import '../data/auth_repository.dart';
 
-final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((ref) {
-  return AuthNotifier(ref.watch(authRepositoryProvider));
+final authStateProvider = NotifierProvider<AuthNotifier, AsyncValue<User?>>(() {
+  return AuthNotifier();
 });
 
-class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
-  final AuthRepository _repository;
+class AuthNotifier extends Notifier<AsyncValue<User?>> {
+  late final AuthRepository _repository;
 
-  AuthNotifier(this._repository) : super(const AsyncValue.loading()) {
+  @override
+  AsyncValue<User?> build() {
+    _repository = ref.watch(authRepositoryProvider);
     _repository.setOnTokenExpired(_handleTokenExpiration);
     _init();
+    return const AsyncValue.loading();
   }
 
   /// Handle token expiration - clears auth state to trigger redirect to login

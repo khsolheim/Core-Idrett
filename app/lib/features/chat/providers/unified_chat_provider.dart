@@ -9,11 +9,43 @@ final allConversationsProvider =
   return repo.getAllConversations(teamId);
 });
 
+/// Notifier for the currently selected conversation
+class SelectedConversationNotifier extends Notifier<ChatConversation?> {
+  @override
+  ChatConversation? build() => null;
+
+  void select(ChatConversation? conversation) {
+    state = conversation;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
 /// Provider for the currently selected conversation
-final selectedConversationProvider = StateProvider<ChatConversation?>((ref) => null);
+final selectedConversationProvider =
+    NotifierProvider<SelectedConversationNotifier, ChatConversation?>(
+        SelectedConversationNotifier.new);
+
+/// Notifier for search query in conversation list
+class ConversationSearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+
+  void setQuery(String query) {
+    state = query;
+  }
+
+  void clear() {
+    state = '';
+  }
+}
 
 /// Provider for search query in conversation list
-final conversationSearchQueryProvider = StateProvider<String>((ref) => '');
+final conversationSearchQueryProvider =
+    NotifierProvider<ConversationSearchQueryNotifier, String>(
+        ConversationSearchQueryNotifier.new);
 
 /// Filtered conversations based on search query
 final filteredConversationsProvider =

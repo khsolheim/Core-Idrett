@@ -34,7 +34,7 @@ class _AbsenceManagementScreenState
   @override
   Widget build(BuildContext context) {
     final teamAsync = ref.watch(teamDetailProvider(widget.teamId));
-    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
     final theme = Theme.of(context);
 
     // Admin guard

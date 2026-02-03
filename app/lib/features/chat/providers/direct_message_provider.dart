@@ -23,30 +23,31 @@ final directUnreadCountProvider = FutureProvider.family<int, String>((ref, recip
 });
 
 // Direct message state notifier for real-time-like updates
-class DirectMessageNotifier extends StateNotifier<AsyncValue<List<Message>>> {
-  final ChatRepository _repo;
+class DirectMessageNotifier extends AsyncNotifier<List<Message>> {
+  DirectMessageNotifier(this._recipientId);
   final String _recipientId;
-  final Ref _ref;
+
+  late final ChatRepository _repo;
   Timer? _pollTimer;
   DateTime? _lastMessageTime;
 
-  DirectMessageNotifier(this._repo, this._recipientId, this._ref)
-      : super(const AsyncValue.loading()) {
-    _loadMessages();
-  }
+  @override
+  Future<List<Message>> build() async {
+    _repo = ref.watch(chatRepositoryProvider);
 
-  Future<void> _loadMessages() async {
-    try {
-      final messages = await _repo.getDirectMessages(_recipientId);
-      state = AsyncValue.data(messages);
-      if (messages.isNotEmpty) {
-        _lastMessageTime = messages.first.createdAt;
-      }
-      // Start polling for new messages
-      _startPolling();
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    // Clean up timer when disposed
+    ref.onDispose(() {
+      _pollTimer?.cancel();
+    });
+
+    // Load messages
+    final messages = await _repo.getDirectMessages(_recipientId);
+    if (messages.isNotEmpty) {
+      _lastMessageTime = messages.first.createdAt;
     }
+    // Start polling for new messages
+    _startPolling();
+    return messages;
   }
 
   void _startPolling() {
@@ -64,7 +65,7 @@ class DirectMessageNotifier extends StateNotifier<AsyncValue<List<Message>>> {
       );
 
       if (newMessages.isNotEmpty) {
-        final currentMessages = state.valueOrNull ?? [];
+        final currentMessages = state.value ?? [];
         // Add new messages at the beginning (newest first)
         final updatedMessages = [...newMessages, ...currentMessages];
         state = AsyncValue.data(updatedMessages);
@@ -83,12 +84,12 @@ class DirectMessageNotifier extends StateNotifier<AsyncValue<List<Message>>> {
         replyToId: replyToId,
       );
 
-      final currentMessages = state.valueOrNull ?? [];
+      final currentMessages = state.value ?? [];
       state = AsyncValue.data([message, ...currentMessages]);
       _lastMessageTime = message.createdAt;
 
       // Invalidate conversations to update the list
-      _ref.invalidate(conversationsProvider);
+      ref.invalidate(conversationsProvider);
       return true;
     } catch (e) {
       return false;
@@ -102,7 +103,7 @@ class DirectMessageNotifier extends StateNotifier<AsyncValue<List<Message>>> {
         content: content,
       );
 
-      final currentMessages = state.valueOrNull ?? [];
+      final currentMessages = state.value ?? [];
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         final updated = List<Message>.from(currentMessages);
@@ -120,7 +121,7 @@ class DirectMessageNotifier extends StateNotifier<AsyncValue<List<Message>>> {
       await _repo.deleteMessage(messageId);
 
       // Update message to show as deleted
-      final currentMessages = state.valueOrNull ?? [];
+      final currentMessages = state.value ?? [];
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         final updated = List<Message>.from(currentMessages);
@@ -152,29 +153,23 @@ class DirectMessageNotifier extends StateNotifier<AsyncValue<List<Message>>> {
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    await _loadMessages();
+    state = await AsyncValue.guard(() => _repo.getDirectMessages(_recipientId));
+    if (state.hasValue && state.value!.isNotEmpty) {
+      _lastMessageTime = state.value!.first.createdAt;
+    }
   }
 
   Future<void> markAsRead() async {
     try {
       await _repo.markDirectAsRead(_recipientId);
-      _ref.invalidate(directUnreadCountProvider(_recipientId));
-      _ref.invalidate(conversationsProvider);
+      ref.invalidate(directUnreadCountProvider(_recipientId));
+      ref.invalidate(conversationsProvider);
     } catch (e) {
       // Ignore errors
     }
   }
-
-  @override
-  void dispose() {
-    _pollTimer?.cancel();
-    super.dispose();
-  }
 }
 
 final directMessageNotifierProvider =
-    StateNotifierProvider.family<DirectMessageNotifier, AsyncValue<List<Message>>, String>(
-        (ref, recipientId) {
-  final repo = ref.watch(chatRepositoryProvider);
-  return DirectMessageNotifier(repo, recipientId, ref);
-});
+    AsyncNotifierProvider.family<DirectMessageNotifier, List<Message>, String>(
+        DirectMessageNotifier.new);

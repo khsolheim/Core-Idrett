@@ -23,7 +23,7 @@ class AchievementAdminScreen extends ConsumerWidget {
     )));
     final theme = Theme.of(context);
 
-    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
 
     if (!isAdmin) {
       return Scaffold(

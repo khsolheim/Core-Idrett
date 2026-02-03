@@ -5,13 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _themeModeKey = 'theme_mode';
 const _localeKey = 'app_locale';
 
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(() {
   return ThemeModeNotifier();
 });
 
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  ThemeModeNotifier() : super(ThemeMode.system) {
+class ThemeModeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
     _loadThemeMode();
+    return ThemeMode.system;
   }
 
   Future<void> _loadThemeMode() async {
@@ -94,13 +96,15 @@ enum AppLocale {
   }
 }
 
-final localeProvider = StateNotifierProvider<LocaleNotifier, AppLocale>((ref) {
+final localeProvider = NotifierProvider<LocaleNotifier, AppLocale>(() {
   return LocaleNotifier();
 });
 
-class LocaleNotifier extends StateNotifier<AppLocale> {
-  LocaleNotifier() : super(AppLocale.system) {
+class LocaleNotifier extends Notifier<AppLocale> {
+  @override
+  AppLocale build() {
     _loadLocale();
+    return AppLocale.system;
   }
 
   Future<void> _loadLocale() async {

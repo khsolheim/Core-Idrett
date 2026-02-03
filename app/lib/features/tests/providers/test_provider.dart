@@ -64,13 +64,17 @@ class TestState {
 }
 
 /// Test notifier for managing test state
-class TestNotifier extends StateNotifier<TestState> {
-  final TestRepository _repo;
+class TestNotifier extends Notifier<TestState> {
+  TestNotifier(this._teamId);
   final String _teamId;
-  final Ref _ref;
+  late final TestRepository _repo;
 
-  TestNotifier(this._repo, this._teamId, this._ref) : super(const TestState()) {
-    loadTemplates();
+  @override
+  TestState build() {
+    _repo = ref.watch(testRepositoryProvider);
+    // Trigger initial load
+    Future.microtask(() => loadTemplates());
+    return const TestState();
   }
 
   Future<void> loadTemplates() async {
@@ -115,7 +119,7 @@ class TestNotifier extends StateNotifier<TestState> {
         higherIsBetter: higherIsBetter,
       );
       state = state.copyWith(templates: [...state.templates, template]);
-      _ref.invalidate(testTemplatesProvider(_teamId));
+      ref.invalidate(testTemplatesProvider(_teamId));
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -145,8 +149,8 @@ class TestNotifier extends StateNotifier<TestState> {
         templates: templates,
         selectedTemplate: state.selectedTemplate?.id == templateId ? updated : state.selectedTemplate,
       );
-      _ref.invalidate(testTemplatesProvider(_teamId));
-      _ref.invalidate(testTemplateProvider(templateId));
+      ref.invalidate(testTemplatesProvider(_teamId));
+      ref.invalidate(testTemplateProvider(templateId));
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -161,7 +165,7 @@ class TestNotifier extends StateNotifier<TestState> {
         templates: state.templates.where((t) => t.id != templateId).toList(),
         selectedTemplate: state.selectedTemplate?.id == templateId ? null : state.selectedTemplate,
       );
-      _ref.invalidate(testTemplatesProvider(_teamId));
+      ref.invalidate(testTemplatesProvider(_teamId));
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -190,8 +194,8 @@ class TestNotifier extends StateNotifier<TestState> {
         final ranking = await _repo.getRanking(templateId);
         state = state.copyWith(ranking: ranking);
       }
-      _ref.invalidate(testResultsProvider(templateId));
-      _ref.invalidate(testRankingProvider(templateId));
+      ref.invalidate(testResultsProvider(templateId));
+      ref.invalidate(testRankingProvider(templateId));
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -216,8 +220,8 @@ class TestNotifier extends StateNotifier<TestState> {
         final ranking = await _repo.getRanking(templateId);
         state = state.copyWith(ranking: ranking);
       }
-      _ref.invalidate(testResultsProvider(templateId));
-      _ref.invalidate(testRankingProvider(templateId));
+      ref.invalidate(testResultsProvider(templateId));
+      ref.invalidate(testRankingProvider(templateId));
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -234,8 +238,8 @@ class TestNotifier extends StateNotifier<TestState> {
       if (state.selectedTemplate != null) {
         final ranking = await _repo.getRanking(state.selectedTemplate!.id);
         state = state.copyWith(ranking: ranking);
-        _ref.invalidate(testResultsProvider(state.selectedTemplate!.id));
-        _ref.invalidate(testRankingProvider(state.selectedTemplate!.id));
+        ref.invalidate(testResultsProvider(state.selectedTemplate!.id));
+        ref.invalidate(testRankingProvider(state.selectedTemplate!.id));
       }
       return true;
     } catch (e) {
@@ -249,7 +253,6 @@ class TestNotifier extends StateNotifier<TestState> {
   }
 }
 
-final testNotifierProvider = StateNotifierProvider.family<TestNotifier, TestState, String>((ref, teamId) {
-  final repo = ref.watch(testRepositoryProvider);
-  return TestNotifier(repo, teamId, ref);
+final testNotifierProvider = NotifierProvider.family<TestNotifier, TestState, String>((teamId) {
+  return TestNotifier(teamId);
 });

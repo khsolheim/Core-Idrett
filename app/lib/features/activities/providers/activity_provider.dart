@@ -22,12 +22,15 @@ final instanceDetailProvider = FutureProvider.family<ActivityInstance, String>((
   return repository.getInstance(instanceId);
 });
 
-// StateNotifier for managing activity creation
-class CreateActivityNotifier extends StateNotifier<AsyncValue<void>> {
-  final ActivityRepository _repository;
-  final Ref _ref;
+// Notifier for managing activity creation
+class CreateActivityNotifier extends Notifier<AsyncValue<void>> {
+  late final ActivityRepository _repository;
 
-  CreateActivityNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(activityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> createActivity({
     required String teamId,
@@ -60,8 +63,8 @@ class CreateActivityNotifier extends StateNotifier<AsyncValue<void>> {
         endTime: endTime,
       );
       // Invalidate the team activities to refresh the list
-      _ref.invalidate(teamActivitiesProvider(teamId));
-      _ref.invalidate(upcomingInstancesProvider(teamId));
+      ref.invalidate(teamActivitiesProvider(teamId));
+      ref.invalidate(upcomingInstancesProvider(teamId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -71,16 +74,18 @@ class CreateActivityNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final createActivityProvider = StateNotifierProvider<CreateActivityNotifier, AsyncValue<void>>((ref) {
-  return CreateActivityNotifier(ref.watch(activityRepositoryProvider), ref);
-});
+final createActivityProvider = NotifierProvider<CreateActivityNotifier, AsyncValue<void>>(
+    CreateActivityNotifier.new);
 
-// StateNotifier for responding to activities
-class ActivityResponseNotifier extends StateNotifier<AsyncValue<void>> {
-  final ActivityRepository _repository;
-  final Ref _ref;
+// Notifier for responding to activities
+class ActivityResponseNotifier extends Notifier<AsyncValue<void>> {
+  late final ActivityRepository _repository;
 
-  ActivityResponseNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(activityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> respond({
     required String instanceId,
@@ -96,8 +101,8 @@ class ActivityResponseNotifier extends StateNotifier<AsyncValue<void>> {
         comment: comment,
       );
       // Invalidate to refresh data
-      _ref.invalidate(instanceDetailProvider(instanceId));
-      _ref.invalidate(upcomingInstancesProvider(teamId));
+      ref.invalidate(instanceDetailProvider(instanceId));
+      ref.invalidate(upcomingInstancesProvider(teamId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -107,16 +112,18 @@ class ActivityResponseNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final activityResponseProvider = StateNotifierProvider<ActivityResponseNotifier, AsyncValue<void>>((ref) {
-  return ActivityResponseNotifier(ref.watch(activityRepositoryProvider), ref);
-});
+final activityResponseProvider = NotifierProvider<ActivityResponseNotifier, AsyncValue<void>>(
+    ActivityResponseNotifier.new);
 
-// StateNotifier for updating instance status
-class InstanceStatusNotifier extends StateNotifier<AsyncValue<void>> {
-  final ActivityRepository _repository;
-  final Ref _ref;
+// Notifier for updating instance status
+class InstanceStatusNotifier extends Notifier<AsyncValue<void>> {
+  late final ActivityRepository _repository;
 
-  InstanceStatusNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<void> build() {
+    _repository = ref.watch(activityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<bool> updateStatus({
     required String instanceId,
@@ -132,8 +139,8 @@ class InstanceStatusNotifier extends StateNotifier<AsyncValue<void>> {
         reason: reason,
       );
       // Invalidate to refresh data
-      _ref.invalidate(instanceDetailProvider(instanceId));
-      _ref.invalidate(upcomingInstancesProvider(teamId));
+      ref.invalidate(instanceDetailProvider(instanceId));
+      ref.invalidate(upcomingInstancesProvider(teamId));
       state = const AsyncValue.data(null);
       return true;
     } catch (e, st) {
@@ -143,9 +150,8 @@ class InstanceStatusNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final instanceStatusProvider = StateNotifierProvider<InstanceStatusNotifier, AsyncValue<void>>((ref) {
-  return InstanceStatusNotifier(ref.watch(activityRepositoryProvider), ref);
-});
+final instanceStatusProvider = NotifierProvider<InstanceStatusNotifier, AsyncValue<void>>(
+    InstanceStatusNotifier.new);
 
 // Provider for calendar instances by month
 final calendarInstancesProvider = FutureProvider.family<
@@ -159,12 +165,15 @@ final calendarInstancesProvider = FutureProvider.family<
   );
 });
 
-// StateNotifier for editing instances
-class EditInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationResult?>> {
-  final ActivityRepository _repository;
-  final Ref _ref;
+// Notifier for editing instances
+class EditInstanceNotifier extends Notifier<AsyncValue<InstanceOperationResult?>> {
+  late final ActivityRepository _repository;
 
-  EditInstanceNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<InstanceOperationResult?> build() {
+    _repository = ref.watch(activityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<InstanceOperationResult?> editInstance({
     required String instanceId,
@@ -190,12 +199,12 @@ class EditInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationRes
         date: date,
       );
       // Invalidate relevant providers to refresh data
-      _ref.invalidate(instanceDetailProvider(instanceId));
-      _ref.invalidate(upcomingInstancesProvider(teamId));
-      _ref.invalidate(teamActivitiesProvider(teamId));
+      ref.invalidate(instanceDetailProvider(instanceId));
+      ref.invalidate(upcomingInstancesProvider(teamId));
+      ref.invalidate(teamActivitiesProvider(teamId));
       // Also invalidate any affected instances
       for (final affectedId in result.affectedInstanceIds) {
-        _ref.invalidate(instanceDetailProvider(affectedId));
+        ref.invalidate(instanceDetailProvider(affectedId));
       }
       state = AsyncValue.data(result);
       return result;
@@ -210,16 +219,18 @@ class EditInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationRes
   }
 }
 
-final editInstanceProvider = StateNotifierProvider<EditInstanceNotifier, AsyncValue<InstanceOperationResult?>>((ref) {
-  return EditInstanceNotifier(ref.watch(activityRepositoryProvider), ref);
-});
+final editInstanceProvider = NotifierProvider<EditInstanceNotifier, AsyncValue<InstanceOperationResult?>>(
+    EditInstanceNotifier.new);
 
-// StateNotifier for deleting instances
-class DeleteInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationResult?>> {
-  final ActivityRepository _repository;
-  final Ref _ref;
+// Notifier for deleting instances
+class DeleteInstanceNotifier extends Notifier<AsyncValue<InstanceOperationResult?>> {
+  late final ActivityRepository _repository;
 
-  DeleteInstanceNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<InstanceOperationResult?> build() {
+    _repository = ref.watch(activityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<InstanceOperationResult?> deleteInstance({
     required String instanceId,
@@ -233,8 +244,8 @@ class DeleteInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationR
         scope: scope,
       );
       // Invalidate relevant providers to refresh data
-      _ref.invalidate(upcomingInstancesProvider(teamId));
-      _ref.invalidate(teamActivitiesProvider(teamId));
+      ref.invalidate(upcomingInstancesProvider(teamId));
+      ref.invalidate(teamActivitiesProvider(teamId));
       state = AsyncValue.data(result);
       return result;
     } catch (e, st) {
@@ -248,9 +259,8 @@ class DeleteInstanceNotifier extends StateNotifier<AsyncValue<InstanceOperationR
   }
 }
 
-final deleteInstanceProvider = StateNotifierProvider<DeleteInstanceNotifier, AsyncValue<InstanceOperationResult?>>((ref) {
-  return DeleteInstanceNotifier(ref.watch(activityRepositoryProvider), ref);
-});
+final deleteInstanceProvider = NotifierProvider<DeleteInstanceNotifier, AsyncValue<InstanceOperationResult?>>(
+    DeleteInstanceNotifier.new);
 
 /// Provider for realtime activity response updates
 /// Watch this provider to enable realtime updates for a specific team
@@ -286,12 +296,15 @@ final activityResponsesRealtimeProvider = Provider.family<void, String>((ref, te
   });
 });
 
-// StateNotifier for awarding attendance points
-class AttendancePointsNotifier extends StateNotifier<AsyncValue<AttendancePointsResult?>> {
-  final ActivityRepository _repository;
-  final Ref _ref;
+// Notifier for awarding attendance points
+class AttendancePointsNotifier extends Notifier<AsyncValue<AttendancePointsResult?>> {
+  late final ActivityRepository _repository;
 
-  AttendancePointsNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+  @override
+  AsyncValue<AttendancePointsResult?> build() {
+    _repository = ref.watch(activityRepositoryProvider);
+    return const AsyncValue.data(null);
+  }
 
   Future<AttendancePointsResult?> awardPoints({
     required String instanceId,
@@ -301,7 +314,7 @@ class AttendancePointsNotifier extends StateNotifier<AsyncValue<AttendancePoints
     try {
       final result = await _repository.awardAttendancePoints(instanceId);
       // Invalidate instance to refresh status
-      _ref.invalidate(instanceDetailProvider(instanceId));
+      ref.invalidate(instanceDetailProvider(instanceId));
       state = AsyncValue.data(result);
       return result;
     } catch (e, st) {
@@ -315,6 +328,5 @@ class AttendancePointsNotifier extends StateNotifier<AsyncValue<AttendancePoints
   }
 }
 
-final attendancePointsProvider = StateNotifierProvider<AttendancePointsNotifier, AsyncValue<AttendancePointsResult?>>((ref) {
-  return AttendancePointsNotifier(ref.watch(activityRepositoryProvider), ref);
-});
+final attendancePointsProvider = NotifierProvider<AttendancePointsNotifier, AsyncValue<AttendancePointsResult?>>(
+    AttendancePointsNotifier.new);

@@ -15,7 +15,7 @@ class AchievementsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).value;
     final teamAsync = ref.watch(teamDetailProvider(teamId));
-    final isAdmin = teamAsync.valueOrNull?.userIsAdmin ?? false;
+    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
 
     if (user == null) {
       return const Scaffold(
@@ -77,7 +77,7 @@ class _MyAchievementsTab extends ConsumerWidget {
 
     return achievementsAsync.when(
       data: (achievements) {
-        final inProgress = progressAsync.valueOrNull ?? [];
+        final inProgress = progressAsync.value ?? [];
 
         if (achievements.isEmpty && inProgress.isEmpty) {
           return Center(
@@ -196,7 +196,7 @@ class _AvailableAchievementsTab extends ConsumerWidget {
     return definitionsAsync.when(
       data: (definitions) {
         final earnedIds =
-            earnedAsync.valueOrNull?.map((a) => a.achievementId).toSet() ?? {};
+            earnedAsync.value?.map((a) => a.achievementId).toSet() ?? {};
 
         // Filter by category
         final filtered = selectedCategory == null
@@ -219,8 +219,7 @@ class _AvailableAchievementsTab extends ConsumerWidget {
                     label: const Text('Alle'),
                     selected: selectedCategory == null,
                     onSelected: (_) {
-                      ref.read(selectedAchievementCategoryProvider.notifier).state =
-                          null;
+                      ref.read(selectedAchievementCategoryProvider.notifier).select(null);
                     },
                   ),
                   const SizedBox(width: 8),
@@ -230,9 +229,7 @@ class _AvailableAchievementsTab extends ConsumerWidget {
                           label: Text(cat.displayName),
                           selected: selectedCategory == cat,
                           onSelected: (_) {
-                            ref
-                                .read(selectedAchievementCategoryProvider.notifier)
-                                .state = cat;
+                            ref.read(selectedAchievementCategoryProvider.notifier).select(cat);
                           },
                         ),
                       )),

@@ -1,7 +1,6 @@
 /// Mock repositories for testing
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:core_idrett/data/api/api_client.dart';
@@ -62,7 +61,7 @@ class MockProviders {
         chatRepository = MockChatRepository();
 
   /// Get all provider overrides for ProviderScope
-  List<Override> get overrides => [
+  List<Object> get overrides => [
         apiClientProvider.overrideWithValue(apiClient),
         authRepositoryProvider.overrideWithValue(authRepository),
         teamRepositoryProvider.overrideWithValue(teamRepository),
