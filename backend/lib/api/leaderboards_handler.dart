@@ -18,6 +18,10 @@ class LeaderboardsHandler {
     // Leaderboard routes
     router.get('/teams/<teamId>', _getLeaderboards);
     router.get('/teams/<teamId>/main', _getMainLeaderboard);
+    router.get('/teams/<teamId>/ranked', _getRankedLeaderboard);
+    router.get('/teams/<teamId>/trends', _getLeaderboardWithTrends);
+    router.get('/teams/<teamId>/users/<userId>/position', _getUserRankedPosition);
+    router.get('/teams/<teamId>/users/<userId>/monthly', _getUserMonthlyStats);
     router.post('/teams/<teamId>', _createLeaderboard);
     router.get('/<leaderboardId>', _getLeaderboardById);
     router.patch('/<leaderboardId>', _updateLeaderboard);
@@ -646,6 +650,189 @@ class LeaderboardsHandler {
     } catch (e) {
       return Response.internalServerError(
         body: jsonEncode({'error': 'Kunne ikke slette poengkonfigurasjon: $e'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }
+
+  // ============ RANKED LEADERBOARD ENDPOINTS ============
+
+  Future<Response> _getRankedLeaderboard(Request request, String teamId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final team = await _teamService.getTeamById(teamId, userId);
+      if (team == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final seasonId = request.url.queryParameters['season_id'];
+      final limitParam = request.url.queryParameters['limit'];
+      final offsetParam = request.url.queryParameters['offset'];
+
+      final entries = await _leaderboardService.getRankedEntries(
+        teamId,
+        seasonId: seasonId,
+        limit: limitParam != null ? int.tryParse(limitParam) : null,
+        offset: offsetParam != null ? int.tryParse(offsetParam) ?? 0 : 0,
+      );
+
+      return Response.ok(
+        jsonEncode({
+          'entries': entries.map((e) => e.toJson()).toList(),
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Kunne ikke hente rangert leaderboard: $e'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }
+
+  Future<Response> _getLeaderboardWithTrends(Request request, String teamId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final team = await _teamService.getTeamById(teamId, userId);
+      if (team == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final seasonId = request.url.queryParameters['season_id'];
+      final limitParam = request.url.queryParameters['limit'];
+
+      final entries = await _leaderboardService.getLeaderboardWithTrends(
+        teamId,
+        seasonId: seasonId,
+        limit: limitParam != null ? int.tryParse(limitParam) : null,
+      );
+
+      return Response.ok(
+        jsonEncode({
+          'entries': entries.map((e) => e.toJson()).toList(),
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Kunne ikke hente leaderboard med trender: $e'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }
+
+  Future<Response> _getUserRankedPosition(
+    Request request,
+    String teamId,
+    String targetUserId,
+  ) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final team = await _teamService.getTeamById(teamId, userId);
+      if (team == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final seasonId = request.url.queryParameters['season_id'];
+
+      final entry = await _leaderboardService.getUserRankedPosition(
+        teamId,
+        targetUserId,
+        seasonId: seasonId,
+      );
+
+      if (entry == null) {
+        return Response.notFound(
+          jsonEncode({'error': 'Bruker ikke funnet i leaderboard'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      return Response.ok(
+        jsonEncode(entry.toJson()),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Kunne ikke hente brukerposisjon: $e'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }
+
+  Future<Response> _getUserMonthlyStats(
+    Request request,
+    String teamId,
+    String targetUserId,
+  ) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ikke autorisert'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final team = await _teamService.getTeamById(teamId, userId);
+      if (team == null) {
+        return Response.forbidden(
+          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final yearParam = request.url.queryParameters['year'];
+      final monthParam = request.url.queryParameters['month'];
+      final limitParam = request.url.queryParameters['limit'];
+
+      final stats = await _leaderboardService.getUserMonthlyStats(
+        teamId,
+        targetUserId,
+        year: yearParam != null ? int.tryParse(yearParam) : null,
+        month: monthParam != null ? int.tryParse(monthParam) : null,
+        limit: limitParam != null ? int.tryParse(limitParam) : null,
+      );
+
+      return Response.ok(
+        jsonEncode({
+          'stats': stats,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Kunne ikke hente månedlig statistikk: $e'}),
         headers: {'Content-Type': 'application/json'},
       );
     }

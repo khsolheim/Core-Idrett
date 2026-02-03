@@ -244,6 +244,7 @@ class FineService {
     required double amount,
     String? description,
     String? evidenceUrl,
+    bool isGameDay = false,
   }) async {
     final id = _uuid.v4();
 
@@ -256,6 +257,7 @@ class FineService {
       'amount': amount,
       'description': description,
       'evidence_url': evidenceUrl,
+      'is_game_day': isGameDay,
     });
 
     return (await getFine(id))!;

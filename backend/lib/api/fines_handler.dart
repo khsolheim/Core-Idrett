@@ -1,12 +1,24 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
+import '../services/auth_service.dart';
 import '../services/fine_service.dart';
 
 class FinesHandler {
   final FineService _fineService;
+  final AuthService _authService;
 
-  FinesHandler(this._fineService);
+  FinesHandler(this._fineService, this._authService);
+
+  Future<String?> _getUserId(Request request) async {
+    final authHeader = request.headers['authorization'];
+    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+    final token = authHeader.substring(7);
+    final user = await _authService.getUserFromToken(token);
+    return user?.id;
+  }
 
   Router get router {
     final router = Router();
@@ -165,11 +177,11 @@ class FinesHandler {
   Future<Response> _createFine(Request request, String teamId) async {
     try {
       final body = jsonDecode(await request.readAsString());
-      final reporterId = request.context['userId'] as String?;
+      final reporterId = await _getUserId(request);
 
       if (reporterId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
+        return Response(401,
+          body: jsonEncode({'error': 'Ikke autentisert'}),
           headers: {'Content-Type': 'application/json'},
         );
       }
@@ -182,6 +194,7 @@ class FinesHandler {
         amount: (body['amount'] as num).toDouble(),
         description: body['description'],
         evidenceUrl: body['evidence_url'],
+        isGameDay: body['is_game_day'] == true,
       );
 
       return Response.ok(
@@ -221,11 +234,11 @@ class FinesHandler {
 
   Future<Response> _approveFine(Request request, String fineId) async {
     try {
-      final approvedBy = request.context['userId'] as String?;
+      final approvedBy = await _getUserId(request);
 
       if (approvedBy == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
+        return Response(401,
+          body: jsonEncode({'error': 'Ikke autentisert'}),
           headers: {'Content-Type': 'application/json'},
         );
       }
@@ -253,11 +266,11 @@ class FinesHandler {
 
   Future<Response> _rejectFine(Request request, String fineId) async {
     try {
-      final approvedBy = request.context['userId'] as String?;
+      final approvedBy = await _getUserId(request);
 
       if (approvedBy == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
+        return Response(401,
+          body: jsonEncode({'error': 'Ikke autentisert'}),
           headers: {'Content-Type': 'application/json'},
         );
       }
@@ -315,11 +328,11 @@ class FinesHandler {
   Future<Response> _resolveAppeal(Request request, String appealId) async {
     try {
       final body = jsonDecode(await request.readAsString());
-      final decidedBy = request.context['userId'] as String?;
+      final decidedBy = await _getUserId(request);
 
       if (decidedBy == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
+        return Response(401,
+          body: jsonEncode({'error': 'Ikke autentisert'}),
           headers: {'Content-Type': 'application/json'},
         );
       }
@@ -370,11 +383,11 @@ class FinesHandler {
   Future<Response> _recordPayment(Request request, String fineId) async {
     try {
       final body = jsonDecode(await request.readAsString());
-      final registeredBy = request.context['userId'] as String?;
+      final registeredBy = await _getUserId(request);
 
       if (registeredBy == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
+        return Response(401,
+          body: jsonEncode({'error': 'Ikke autentisert'}),
           headers: {'Content-Type': 'application/json'},
         );
       }

@@ -285,3 +285,36 @@ final activityResponsesRealtimeProvider = Provider.family<void, String>((ref, te
     }
   });
 });
+
+// StateNotifier for awarding attendance points
+class AttendancePointsNotifier extends StateNotifier<AsyncValue<AttendancePointsResult?>> {
+  final ActivityRepository _repository;
+  final Ref _ref;
+
+  AttendancePointsNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+
+  Future<AttendancePointsResult?> awardPoints({
+    required String instanceId,
+    required String teamId,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repository.awardAttendancePoints(instanceId);
+      // Invalidate instance to refresh status
+      _ref.invalidate(instanceDetailProvider(instanceId));
+      state = AsyncValue.data(result);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  void reset() {
+    state = const AsyncValue.data(null);
+  }
+}
+
+final attendancePointsProvider = StateNotifierProvider<AttendancePointsNotifier, AsyncValue<AttendancePointsResult?>>((ref) {
+  return AttendancePointsNotifier(ref.watch(activityRepositoryProvider), ref);
+});

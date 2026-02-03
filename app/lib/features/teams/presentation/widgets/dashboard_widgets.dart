@@ -564,6 +564,11 @@ class QuickLinksWidget extends StatelessWidget {
           onTap: () => context.push('/teams/$teamId/documents'),
         ),
         _QuickLinkChip(
+          icon: Icons.emoji_events,
+          label: 'Achievements',
+          onTap: () => context.push('/teams/$teamId/achievements'),
+        ),
+        _QuickLinkChip(
           icon: Icons.speed,
           label: 'Tester',
           onTap: () => context.push('/teams/$teamId/tests${isAdmin ? "?admin=true" : ""}'),

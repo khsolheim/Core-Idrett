@@ -51,6 +51,7 @@ class Fine {
   final double amount;
   final String? description;
   final String? evidenceUrl;
+  final bool isGameDay;
   final DateTime createdAt;
   final DateTime? resolvedAt;
 
@@ -73,6 +74,7 @@ class Fine {
     required this.amount,
     this.description,
     this.evidenceUrl,
+    this.isGameDay = false,
     required this.createdAt,
     this.resolvedAt,
     this.offenderName,
@@ -102,6 +104,7 @@ class Fine {
       amount: (json['amount'] as num).toDouble(),
       description: json['description'],
       evidenceUrl: json['evidence_url'],
+      isGameDay: json['is_game_day'] ?? false,
       createdAt: DateTime.parse(json['created_at']),
       resolvedAt: json['resolved_at'] != null ? DateTime.parse(json['resolved_at']) : null,
       offenderName: json['offender_name'],
@@ -124,6 +127,7 @@ class Fine {
         'amount': amount,
         'description': description,
         'evidence_url': evidenceUrl,
+        'is_game_day': isGameDay,
         'created_at': createdAt.toIso8601String(),
         'resolved_at': resolvedAt?.toIso8601String(),
         'offender_name': offenderName,
@@ -144,6 +148,7 @@ class FineAppeal {
   final String? decidedBy;
   final DateTime createdAt;
   final DateTime? decidedAt;
+  final Fine? fine;
 
   FineAppeal({
     required this.id,
@@ -154,6 +159,7 @@ class FineAppeal {
     this.decidedBy,
     required this.createdAt,
     this.decidedAt,
+    this.fine,
   });
 
   bool get isPending => status == 'pending';
@@ -170,6 +176,7 @@ class FineAppeal {
       decidedBy: json['decided_by'],
       createdAt: DateTime.parse(json['created_at']),
       decidedAt: json['decided_at'] != null ? DateTime.parse(json['decided_at']) : null,
+      fine: json['fine'] != null ? Fine.fromJson(json['fine']) : null,
     );
   }
 
@@ -182,6 +189,7 @@ class FineAppeal {
         'decided_by': decidedBy,
         'created_at': createdAt.toIso8601String(),
         'decided_at': decidedAt?.toIso8601String(),
+        'fine': fine?.toJson(),
       };
 }
 

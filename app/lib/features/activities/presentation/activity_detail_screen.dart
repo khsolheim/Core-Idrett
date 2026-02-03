@@ -7,6 +7,9 @@ import '../../../data/models/team.dart';
 import '../../../data/models/user.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../teams/providers/team_provider.dart';
+import '../../absence/presentation/absence_registration_dialog.dart';
+import '../../absence/providers/absence_provider.dart';
+import '../../points/providers/points_provider.dart';
 import '../providers/activity_provider.dart';
 import 'widgets/series_action_dialog.dart';
 import 'widgets/mini_activities_section.dart';
@@ -210,6 +213,7 @@ class _ActivityDetailContent extends ConsumerStatefulWidget {
 
 class _ActivityDetailContentState extends ConsumerState<_ActivityDetailContent> {
   bool _isResponding = false;
+  bool _isAwardingPoints = false;
 
   Future<void> _respond(UserResponse? response) async {
     setState(() => _isResponding = true);
@@ -328,6 +332,16 @@ class _ActivityDetailContentState extends ConsumerState<_ActivityDetailContent> 
                           responseType: instance.responseType ?? ResponseType.yesNo,
                           onRespond: _respond,
                         ),
+                      // Absence button for players
+                      if (widget.user != null) ...[
+                        const SizedBox(height: 12),
+                        _AbsenceButton(
+                          teamId: widget.teamId,
+                          instanceId: instance.id,
+                          userId: widget.user!.id,
+                          activityTitle: instance.title ?? 'Aktivitet',
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -381,10 +395,63 @@ class _ActivityDetailContentState extends ConsumerState<_ActivityDetailContent> 
               teamId: widget.teamId,
               canCreate: _canManageMiniActivities(widget.team, widget.user, instance),
             ),
+
+            // Admin section for awarding attendance points
+            if (_canAwardAttendancePoints(widget.team, instance)) ...[
+              const SizedBox(height: 16),
+              _AdminActionsSection(
+                instance: instance,
+                teamId: widget.teamId,
+                isAwardingPoints: _isAwardingPoints,
+                onAwardPoints: _awardAttendancePoints,
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  /// Determine if user can award attendance points
+  bool _canAwardAttendancePoints(Team? team, ActivityInstance instance) {
+    if (team == null) return false;
+    // Only admin can award attendance points
+    if (!team.userIsAdmin) return false;
+    // Activity must be in the past
+    final today = DateTime.now();
+    final activityDate = DateTime(instance.date.year, instance.date.month, instance.date.day);
+    final todayDate = DateTime(today.year, today.month, today.day);
+    if (!activityDate.isBefore(todayDate)) return false;
+    // Activity must not be cancelled
+    if (instance.status == InstanceStatus.cancelled) return false;
+    return true;
+  }
+
+  Future<void> _awardAttendancePoints() async {
+    setState(() => _isAwardingPoints = true);
+
+    final result = await ref.read(attendancePointsProvider.notifier).awardPoints(
+          instanceId: widget.instance.id,
+          teamId: widget.teamId,
+        );
+
+    if (mounted) {
+      setState(() => _isAwardingPoints = false);
+
+      if (result != null && result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.message)),
+        );
+      } else {
+        final error = ref.read(attendancePointsProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error?.toString() ?? 'Kunne ikke tildele oppmøtepoeng'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   /// Determine if user can create/manage mini-activities
@@ -649,6 +716,212 @@ class _ResponseListItem extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AdminActionsSection extends StatelessWidget {
+  final ActivityInstance instance;
+  final String teamId;
+  final bool isAwardingPoints;
+  final VoidCallback onAwardPoints;
+
+  const _AdminActionsSection({
+    required this.instance,
+    required this.teamId,
+    required this.isAwardingPoints,
+    required this.onAwardPoints,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final yesCount = instance.yesCount ?? 0;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.admin_panel_settings,
+                  color: theme.colorScheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Admin',
+                  style: theme.textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Tildel oppmøtepoeng til alle som svarte "Ja" ($yesCount spillere)',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: isAwardingPoints ? null : onAwardPoints,
+                icon: isAwardingPoints
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.emoji_events),
+                label: Text(isAwardingPoints ? 'Tildeler poeng...' : 'Tildel oppmøtepoeng'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Poeng legges til på sesong-leaderboard. Allerede tildelte poeng hoppes over.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Button to register absence from an activity
+class _AbsenceButton extends ConsumerWidget {
+  final String teamId;
+  final String instanceId;
+  final String userId;
+  final String activityTitle;
+
+  const _AbsenceButton({
+    required this.teamId,
+    required this.instanceId,
+    required this.userId,
+    required this.activityTitle,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final existingAbsenceAsync = ref.watch(
+      instanceAbsenceProvider((userId: userId, instanceId: instanceId)),
+    );
+    final configAsync = ref.watch(teamPointsConfigProvider(teamId));
+    final requireReason = configAsync.valueOrNull?.requireAbsenceReason ?? false;
+
+    return existingAbsenceAsync.when(
+      data: (existingAbsence) {
+        if (existingAbsence != null) {
+          // Already registered absence
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: existingAbsence.isPending
+                  ? theme.colorScheme.secondaryContainer
+                  : existingAbsence.isApproved
+                      ? theme.colorScheme.tertiaryContainer
+                      : theme.colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  existingAbsence.isPending
+                      ? Icons.hourglass_empty
+                      : existingAbsence.isApproved
+                          ? Icons.check_circle
+                          : Icons.cancel,
+                  size: 20,
+                  color: existingAbsence.isPending
+                      ? theme.colorScheme.onSecondaryContainer
+                      : existingAbsence.isApproved
+                          ? theme.colorScheme.onTertiaryContainer
+                          : theme.colorScheme.onErrorContainer,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        existingAbsence.isPending
+                            ? 'Fravær meldt - venter på godkjenning'
+                            : existingAbsence.isApproved
+                                ? 'Fravær godkjent'
+                                : 'Fravær avvist',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (existingAbsence.categoryName != null)
+                        Text(
+                          existingAbsence.categoryName!,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // No existing absence - show button
+        return TextButton.icon(
+          onPressed: () async {
+            final result = await showAbsenceRegistrationDialog(
+              context,
+              teamId: teamId,
+              instanceId: instanceId,
+              userId: userId,
+              activityTitle: activityTitle,
+              requireReason: requireReason,
+            );
+            if (result) {
+              // Refresh absence status
+              ref.invalidate(
+                instanceAbsenceProvider((userId: userId, instanceId: instanceId)),
+              );
+            }
+          },
+          icon: const Icon(Icons.event_busy),
+          label: const Text('Meld fravær'),
+          style: TextButton.styleFrom(
+            foregroundColor: theme.colorScheme.outline,
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stackTrace) => TextButton.icon(
+        onPressed: () async {
+          final result = await showAbsenceRegistrationDialog(
+            context,
+            teamId: teamId,
+            instanceId: instanceId,
+            userId: userId,
+            activityTitle: activityTitle,
+            requireReason: requireReason,
+          );
+          if (result) {
+            ref.invalidate(
+              instanceAbsenceProvider((userId: userId, instanceId: instanceId)),
+            );
+          }
+        },
+        icon: const Icon(Icons.event_busy),
+        label: const Text('Meld fravær'),
+        style: TextButton.styleFrom(
+          foregroundColor: theme.colorScheme.outline,
+        ),
       ),
     );
   }

@@ -92,6 +92,7 @@ class FinesRepository {
     required double amount,
     String? description,
     String? evidenceUrl,
+    bool isGameDay = false,
   }) async {
     final response = await _client.post(
       '/fines/teams/$teamId/fines',
@@ -101,6 +102,7 @@ class FinesRepository {
         'amount': amount,
         'description': description,
         'evidence_url': evidenceUrl,
+        'is_game_day': isGameDay,
       },
     );
     return Fine.fromJson(response.data as Map<String, dynamic>);

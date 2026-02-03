@@ -1,12 +1,17 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/activity.dart';
+import '../models/mini_activity_statistics.dart';
+import 'leaderboard_service.dart';
+import 'season_service.dart';
 
 class ActivityService {
   final Database _db;
+  final LeaderboardService _leaderboardService;
+  final SeasonService _seasonService;
   final _uuid = const Uuid();
 
-  ActivityService(this._db);
+  ActivityService(this._db, this._leaderboardService, this._seasonService);
 
   Future<Activity> createActivity({
     required String teamId,
@@ -42,11 +47,13 @@ class ActivityService {
     // Generate instances based on recurrence
     await _generateInstances(
       activityId: activityId,
+      teamId: teamId,
       recurrenceType: recurrenceType,
       firstDate: firstDate,
       endDate: recurrenceEndDate,
       startTime: startTime,
       endTime: endTime,
+      responseType: responseType,
     );
 
     return Activity(
@@ -67,17 +74,22 @@ class ActivityService {
 
   Future<void> _generateInstances({
     required String activityId,
+    required String teamId,
     required String recurrenceType,
     required DateTime firstDate,
     DateTime? endDate,
     String? startTime,
     String? endTime,
+    required String responseType,
   }) async {
     final dates = _calculateDates(recurrenceType, firstDate, endDate);
+    final instanceIds = <String>[];
 
     for (final date in dates) {
+      final instanceId = _uuid.v4();
+      instanceIds.add(instanceId);
       await _db.client.insert('activity_instances', {
-        'id': _uuid.v4(),
+        'id': instanceId,
         'activity_id': activityId,
         'date': date.toIso8601String().split('T').first,
         'start_time': startTime,
@@ -85,6 +97,45 @@ class ActivityService {
         'status': 'scheduled',
       });
     }
+
+    // For opt_out activities, create default 'yes' responses for active, non-injured members
+    if (responseType == 'opt_out' && instanceIds.isNotEmpty) {
+      await _createDefaultResponses(instanceIds, teamId);
+    }
+  }
+
+  /// Create default 'yes' responses for opt_out activity instances
+  /// Only for active, non-injured team members
+  Future<void> _createDefaultResponses(List<String> instanceIds, String teamId) async {
+    // Get active, non-injured team members
+    final members = await _db.client.select(
+      'team_members',
+      select: 'user_id',
+      filters: {
+        'team_id': 'eq.$teamId',
+        'is_active': 'eq.true',
+        'is_injured': 'eq.false',
+      },
+    );
+
+    if (members.isEmpty) return;
+
+    // Build all responses in memory, then batch insert
+    final responses = <Map<String, dynamic>>[];
+    for (final member in members) {
+      final userId = member['user_id'] as String;
+      for (final instanceId in instanceIds) {
+        responses.add({
+          'id': _uuid.v4(),
+          'instance_id': instanceId,
+          'user_id': userId,
+          'response': 'yes',
+        });
+      }
+    }
+
+    // Batch insert all responses at once
+    await _db.client.insertMany('activity_responses', responses);
   }
 
   List<DateTime> _calculateDates(String recurrenceType, DateTime firstDate, DateTime? endDate) {
@@ -908,5 +959,116 @@ class ActivityService {
       filters: {'team_id': 'eq.$teamId'},
     );
     return members.map((m) => m['user_id'] as String).toList();
+  }
+
+  // ============ ATTENDANCE POINTS ============
+
+  /// Award attendance points for a completed activity instance
+  /// Returns the number of users who received points
+  Future<int> awardAttendancePoints(String instanceId) async {
+    // Get instance details
+    final instances = await _db.client.select(
+      'activity_instances',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    if (instances.isEmpty) {
+      throw Exception('Instance not found');
+    }
+
+    final instance = instances.first;
+    final instanceDate = DateTime.parse(instance['date'] as String);
+    final now = DateTime.now();
+
+    // Check that date has passed
+    if (instanceDate.isAfter(DateTime(now.year, now.month, now.day))) {
+      throw Exception('Cannot award points for future activities');
+    }
+
+    // Check that instance is not cancelled
+    if (instance['status'] == 'cancelled') {
+      throw Exception('Cannot award points for cancelled activities');
+    }
+
+    // Get the activity to find team_id
+    final activities = await _db.client.select(
+      'activities',
+      filters: {'id': 'eq.${instance['activity_id']}'},
+    );
+
+    if (activities.isEmpty) {
+      throw Exception('Activity not found');
+    }
+
+    final activity = activities.first;
+    final teamId = activity['team_id'] as String;
+
+    // Get team settings for attendance points value
+    final settingsResult = await _db.client.select(
+      'team_settings',
+      filters: {'team_id': 'eq.$teamId'},
+    );
+
+    final attendancePoints = settingsResult.isNotEmpty
+        ? (settingsResult.first['attendance_points'] as int? ?? 1)
+        : 1;
+
+    // Get the active season for this team
+    final activeSeason = await _seasonService.getActiveSeason(teamId);
+    if (activeSeason == null) {
+      throw Exception('No active season found for team');
+    }
+
+    // Get the main leaderboard for this season
+    final mainLeaderboard = await _leaderboardService.getMainLeaderboard(teamId);
+    if (mainLeaderboard == null) {
+      throw Exception('No main leaderboard found for team');
+    }
+
+    // Get all 'yes' responses for this instance
+    final responses = await _db.client.select(
+      'activity_responses',
+      filters: {
+        'instance_id': 'eq.$instanceId',
+        'response': 'eq.yes',
+      },
+    );
+
+    int pointsAwarded = 0;
+    final effectiveTitle = instance['title_override'] ?? activity['title'];
+
+    for (final response in responses) {
+      final userId = response['user_id'] as String;
+
+      // Check if points were already awarded for this instance
+      final alreadyAwarded = await _leaderboardService.hasPointsForSource(
+        userId: userId,
+        sourceType: PointSourceType.attendance,
+        sourceId: instanceId,
+      );
+
+      if (alreadyAwarded) {
+        continue;
+      }
+
+      // Award points with source tracking
+      await _leaderboardService.addPointsWithSource(
+        leaderboardId: mainLeaderboard.id,
+        userId: userId,
+        points: attendancePoints,
+        sourceType: PointSourceType.attendance,
+        sourceId: instanceId,
+        description: 'Oppmøte: $effectiveTitle',
+      );
+
+      pointsAwarded++;
+    }
+
+    // Mark instance as completed if not already
+    if (instance['status'] != 'completed') {
+      await updateInstanceStatus(instanceId, 'completed');
+    }
+
+    return pointsAwarded;
   }
 }

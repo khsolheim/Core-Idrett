@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/season.dart';
+import '../models/mini_activity_statistics.dart';
 
 class LeaderboardService {
   final Database _db;
@@ -345,6 +346,93 @@ class LeaderboardService {
     );
   }
 
+  /// Add points to a user's leaderboard entry with a traceable source
+  /// This creates both the leaderboard entry (if needed) and a point source record
+  Future<LeaderboardEntry> addPointsWithSource({
+    required String leaderboardId,
+    required String userId,
+    required int points,
+    required PointSourceType sourceType,
+    required String sourceId,
+    String? description,
+  }) async {
+    // Find or create the leaderboard entry
+    final existing = await _db.client.select(
+      'leaderboard_entries',
+      filters: {
+        'leaderboard_id': 'eq.$leaderboardId',
+        'user_id': 'eq.$userId',
+      },
+    );
+
+    String entryId;
+    int newPoints;
+
+    if (existing.isEmpty) {
+      // Create new entry
+      entryId = _uuid.v4();
+      newPoints = points;
+      await _db.client.insert('leaderboard_entries', {
+        'id': entryId,
+        'leaderboard_id': leaderboardId,
+        'user_id': userId,
+        'points': newPoints,
+      });
+    } else {
+      // Update existing entry
+      entryId = existing.first['id'] as String;
+      final currentPoints = existing.first['points'] as int? ?? 0;
+      newPoints = currentPoints + points;
+
+      await _db.client.update(
+        'leaderboard_entries',
+        {
+          'points': newPoints,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        filters: {'id': 'eq.$entryId'},
+      );
+    }
+
+    // Record the point source for traceability
+    await _db.client.insert('leaderboard_point_sources', {
+      'id': _uuid.v4(),
+      'leaderboard_entry_id': entryId,
+      'user_id': userId,
+      'source_type': sourceType.value,
+      'source_id': sourceId,
+      'points': points,
+      'description': description,
+    });
+
+    return LeaderboardEntry(
+      id: entryId,
+      leaderboardId: leaderboardId,
+      userId: userId,
+      points: newPoints,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Check if points have already been awarded for a specific source
+  Future<bool> hasPointsForSource({
+    required String userId,
+    required PointSourceType sourceType,
+    required String sourceId,
+  }) async {
+    final result = await _db.client.select(
+      'leaderboard_point_sources',
+      select: 'id',
+      filters: {
+        'user_id': 'eq.$userId',
+        'source_type': 'eq.${sourceType.value}',
+        'source_id': 'eq.$sourceId',
+      },
+      limit: 1,
+    );
+    return result.isNotEmpty;
+  }
+
   /// Get team ID for a leaderboard (for authorization checks)
   Future<String?> getTeamIdForLeaderboard(String leaderboardId) async {
     final result = await _db.client.select(
@@ -451,5 +539,389 @@ class LeaderboardService {
         'leaderboard_id': 'eq.$leaderboardId',
       },
     );
+  }
+
+  // ============ CATEGORY-BASED LEADERBOARDS ============
+
+  /// Get leaderboard by category for a team
+  Future<Leaderboard?> getLeaderboardByCategory(
+    String teamId,
+    LeaderboardCategory category, {
+    String? seasonId,
+  }) async {
+    final filters = <String, String>{
+      'team_id': 'eq.$teamId',
+      'category': 'eq.${category.value}',
+    };
+    if (seasonId != null) {
+      filters['season_id'] = 'eq.$seasonId';
+    }
+
+    final result = await _db.client.select(
+      'leaderboards',
+      filters: filters,
+      limit: 1,
+    );
+
+    if (result.isEmpty) return null;
+    return Leaderboard.fromRow(result.first);
+  }
+
+  /// Get or create a category leaderboard
+  Future<Leaderboard> getOrCreateCategoryLeaderboard(
+    String teamId,
+    LeaderboardCategory category, {
+    String? seasonId,
+  }) async {
+    var leaderboard = await getLeaderboardByCategory(
+      teamId,
+      category,
+      seasonId: seasonId,
+    );
+
+    if (leaderboard != null) return leaderboard;
+
+    // Create category leaderboard
+    final id = _uuid.v4();
+    final name = category.displayName;
+
+    await _db.client.insert('leaderboards', {
+      'id': id,
+      'team_id': teamId,
+      'season_id': seasonId,
+      'name': name,
+      'category': category.value,
+      'is_main': category == LeaderboardCategory.total,
+      'sort_order': category.index,
+    });
+
+    return Leaderboard(
+      id: id,
+      teamId: teamId,
+      seasonId: seasonId,
+      name: name,
+      category: category,
+      isMain: category == LeaderboardCategory.total,
+      sortOrder: category.index,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  /// Get all category leaderboards for a team
+  Future<Map<LeaderboardCategory, Leaderboard>> getCategoryLeaderboards(
+    String teamId, {
+    String? seasonId,
+  }) async {
+    final filters = <String, String>{'team_id': 'eq.$teamId'};
+    if (seasonId != null) {
+      filters['season_id'] = 'eq.$seasonId';
+    }
+
+    final result = await _db.client.select(
+      'leaderboards',
+      filters: filters,
+      order: 'sort_order.asc',
+    );
+
+    final map = <LeaderboardCategory, Leaderboard>{};
+    for (final row in result) {
+      final leaderboard = Leaderboard.fromRow(row);
+      map[leaderboard.category] = leaderboard;
+    }
+
+    return map;
+  }
+
+  // ============ RANKED LEADERBOARD VIEW ============
+
+  /// Get ranked leaderboard entries with attendance tiebreaker
+  /// Uses v_leaderboard_ranked view for efficient querying
+  Future<List<LeaderboardEntry>> getRankedEntries(
+    String teamId, {
+    LeaderboardCategory? category,
+    String? seasonId,
+    bool excludeOptedOut = true,
+    int? limit,
+    int offset = 0,
+  }) async {
+    // First get the leaderboard
+    Leaderboard? leaderboard;
+    if (category != null) {
+      leaderboard = await getLeaderboardByCategory(
+        teamId,
+        category,
+        seasonId: seasonId,
+      );
+    } else {
+      leaderboard = await getMainLeaderboard(teamId);
+    }
+
+    if (leaderboard == null) return [];
+
+    // Query the ranked view
+    final filters = <String, String>{
+      'leaderboard_id': 'eq.${leaderboard.id}',
+    };
+    if (excludeOptedOut) {
+      filters['leaderboard_opt_out'] = 'eq.false';
+    }
+
+    final result = await _db.client.select(
+      'v_leaderboard_ranked',
+      filters: filters,
+      order: 'rank.asc',
+      limit: limit,
+      offset: offset,
+    );
+
+    // Get user avatars
+    final userIds = result.map((r) => r['user_id'] as String).toSet().toList();
+    final users = await _db.client.select(
+      'users',
+      select: 'id,avatar_url',
+      filters: {'id': 'in.(${userIds.join(',')})'},
+    );
+    final avatarMap = <String, String?>{};
+    for (final u in users) {
+      avatarMap[u['id'] as String] = u['avatar_url'] as String?;
+    }
+
+    return result.map((row) {
+      return LeaderboardEntry(
+        id: row['user_id'] as String, // Using user_id as id for simplicity
+        leaderboardId: leaderboard!.id,
+        userId: row['user_id'] as String,
+        points: row['points'] as int? ?? 0,
+        updatedAt: DateTime.now(),
+        userName: row['user_name'] as String?,
+        userAvatarUrl: avatarMap[row['user_id'] as String],
+        rank: row['rank'] as int?,
+        attendanceRate: (row['attendance_rate'] as num?)?.toDouble(),
+        currentStreak: row['current_streak'] as int?,
+        optedOut: row['leaderboard_opt_out'] as bool?,
+      );
+    }).toList();
+  }
+
+  /// Get a specific user's position in the leaderboard
+  Future<LeaderboardEntry?> getUserRankedPosition(
+    String teamId,
+    String userId, {
+    LeaderboardCategory? category,
+    String? seasonId,
+  }) async {
+    Leaderboard? leaderboard;
+    if (category != null) {
+      leaderboard = await getLeaderboardByCategory(
+        teamId,
+        category,
+        seasonId: seasonId,
+      );
+    } else {
+      leaderboard = await getMainLeaderboard(teamId);
+    }
+
+    if (leaderboard == null) return null;
+
+    final result = await _db.client.select(
+      'v_leaderboard_ranked',
+      filters: {
+        'leaderboard_id': 'eq.${leaderboard.id}',
+        'user_id': 'eq.$userId',
+      },
+    );
+
+    if (result.isEmpty) return null;
+
+    final row = result.first;
+    return LeaderboardEntry(
+      id: row['user_id'] as String,
+      leaderboardId: leaderboard.id,
+      userId: row['user_id'] as String,
+      points: row['points'] as int? ?? 0,
+      updatedAt: DateTime.now(),
+      userName: row['user_name'] as String?,
+      rank: row['rank'] as int?,
+      attendanceRate: (row['attendance_rate'] as num?)?.toDouble(),
+      currentStreak: row['current_streak'] as int?,
+      optedOut: row['leaderboard_opt_out'] as bool?,
+    );
+  }
+
+  // ============ MONTHLY STATS INTEGRATION ============
+
+  /// Get leaderboard with monthly trends
+  Future<List<LeaderboardEntry>> getLeaderboardWithTrends(
+    String teamId, {
+    String? seasonId,
+    int? limit,
+  }) async {
+    final entries = await getRankedEntries(
+      teamId,
+      seasonId: seasonId,
+      limit: limit,
+    );
+
+    // Get trend data from monthly view
+    final userIds = entries.map((e) => e.userId).toList();
+    if (userIds.isEmpty) return entries;
+
+    final trends = await _db.client.select(
+      'v_monthly_trends',
+      filters: {
+        'team_id': 'eq.$teamId',
+        'user_id': 'in.(${userIds.join(',')})',
+        'year': 'eq.${DateTime.now().year}',
+        'month': 'eq.${DateTime.now().month}',
+      },
+    );
+
+    final trendMap = <String, Map<String, dynamic>>{};
+    for (final t in trends) {
+      trendMap[t['user_id'] as String] = t;
+    }
+
+    return entries.map((entry) {
+      final trend = trendMap[entry.userId];
+      if (trend == null) return entry;
+
+      return LeaderboardEntry(
+        id: entry.id,
+        leaderboardId: entry.leaderboardId,
+        userId: entry.userId,
+        points: entry.points,
+        updatedAt: entry.updatedAt,
+        userName: entry.userName,
+        userAvatarUrl: entry.userAvatarUrl,
+        rank: entry.rank,
+        attendanceRate: entry.attendanceRate,
+        currentStreak: entry.currentStreak,
+        optedOut: entry.optedOut,
+        trend: trend['trend'] as String?,
+        rankChange: (trend['point_change'] as num?)?.toInt(),
+      );
+    }).toList();
+  }
+
+  /// Calculate and return weighted total for a user
+  Future<double> calculateWeightedTotal(
+    String userId,
+    String teamId, {
+    String? seasonId,
+  }) async {
+    // Get point config
+    final configResult = await _db.client.select(
+      'team_points_config',
+      filters: {'team_id': 'eq.$teamId'},
+      limit: 1,
+    );
+
+    double trainingWeight = 1.0;
+    double matchWeight = 1.5;
+    double socialWeight = 0.5;
+    double competitionWeight = 1.0;
+
+    if (configResult.isNotEmpty) {
+      final config = configResult.first;
+      trainingWeight = (config['training_weight'] as num?)?.toDouble() ?? 1.0;
+      matchWeight = (config['match_weight'] as num?)?.toDouble() ?? 1.5;
+      socialWeight = (config['social_weight'] as num?)?.toDouble() ?? 0.5;
+      competitionWeight =
+          (config['competition_weight'] as num?)?.toDouble() ?? 1.0;
+    }
+
+    // Get category points
+    final categoryLeaderboards = await getCategoryLeaderboards(
+      teamId,
+      seasonId: seasonId,
+    );
+
+    double total = 0.0;
+
+    for (final entry in categoryLeaderboards.entries) {
+      final categoryEntry = await getUserEntry(entry.value.id, userId);
+      if (categoryEntry == null) continue;
+
+      final points = categoryEntry.points.toDouble();
+      switch (entry.key) {
+        case LeaderboardCategory.training:
+          total += points * trainingWeight;
+          break;
+        case LeaderboardCategory.match:
+          total += points * matchWeight;
+          break;
+        case LeaderboardCategory.social:
+          total += points * socialWeight;
+          break;
+        case LeaderboardCategory.competition:
+          total += points * competitionWeight;
+          break;
+        default:
+          total += points;
+      }
+    }
+
+    return total;
+  }
+
+  /// Sync total leaderboard from category leaderboards
+  Future<void> syncTotalLeaderboard(
+    String teamId, {
+    String? seasonId,
+  }) async {
+    final totalLeaderboard = await getOrCreateCategoryLeaderboard(
+      teamId,
+      LeaderboardCategory.total,
+      seasonId: seasonId,
+    );
+
+    // Get all team members
+    final members = await _db.client.select(
+      'team_members',
+      select: 'user_id',
+      filters: {'team_id': 'eq.$teamId'},
+    );
+
+    for (final member in members) {
+      final userId = member['user_id'] as String;
+      final weightedTotal = await calculateWeightedTotal(
+        userId,
+        teamId,
+        seasonId: seasonId,
+      );
+
+      await upsertEntry(
+        leaderboardId: totalLeaderboard.id,
+        userId: userId,
+        points: weightedTotal.round(),
+        addToExisting: false, // Replace, don't add
+      );
+    }
+  }
+
+  /// Get monthly stats for a user
+  Future<List<Map<String, dynamic>>> getUserMonthlyStats(
+    String teamId,
+    String userId, {
+    int? year,
+    int? month,
+    int? limit,
+  }) async {
+    final filters = <String, String>{
+      'team_id': 'eq.$teamId',
+      'user_id': 'eq.$userId',
+    };
+
+    if (year != null) filters['year'] = 'eq.$year';
+    if (month != null) filters['month'] = 'eq.$month';
+
+    final result = await _db.client.select(
+      'monthly_user_stats',
+      filters: filters,
+      order: 'year.desc,month.desc',
+      limit: limit,
+    );
+
+    return result;
   }
 }

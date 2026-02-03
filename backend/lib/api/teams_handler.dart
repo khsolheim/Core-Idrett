@@ -27,6 +27,7 @@ class TeamsHandler {
     router.patch('/<teamId>/members/<memberId>/permissions', _updateMemberPermissions);
     router.post('/<teamId>/members/<memberId>/deactivate', _deactivateMember);
     router.post('/<teamId>/members/<memberId>/reactivate', _reactivateMember);
+    router.post('/<teamId>/members/<memberId>/injured', _setMemberInjuredStatus);
     router.delete('/<teamId>/members/<memberId>', _removeMember);
 
     // Trainer types routes
@@ -342,6 +343,33 @@ class TeamsHandler {
       }
 
       await _teamService.removeMember(memberId);
+      return Response.ok(jsonEncode({'success': true}));
+    } catch (e) {
+      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+    }
+  }
+
+  Future<Response> _setMemberInjuredStatus(Request request, String teamId, String memberId) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) {
+        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+      }
+
+      final team = await _teamService.getTeamById(teamId, userId);
+      if (team == null || !_isAdmin(team)) {
+        return Response(403, body: jsonEncode({'error': 'Kun administratorer kan endre skadet-status'}));
+      }
+
+      final body = await request.readAsString();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      final isInjured = data['is_injured'] as bool?;
+
+      if (isInjured == null) {
+        return Response(400, body: jsonEncode({'error': 'is_injured er pakrevd'}));
+      }
+
+      await _teamService.setMemberInjuredStatus(memberId, isInjured);
       return Response.ok(jsonEncode({'success': true}));
     } catch (e) {
       return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));

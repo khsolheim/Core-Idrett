@@ -160,6 +160,20 @@ class TeamNotifier extends StateNotifier<AsyncValue<Team?>> {
     }
   }
 
+  /// Set whether a member is injured
+  /// When injured: future opt_out activity responses are removed
+  /// When healthy: 'yes' responses are created for future opt_out activities
+  Future<bool> setInjuredStatus(String teamId, String memberId, bool isInjured) async {
+    try {
+      await _repo.setMemberInjuredStatus(teamId, memberId, isInjured);
+      _ref.invalidate(teamMembersProvider(teamId));
+      _ref.invalidate(teamMembersWithInactiveProvider(teamId));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// Create a new trainer type
   Future<TrainerType?> createTrainerType({
     required String teamId,

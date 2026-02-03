@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Core - Idrett is a Norwegian sports team management application with a Flutter frontend and Dart backend, using Supabase (PostgreSQL) for the database.
 
+### Features
+- **Team Management**: Teams with admin/fine_boss/player roles
+- **Activities**: Training, matches, events with recurring schedules and attendance tracking
+- **Mini-Activities**: Sub-activities within events (games, drills) with points/scoring
+- **Statistics**: Leaderboards, attendance rates, player profiles
+- **Fine System**: Customizable rules, payment tracking, team accounting
+- **Chat**: Team chat + direct messages with reply/edit/delete
+- **Documents**: File upload/download per team
+- **Tests**: Physical test tracking (løpetest, spenst, etc.)
+
 ## Development Commands
 
 ### Backend (from `/backend`)
@@ -73,3 +83,23 @@ Required in `/backend/.env`:
 
 ## API Base URL
 Frontend API URL is configured in `/app/lib/core/config.dart` (defaults to `http://localhost:8080`).
+
+## Key API Endpoints
+
+| Resource | Endpoints |
+|----------|-----------|
+| Auth | `/auth/register`, `/auth/login`, `/auth/me`, `/auth/profile` |
+| Teams | `/teams`, `/teams/:id`, `/teams/:id/members`, `/teams/:id/settings` |
+| Activities | `/activities/team/:teamId`, `/activities/instances/:id/respond` |
+| Messages | `/messages/teams/:teamId`, `/messages/all-conversations`, `/messages/direct/:recipientId` |
+| Fines | `/fines/team/:teamId`, `/fines/team/:teamId/rules` |
+| Statistics | `/statistics/team/:teamId/leaderboard`, `/statistics/team/:teamId/attendance` |
+
+## Role System
+
+Three team roles with increasing permissions:
+- **player**: View team, respond to activities, view own stats
+- **fine_boss**: Player permissions + manage fines, report fines for others
+- **admin**: All permissions + manage team settings, members, activities, fine rules
+
+Role is stored in `team_members.role` and checked via `TeamService.getTeamById()` which returns `user_role`.

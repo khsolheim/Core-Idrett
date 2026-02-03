@@ -117,6 +117,16 @@ class TeamRepository {
     await _client.delete('/teams/$teamId/members/$memberId');
   }
 
+  /// Set whether a member is injured
+  /// When injured: future opt_out activity responses are removed
+  /// When healthy: 'yes' responses are created for future opt_out activities
+  Future<void> setMemberInjuredStatus(String teamId, String memberId, bool isInjured) async {
+    await _client.post(
+      '/teams/$teamId/members/$memberId/injured',
+      data: {'is_injured': isInjured},
+    );
+  }
+
   // ============ Trainer Types ============
 
   Future<List<TrainerType>> getTrainerTypes(String teamId) async {

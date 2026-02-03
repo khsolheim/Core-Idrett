@@ -97,6 +97,9 @@ class TeamMember {
   /// Whether this member is active (false = soft deleted)
   final bool isActive;
 
+  /// Whether this member is currently injured (excluded from opt_out auto-responses)
+  final bool isInjured;
+
   final DateTime joinedAt;
 
   TeamMember({
@@ -110,6 +113,7 @@ class TeamMember {
     this.trainerTypeId,
     this.trainerTypeName,
     required this.isActive,
+    required this.isInjured,
     required this.joinedAt,
   });
 
@@ -125,6 +129,7 @@ class TeamMember {
       trainerTypeId: row['trainer_type_id'] as String?,
       trainerTypeName: row['trainer_type_name'] as String?,
       isActive: row['is_active'] as bool? ?? true,
+      isInjured: row['is_injured'] as bool? ?? false,
       joinedAt: row['joined_at'] as DateTime,
     );
   }
@@ -141,6 +146,7 @@ class TeamMember {
       'trainer_type_id': trainerTypeId,
       'trainer_type_name': trainerTypeName,
       'is_active': isActive,
+      'is_injured': isInjured,
       'joined_at': joinedAt.toIso8601String(),
     };
   }

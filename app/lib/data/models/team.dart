@@ -187,6 +187,9 @@ class TeamMember {
   /// Whether this member is active (false = deactivated)
   final bool isActive;
 
+  /// Whether this member is currently injured (excluded from opt_out auto-responses)
+  final bool isInjured;
+
   final DateTime joinedAt;
 
   TeamMember({
@@ -202,6 +205,7 @@ class TeamMember {
     this.isCoach = false,
     this.trainerType,
     this.isActive = true,
+    this.isInjured = false,
     required this.joinedAt,
   });
 
@@ -242,6 +246,7 @@ class TeamMember {
       isCoach: isCoach,
       trainerType: trainerType,
       isActive: json['is_active'] as bool? ?? true,
+      isInjured: json['is_injured'] as bool? ?? false,
       joinedAt: DateTime.parse(json['joined_at'] as String),
     );
   }
@@ -260,6 +265,7 @@ class TeamMember {
       'is_coach': isCoach,
       'trainer_type': trainerType?.toJson(),
       'is_active': isActive,
+      'is_injured': isInjured,
       'joined_at': joinedAt.toIso8601String(),
     };
   }
@@ -295,6 +301,7 @@ class TeamMember {
     TrainerType? trainerType,
     bool clearTrainerType = false,
     bool? isActive,
+    bool? isInjured,
   }) {
     return TeamMember(
       id: id,
@@ -309,6 +316,7 @@ class TeamMember {
       isCoach: isCoach ?? this.isCoach,
       trainerType: clearTrainerType ? null : (trainerType ?? this.trainerType),
       isActive: isActive ?? this.isActive,
+      isInjured: isInjured ?? this.isInjured,
       joinedAt: joinedAt,
     );
   }

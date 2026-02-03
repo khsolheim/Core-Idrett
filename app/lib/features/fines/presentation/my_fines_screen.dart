@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/fine.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/fines_provider.dart';
@@ -162,21 +163,19 @@ class MyFinesScreen extends ConsumerWidget {
                 onPressed: () async {
                   final reason = reasonController.text.trim();
                   if (reason.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Du må skrive en begrunnelse')),
-                    );
+                    ErrorDisplayService.showWarning('Du må skrive en begrunnelse');
                     return;
                   }
                   Navigator.pop(context);
-                  await ref.read(appealNotifierProvider.notifier).createAppeal(
+                  final result = await ref.read(appealNotifierProvider.notifier).createAppeal(
                         fineId: fine.id,
                         reason: reason,
                         teamId: teamId,
                       );
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Klage sendt')),
-                    );
+                  if (result != null) {
+                    ErrorDisplayService.showSuccess('Klage sendt');
+                  } else {
+                    ErrorDisplayService.showWarning('Kunne ikke sende klage. Prøv igjen.');
                   }
                 },
                 child: const Text('Send klage'),
@@ -327,8 +326,8 @@ class _MyFineCard extends StatelessWidget {
                 ),
               ),
             ],
-            // Show appeal button only for approved fines without existing appeal
-            if (fine.status == 'approved' && fine.appeal == null) ...[
+            // Show appeal button for approved or pending fines without existing appeal
+            if ((fine.status == 'approved' || fine.status == 'pending') && fine.appeal == null) ...[
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,

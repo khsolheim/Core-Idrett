@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/fine.dart';
 import '../providers/fines_provider.dart';
 
@@ -54,12 +55,17 @@ class FineRulesScreen extends ConsumerWidget {
       builder: (context) => _RuleDialog(
         teamId: teamId,
         onSave: (name, amount, description) async {
-          await ref.read(fineRuleNotifierProvider.notifier).createRule(
+          final result = await ref.read(fineRuleNotifierProvider.notifier).createRule(
                 teamId: teamId,
                 name: name,
                 amount: amount,
                 description: description,
               );
+          if (result != null) {
+            ErrorDisplayService.showSuccess('Bøteregel opprettet');
+          } else {
+            ErrorDisplayService.showWarning('Kunne ikke opprette bøteregel. Prøv igjen.');
+          }
         },
       ),
     );
@@ -72,13 +78,18 @@ class FineRulesScreen extends ConsumerWidget {
         teamId: teamId,
         rule: rule,
         onSave: (name, amount, description) async {
-          await ref.read(fineRuleNotifierProvider.notifier).updateRule(
+          final result = await ref.read(fineRuleNotifierProvider.notifier).updateRule(
                 ruleId: rule.id,
                 teamId: teamId,
                 name: name,
                 amount: amount,
                 description: description,
               );
+          if (result != null) {
+            ErrorDisplayService.showSuccess('Bøteregel oppdatert');
+          } else {
+            ErrorDisplayService.showWarning('Kunne ikke oppdatere bøteregel. Prøv igjen.');
+          }
         },
       ),
     );
@@ -98,7 +109,12 @@ class FineRulesScreen extends ConsumerWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await ref.read(fineRuleNotifierProvider.notifier).deleteRule(rule.id, teamId);
+              final result = await ref.read(fineRuleNotifierProvider.notifier).deleteRule(rule.id, teamId);
+              if (result) {
+                ErrorDisplayService.showSuccess('Bøteregel slettet');
+              } else {
+                ErrorDisplayService.showWarning('Kunne ikke slette bøteregel. Prøv igjen.');
+              }
             },
             child: const Text('Slett', style: TextStyle(color: Colors.red)),
           ),
@@ -274,17 +290,13 @@ class _RuleDialogState extends State<_RuleDialog> {
     final description = _descriptionController.text.trim();
 
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Du må skrive et navn')),
-      );
+      ErrorDisplayService.showWarning('Du må skrive et navn');
       return;
     }
 
     final amount = double.tryParse(amountText);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Du må skrive et gyldig beløp')),
-      );
+      ErrorDisplayService.showWarning('Du må skrive et gyldig beløp');
       return;
     }
 
