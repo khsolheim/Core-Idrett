@@ -36,7 +36,7 @@ class TestRepository {
   }) async {
     final response = await _client.post('/tests/templates/teams/$teamId', data: {
       'name': name,
-      if (description != null) 'description': description,
+      'description': ?description,
       'unit': unit,
       'higher_is_better': higherIsBetter,
     });
@@ -53,10 +53,10 @@ class TestRepository {
     bool clearDescription = false,
   }) async {
     final response = await _client.patch('/tests/templates/$templateId', data: {
-      if (name != null) 'name': name,
-      if (description != null) 'description': description,
-      if (unit != null) 'unit': unit,
-      if (higherIsBetter != null) 'higher_is_better': higherIsBetter,
+      'name': ?name,
+      'description': ?description,
+      'unit': ?unit,
+      'higher_is_better': ?higherIsBetter,
       if (clearDescription) 'clear_description': true,
     });
     return TestTemplate.fromJson(response.data as Map<String, dynamic>);
@@ -113,8 +113,8 @@ class TestRepository {
     final response = await _client.post('/tests/templates/$templateId/results', data: {
       'user_id': userId,
       'value': value,
-      if (instanceId != null) 'instance_id': instanceId,
-      if (notes != null) 'notes': notes,
+      'instance_id': ?instanceId,
+      'notes': ?notes,
     });
     return TestResult.fromJson(response.data as Map<String, dynamic>);
   }
@@ -127,7 +127,7 @@ class TestRepository {
   }) async {
     final response = await _client.post('/tests/templates/$templateId/results/bulk', data: {
       'results': results,
-      if (instanceId != null) 'instance_id': instanceId,
+      'instance_id': ?instanceId,
     });
     final data = response.data['results'] as List;
     return data.map((r) => TestResult.fromJson(r as Map<String, dynamic>)).toList();

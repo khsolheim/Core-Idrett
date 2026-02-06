@@ -63,14 +63,14 @@ class MiniActivityRepository {
       'name': name,
       'type': type.toApiString(),
       'default_points': defaultPoints,
-      if (description != null) 'description': description,
-      if (instructions != null) 'instructions': instructions,
-      if (sportType != null) 'sport_type': sportType,
-      if (suggestedRules != null) 'suggested_rules': suggestedRules,
+      'description': ?description,
+      'instructions': ?instructions,
+      'sport_type': ?sportType,
+      'suggested_rules': ?suggestedRules,
       'win_points': winPoints,
       'draw_points': drawPoints,
       'loss_points': lossPoints,
-      if (leaderboardId != null) 'leaderboard_id': leaderboardId,
+      'leaderboard_id': ?leaderboardId,
     });
     return ActivityTemplate.fromJson(_parseJsonResponse(response.data));
   }
@@ -89,16 +89,16 @@ class MiniActivityRepository {
     String? leaderboardId,
   }) async {
     final response = await _apiClient.patch('/mini-activities/templates/$templateId', data: {
-      if (name != null) 'name': name,
-      if (description != null) 'description': description,
-      if (instructions != null) 'instructions': instructions,
-      if (sportType != null) 'sport_type': sportType,
-      if (suggestedRules != null) 'suggested_rules': suggestedRules,
-      if (isFavorite != null) 'is_favorite': isFavorite,
-      if (winPoints != null) 'win_points': winPoints,
-      if (drawPoints != null) 'draw_points': drawPoints,
-      if (lossPoints != null) 'loss_points': lossPoints,
-      if (leaderboardId != null) 'leaderboard_id': leaderboardId,
+      'name': ?name,
+      'description': ?description,
+      'instructions': ?instructions,
+      'sport_type': ?sportType,
+      'suggested_rules': ?suggestedRules,
+      'is_favorite': ?isFavorite,
+      'win_points': ?winPoints,
+      'draw_points': ?drawPoints,
+      'loss_points': ?lossPoints,
+      'leaderboard_id': ?leaderboardId,
     });
     return ActivityTemplate.fromJson(_parseJsonResponse(response.data));
   }
@@ -151,13 +151,13 @@ class MiniActivityRepository {
       'template_id': templateId,
       'name': name,
       'type': type.toApiString(),
-      if (description != null) 'description': description,
-      if (maxParticipants != null) 'max_participants': maxParticipants,
+      'description': ?description,
+      'max_participants': ?maxParticipants,
       'enable_leaderboard': enableLeaderboard,
       'win_points': winPoints,
       'draw_points': drawPoints,
       'loss_points': lossPoints,
-      if (leaderboardId != null) 'leaderboard_id': leaderboardId,
+      'leaderboard_id': ?leaderboardId,
       'handicap_enabled': handicapEnabled,
     });
     return MiniActivity.fromJson(_parseJsonResponse(response.data));
@@ -181,13 +181,13 @@ class MiniActivityRepository {
       'template_id': templateId,
       'name': name,
       'type': type.toApiString(),
-      if (description != null) 'description': description,
-      if (maxParticipants != null) 'max_participants': maxParticipants,
+      'description': ?description,
+      'max_participants': ?maxParticipants,
       'enable_leaderboard': enableLeaderboard,
       'win_points': winPoints,
       'draw_points': drawPoints,
       'loss_points': lossPoints,
-      if (leaderboardId != null) 'leaderboard_id': leaderboardId,
+      'leaderboard_id': ?leaderboardId,
       'handicap_enabled': handicapEnabled,
     });
     return MiniActivity.fromJson(_parseJsonResponse(response.data));
@@ -211,15 +211,15 @@ class MiniActivityRepository {
     bool? handicapEnabled,
   }) async {
     final response = await _apiClient.patch('/mini-activities/$miniActivityId', data: {
-      if (name != null) 'name': name,
-      if (description != null) 'description': description,
-      if (maxParticipants != null) 'max_participants': maxParticipants,
-      if (enableLeaderboard != null) 'enable_leaderboard': enableLeaderboard,
-      if (winPoints != null) 'win_points': winPoints,
-      if (drawPoints != null) 'draw_points': drawPoints,
-      if (lossPoints != null) 'loss_points': lossPoints,
-      if (leaderboardId != null) 'leaderboard_id': leaderboardId,
-      if (handicapEnabled != null) 'handicap_enabled': handicapEnabled,
+      'name': ?name,
+      'description': ?description,
+      'max_participants': ?maxParticipants,
+      'enable_leaderboard': ?enableLeaderboard,
+      'win_points': ?winPoints,
+      'draw_points': ?drawPoints,
+      'loss_points': ?lossPoints,
+      'leaderboard_id': ?leaderboardId,
+      'handicap_enabled': ?handicapEnabled,
     });
     return MiniActivity.fromJson(_parseJsonResponse(response.data));
   }
@@ -240,7 +240,7 @@ class MiniActivityRepository {
 
   Future<MiniActivity> duplicateMiniActivity(String miniActivityId, {String? newName}) async {
     final response = await _apiClient.post('/mini-activities/$miniActivityId/duplicate', data: {
-      if (newName != null) 'name': newName,
+      'name': ?newName,
     });
     return MiniActivity.fromJson(_parseJsonResponse(response.data));
   }
@@ -323,10 +323,10 @@ class MiniActivityRepository {
     String? reason,
   }) async {
     final response = await _apiClient.post('/mini-activities/$miniActivityId/adjustments', data: {
-      if (miniTeamId != null) 'team_id': miniTeamId,
-      if (userId != null) 'user_id': userId,
+      'team_id': ?miniTeamId,
+      'user_id': ?userId,
       'points': points,
-      if (reason != null) 'reason': reason,
+      'reason': ?reason,
     });
     return MiniActivityAdjustment.fromJson(_parseJsonResponse(response.data));
   }
@@ -380,7 +380,7 @@ class MiniActivityRepository {
     String? moveParticipantsToTeamId,
   }) async {
     final response = await _apiClient.delete('/mini-activities/$miniActivityId/teams/$miniTeamId', data: {
-      if (moveParticipantsToTeamId != null) 'move_participants_to_team_id': moveParticipantsToTeamId,
+      'move_participants_to_team_id': ?moveParticipantsToTeamId,
     });
     return MiniActivity.fromJson(_parseJsonResponse(response.data));
   }
@@ -423,7 +423,7 @@ class MiniActivityRepository {
     int limit = 20,
   }) async {
     final response = await _apiClient.get('/mini-activities/history/team/$teamId', queryParameters: {
-      if (templateId != null) 'template_id': templateId,
+      'template_id': ?templateId,
       'limit': limit.toString(),
     });
     final data = _parseListResponse(response.data);

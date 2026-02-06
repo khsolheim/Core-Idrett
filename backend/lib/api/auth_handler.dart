@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/auth_service.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class AuthHandler {
   final AuthService _authService;
@@ -32,7 +33,7 @@ class AuthHandler {
       final name = data['name'] as String?;
 
       if (email == null || password == null || name == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt'}));
+        return resp.badRequest('Mangler påkrevde felt');
       }
 
       final result = await _authService.register(
@@ -41,14 +42,14 @@ class AuthHandler {
         name: name,
       );
 
-      return Response.ok(jsonEncode({
+      return resp.ok({
         'token': result.token,
         'user': result.user.toJson(),
-      }));
+      });
     } on AuthException catch (e) {
-      return Response(400, body: jsonEncode({'error': e.message}));
+      return resp.badRequest(e.message);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+      return resp.serverError();
     }
   }
 
@@ -61,7 +62,7 @@ class AuthHandler {
       final password = data['password'] as String?;
 
       if (email == null || password == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler e-post eller passord'}));
+        return resp.badRequest('Mangler e-post eller passord');
       }
 
       final result = await _authService.login(
@@ -69,14 +70,14 @@ class AuthHandler {
         password: password,
       );
 
-      return Response.ok(jsonEncode({
+      return resp.ok({
         'token': result.token,
         'user': result.user.toJson(),
-      }));
+      });
     } on AuthException catch (e) {
-      return Response(401, body: jsonEncode({'error': e.message}));
+      return resp.unauthorized(e.message);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+      return resp.serverError();
     }
   }
 
@@ -90,7 +91,7 @@ class AuthHandler {
       final name = data['name'] as String?;
 
       if (email == null || password == null || name == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt'}));
+        return resp.badRequest('Mangler påkrevde felt');
       }
 
       final result = await _authService.registerWithInvite(
@@ -100,14 +101,14 @@ class AuthHandler {
         name: name,
       );
 
-      return Response.ok(jsonEncode({
+      return resp.ok({
         'token': result.token,
         'user': result.user.toJson(),
-      }));
+      });
     } on AuthException catch (e) {
-      return Response(400, body: jsonEncode({'error': e.message}));
+      return resp.badRequest(e.message);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+      return resp.serverError();
     }
   }
 
@@ -115,19 +116,19 @@ class AuthHandler {
     try {
       final authHeader = request.headers['authorization'];
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final token = authHeader.substring(7);
       final user = await _authService.getUserFromToken(token);
 
       if (user == null) {
-        return Response(401, body: jsonEncode({'error': 'Ugyldig token'}));
+        return resp.unauthorized('Ugyldig token');
       }
 
-      return Response.ok(jsonEncode(user.toJson()));
+      return resp.ok(user.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+      return resp.serverError();
     }
   }
 
@@ -135,14 +136,14 @@ class AuthHandler {
     try {
       final authHeader = request.headers['authorization'];
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final token = authHeader.substring(7);
       final user = await _authService.getUserFromToken(token);
 
       if (user == null) {
-        return Response(401, body: jsonEncode({'error': 'Ugyldig token'}));
+        return resp.unauthorized('Ugyldig token');
       }
 
       final body = await request.readAsString();
@@ -152,7 +153,7 @@ class AuthHandler {
       final avatarUrl = data['avatar_url'] as String?;
 
       if (name == null && avatarUrl == null) {
-        return Response(400, body: jsonEncode({'error': 'Ingen felt å oppdatere'}));
+        return resp.badRequest('Ingen felt å oppdatere');
       }
 
       final updatedUser = await _authService.updateProfile(
@@ -162,12 +163,12 @@ class AuthHandler {
       );
 
       if (updatedUser == null) {
-        return Response(404, body: jsonEncode({'error': 'Bruker ikke funnet'}));
+        return resp.notFound('Bruker ikke funnet');
       }
 
-      return Response.ok(jsonEncode(updatedUser.toJson()));
+      return resp.ok(updatedUser.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+      return resp.serverError();
     }
   }
 
@@ -175,14 +176,14 @@ class AuthHandler {
     try {
       final authHeader = request.headers['authorization'];
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final token = authHeader.substring(7);
       final user = await _authService.getUserFromToken(token);
 
       if (user == null) {
-        return Response(401, body: jsonEncode({'error': 'Ugyldig token'}));
+        return resp.unauthorized('Ugyldig token');
       }
 
       final body = await request.readAsString();
@@ -192,7 +193,7 @@ class AuthHandler {
       final newPassword = data['new_password'] as String?;
 
       if (currentPassword == null || newPassword == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler pakrevde felt'}));
+        return resp.badRequest('Mangler pakrevde felt');
       }
 
       await _authService.changePassword(
@@ -201,11 +202,11 @@ class AuthHandler {
         newPassword: newPassword,
       );
 
-      return Response.ok(jsonEncode({'message': 'Passord endret'}));
+      return resp.ok({'message': 'Passord endret'});
     } on AuthException catch (e) {
-      return Response(400, body: jsonEncode({'error': e.message}));
+      return resp.badRequest(e.message);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+      return resp.serverError();
     }
   }
 
@@ -213,21 +214,22 @@ class AuthHandler {
     try {
       final authHeader = request.headers['authorization'];
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final token = authHeader.substring(7);
       final user = await _authService.getUserFromToken(token);
 
       if (user == null) {
-        return Response(401, body: jsonEncode({'error': 'Ugyldig token'}));
+        return resp.unauthorized('Ugyldig token');
       }
 
       await _authService.deleteAccount(user.id);
 
-      return Response.ok(jsonEncode({'message': 'Konto slettet'}));
+      return resp.ok({'message': 'Konto slettet'});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod'}));
+      return resp.serverError();
     }
   }
+
 }

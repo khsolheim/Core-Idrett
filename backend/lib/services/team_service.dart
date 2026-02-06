@@ -355,23 +355,6 @@ class TeamService {
     return inviteCode;
   }
 
-  /// @deprecated Use updateMemberPermissions instead
-  Future<void> updateMemberRole(String memberId, String role) async {
-    // Update legacy role field and corresponding flags
-    final isAdmin = role == 'admin';
-    final isFineBoss = role == 'fine_boss' || role == 'admin';
-
-    await _db.client.update(
-      'team_members',
-      {
-        'role': role,
-        'is_admin': isAdmin,
-        'is_fine_boss': isFineBoss,
-      },
-      filters: {'id': 'eq.$memberId'},
-    );
-  }
-
   /// Update member permissions with the new flag-based system
   Future<void> updateMemberPermissions({
     required String memberId,

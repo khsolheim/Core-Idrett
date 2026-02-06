@@ -1,45 +1,3 @@
-/// @deprecated Use isAdmin and isFineBoss flags on TeamMember instead
-/// Kept for backwards compatibility
-enum TeamRole {
-  admin,
-  fineBoss,
-  player;
-
-  String get displayName {
-    switch (this) {
-      case TeamRole.admin:
-        return 'Administrator';
-      case TeamRole.fineBoss:
-        return 'Botesjef';
-      case TeamRole.player:
-        return 'Spiller';
-    }
-  }
-
-  static TeamRole fromString(String role) {
-    switch (role) {
-      case 'admin':
-        return TeamRole.admin;
-      case 'fine_boss':
-        return TeamRole.fineBoss;
-      case 'player':
-      default:
-        return TeamRole.player;
-    }
-  }
-
-  String toApiString() {
-    switch (this) {
-      case TeamRole.admin:
-        return 'admin';
-      case TeamRole.fineBoss:
-        return 'fine_boss';
-      case TeamRole.player:
-        return 'player';
-    }
-  }
-}
-
 /// Custom trainer type defined by each team
 class TrainerType {
   final String id;
@@ -84,9 +42,6 @@ class Team {
   final String? inviteCode;
   final DateTime createdAt;
 
-  /// @deprecated Use userIsAdmin, userIsFineBoss instead
-  final TeamRole? userRole;
-
   /// Whether the current user is an admin of this team
   final bool userIsAdmin;
 
@@ -105,7 +60,6 @@ class Team {
     this.sport,
     this.inviteCode,
     required this.createdAt,
-    this.userRole,
     this.userIsAdmin = false,
     this.userIsFineBoss = false,
     this.userIsCoach = false,
@@ -125,10 +79,6 @@ class Team {
       sport: json['sport'] as String?,
       inviteCode: json['invite_code'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
-      // Support both old and new API format
-      userRole: json['user_role'] != null
-          ? TeamRole.fromString(json['user_role'] as String)
-          : null,
       userIsAdmin: json['user_is_admin'] as bool? ??
           (json['user_role'] == 'admin'),
       userIsFineBoss: json['user_is_fine_boss'] as bool? ??
@@ -159,6 +109,26 @@ class Team {
 
   /// Check if current user is a trainer
   bool get isTrainer => userTrainerType != null;
+
+  /// Get display string for the current user's role in this team
+  String get userRoleDisplayName {
+    final roles = <String>[];
+    if (userIsAdmin) roles.add('Administrator');
+    if (userIsCoach && !userIsAdmin) roles.add('Trener');
+    if (userIsFineBoss && !userIsAdmin) roles.add('Botesjef');
+    if (userTrainerType != null) roles.add(userTrainerType!.name);
+    if (roles.isEmpty) roles.add('Medlem');
+    return roles.join(', ');
+  }
+
+  /// Get a color hint for the user's primary role (for UI badges)
+  /// Returns 'admin', 'coach', 'fineBoss', or 'member'
+  String get userRoleColorKey {
+    if (userIsAdmin) return 'admin';
+    if (userIsCoach) return 'coach';
+    if (userIsFineBoss) return 'fineBoss';
+    return 'member';
+  }
 }
 
 class TeamMember {
@@ -168,9 +138,6 @@ class TeamMember {
   final String userName;
   final String? userAvatarUrl;
   final DateTime? userBirthDate;
-
-  /// @deprecated Use isAdmin, isFineBoss flags instead
-  final TeamRole role;
 
   /// Whether this member has admin privileges
   final bool isAdmin;
@@ -199,7 +166,6 @@ class TeamMember {
     required this.userName,
     this.userAvatarUrl,
     this.userBirthDate,
-    required this.role,
     this.isAdmin = false,
     this.isFineBoss = false,
     this.isCoach = false,
@@ -240,7 +206,6 @@ class TeamMember {
       userBirthDate: json['user_birth_date'] != null
           ? DateTime.parse(json['user_birth_date'] as String)
           : null,
-      role: TeamRole.fromString(legacyRole),
       isAdmin: isAdmin,
       isFineBoss: isFineBoss,
       isCoach: isCoach,
@@ -259,7 +224,6 @@ class TeamMember {
       'user_name': userName,
       'user_avatar_url': userAvatarUrl,
       'user_birth_date': userBirthDate?.toIso8601String(),
-      'role': role.toApiString(),
       'is_admin': isAdmin,
       'is_fine_boss': isFineBoss,
       'is_coach': isCoach,
@@ -310,7 +274,6 @@ class TeamMember {
       userName: userName,
       userAvatarUrl: userAvatarUrl,
       userBirthDate: userBirthDate,
-      role: role,
       isAdmin: isAdmin ?? this.isAdmin,
       isFineBoss: isFineBoss ?? this.isFineBoss,
       isCoach: isCoach ?? this.isCoach,

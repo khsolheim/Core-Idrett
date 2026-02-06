@@ -4,6 +4,7 @@ import '../db/database.dart';
 import '../services/auth_service.dart';
 import '../services/team_service.dart';
 import '../services/activity_service.dart';
+import '../services/activity_instance_service.dart';
 import '../services/mini_activity_service.dart';
 import '../services/statistics_service.dart';
 import '../services/fine_service.dart';
@@ -20,6 +21,7 @@ import '../services/mini_activity_statistics_service.dart';
 import '../services/points_config_service.dart';
 import '../services/absence_service.dart';
 import '../services/achievement_service.dart';
+import 'middleware/auth_middleware.dart';
 import 'auth_handler.dart';
 import 'teams_handler.dart';
 import 'activities_handler.dart';
@@ -45,7 +47,8 @@ Router createRouter(Database db) {
   final teamService = TeamService(db);
   final seasonService = SeasonService(db);
   final leaderboardService = LeaderboardService(db);
-  final activityService = ActivityService(db, leaderboardService, seasonService);
+  final activityService = ActivityService(db);
+  final activityInstanceService = ActivityInstanceService(db, leaderboardService, seasonService);
   final miniActivityService = MiniActivityService(db, leaderboardService, seasonService);
   final statisticsService = StatisticsService(db);
   final fineService = FineService(db);
@@ -61,94 +64,78 @@ Router createRouter(Database db) {
   final absenceService = AbsenceService(db);
   final achievementService = AchievementService(db);
 
+  // Auth middleware for protected routes
+  final auth = requireAuth(authService);
+
   final router = Router();
 
-  // Auth routes
+  // Auth routes (no middleware - handles its own auth)
   final authHandler = AuthHandler(authService);
   router.mount('/auth', authHandler.router.call);
 
-  // Team routes
-  final teamsHandler = TeamsHandler(teamService, authService);
-  router.mount('/teams', teamsHandler.router.call);
+  // Protected routes - wrapped with auth middleware
+  final teamsHandler = TeamsHandler(teamService);
+  router.mount('/teams', const Pipeline().addMiddleware(auth).addHandler(teamsHandler.router.call).call);
 
-  // Activity routes
-  final activitiesHandler = ActivitiesHandler(activityService, authService, teamService);
-  router.mount('/activities', activitiesHandler.router.call);
+  final activitiesHandler = ActivitiesHandler(activityService, activityInstanceService, teamService);
+  router.mount('/activities', const Pipeline().addMiddleware(auth).addHandler(activitiesHandler.router.call).call);
 
-  // Mini-activity routes
   final miniActivitiesHandler = MiniActivitiesHandler(
     miniActivityService,
-    authService,
     teamService,
     miniActivityStatisticsService,
   );
-  router.mount('/mini-activities', miniActivitiesHandler.router.call);
+  router.mount('/mini-activities', const Pipeline().addMiddleware(auth).addHandler(miniActivitiesHandler.router.call).call);
 
-  // Tournament routes
-  final tournamentsHandler = TournamentsHandler(tournamentService, authService, teamService);
-  router.mount('/tournaments', tournamentsHandler.router.call);
+  final tournamentsHandler = TournamentsHandler(tournamentService);
+  router.mount('/tournaments', const Pipeline().addMiddleware(auth).addHandler(tournamentsHandler.router.call).call);
 
-  // Stopwatch routes
-  final stopwatchHandler = StopwatchHandler(stopwatchService, authService, teamService);
-  router.mount('/stopwatch', stopwatchHandler.router.call);
+  final stopwatchHandler = StopwatchHandler(stopwatchService, teamService);
+  router.mount('/stopwatch', const Pipeline().addMiddleware(auth).addHandler(stopwatchHandler.router.call).call);
 
-  // Mini-activity statistics routes
   final miniActivityStatsHandler = MiniActivityStatisticsHandler(
     miniActivityStatisticsService,
-    authService,
     teamService,
   );
-  router.mount('/mini-activity-stats', miniActivityStatsHandler.router.call);
+  router.mount('/mini-activity-stats', const Pipeline().addMiddleware(auth).addHandler(miniActivityStatsHandler.router.call).call);
 
-  // Statistics routes
   final statisticsHandler = StatisticsHandler(statisticsService);
-  router.mount('/statistics', statisticsHandler.router.call);
+  router.mount('/statistics', const Pipeline().addMiddleware(auth).addHandler(statisticsHandler.router.call).call);
 
-  // Fines routes
-  final finesHandler = FinesHandler(fineService, authService);
-  router.mount('/fines', finesHandler.router.call);
+  final finesHandler = FinesHandler(fineService);
+  router.mount('/fines', const Pipeline().addMiddleware(auth).addHandler(finesHandler.router.call).call);
 
-  // Season routes
-  final seasonsHandler = SeasonsHandler(seasonService, authService, teamService);
-  router.mount('/seasons', seasonsHandler.router.call);
+  final seasonsHandler = SeasonsHandler(seasonService, teamService);
+  router.mount('/seasons', const Pipeline().addMiddleware(auth).addHandler(seasonsHandler.router.call).call);
 
-  // Leaderboard routes
-  final leaderboardsHandler = LeaderboardsHandler(leaderboardService, authService, teamService);
-  router.mount('/leaderboards', leaderboardsHandler.router.call);
+  final leaderboardsHandler = LeaderboardsHandler(leaderboardService, teamService);
+  router.mount('/leaderboards', const Pipeline().addMiddleware(auth).addHandler(leaderboardsHandler.router.call).call);
 
-  // Points config routes
-  final pointsConfigHandler = PointsConfigHandler(pointsConfigService, authService, teamService);
-  router.mount('/points', pointsConfigHandler.router.call);
+  final pointsConfigHandler = PointsConfigHandler(pointsConfigService, teamService);
+  router.mount('/points', const Pipeline().addMiddleware(auth).addHandler(pointsConfigHandler.router.call).call);
 
-  // Absence routes
-  final absenceHandler = AbsenceHandler(absenceService, authService, teamService);
-  router.mount('/absence', absenceHandler.router.call);
+  final absenceHandler = AbsenceHandler(absenceService, teamService);
+  router.mount('/absence', const Pipeline().addMiddleware(auth).addHandler(absenceHandler.router.call).call);
 
-  // Achievement routes
-  final achievementsHandler = AchievementsHandler(achievementService, authService, teamService);
-  router.mount('/achievements', achievementsHandler.router.call);
+  final achievementsHandler = AchievementsHandler(achievementService, teamService);
+  router.mount('/achievements', const Pipeline().addMiddleware(auth).addHandler(achievementsHandler.router.call).call);
 
-  // Test routes
-  final testsHandler = TestsHandler(testService, authService, teamService);
-  router.mount('/tests', testsHandler.router.call);
+  final testsHandler = TestsHandler(testService, teamService);
+  router.mount('/tests', const Pipeline().addMiddleware(auth).addHandler(testsHandler.router.call).call);
 
-  // Notification routes
-  final notificationsHandler = NotificationsHandler(notificationService, authService);
-  router.mount('/notifications', notificationsHandler.router.call);
+  final notificationsHandler = NotificationsHandler(notificationService);
+  router.mount('/notifications', const Pipeline().addMiddleware(auth).addHandler(notificationsHandler.router.call).call);
 
-  // Message routes
-  final messagesHandler = MessagesHandler(messageService, authService, teamService);
-  router.mount('/messages', messagesHandler.router.call);
+  final messagesHandler = MessagesHandler(messageService, teamService);
+  router.mount('/messages', const Pipeline().addMiddleware(auth).addHandler(messagesHandler.router.call).call);
 
-  // Document routes
   final documentsHandler = DocumentsHandler(documentService, teamService);
-  router.mount('/documents', documentsHandler.router.call);
+  router.mount('/documents', const Pipeline().addMiddleware(auth).addHandler(documentsHandler.router.call).call);
 
-  // Export routes
   final exportsHandler = ExportsHandler(exportService, teamService);
-  router.mount('/exports', exportsHandler.router.call);
+  router.mount('/exports', const Pipeline().addMiddleware(auth).addHandler(exportsHandler.router.call).call);
 
-  // Health check
+  // Health check (no auth)
   router.get('/health', (request) {
     return Response.ok('{"status": "ok"}');
   });

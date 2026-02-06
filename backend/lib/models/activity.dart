@@ -27,7 +27,7 @@ class Activity {
     required this.createdAt,
   });
 
-  factory Activity.fromRow(Map<String, dynamic> row) {
+  factory Activity.fromJson(Map<String, dynamic> row) {
     return Activity(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -81,7 +81,7 @@ class ActivityInstance {
     this.cancelledReason,
   });
 
-  factory ActivityInstance.fromRow(Map<String, dynamic> row) {
+  factory ActivityInstance.fromJson(Map<String, dynamic> row) {
     return ActivityInstance(
       id: row['id'] as String,
       activityId: row['activity_id'] as String,
@@ -123,7 +123,7 @@ class ActivityResponse {
     required this.respondedAt,
   });
 
-  factory ActivityResponse.fromRow(Map<String, dynamic> row) {
+  factory ActivityResponse.fromJson(Map<String, dynamic> row) {
     return ActivityResponse(
       id: row['id'] as String,
       instanceId: row['instance_id'] as String,

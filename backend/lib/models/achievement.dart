@@ -240,7 +240,7 @@ class AchievementDefinition {
     required this.updatedAt,
   });
 
-  factory AchievementDefinition.fromRow(Map<String, dynamic> row) {
+  factory AchievementDefinition.fromJson(Map<String, dynamic> row) {
     final criteriaJson = row['criteria'];
     Map<String, dynamic> criteriaMap;
     if (criteriaJson is String) {
@@ -342,7 +342,7 @@ class UserAchievement {
     this.teamName,
   });
 
-  factory UserAchievement.fromRow(Map<String, dynamic> row) {
+  factory UserAchievement.fromJson(Map<String, dynamic> row) {
     return UserAchievement(
       id: row['id'] as String,
       userId: row['user_id'] as String,
@@ -431,7 +431,7 @@ class AchievementProgress {
     this.achievementTier,
   });
 
-  factory AchievementProgress.fromRow(Map<String, dynamic> row) {
+  factory AchievementProgress.fromJson(Map<String, dynamic> row) {
     return AchievementProgress(
       id: row['id'] as String,
       userId: row['user_id'] as String,

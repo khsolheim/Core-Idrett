@@ -1,3 +1,4 @@
+import '../../../core/utils/api_response_parser.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/models/points_config.dart';
 
@@ -39,29 +40,23 @@ class PointsRepository {
     final response = await _client.post(
       '/points/teams/$teamId/config',
       data: {
-        if (seasonId != null) 'season_id': seasonId,
-        if (trainingPoints != null) 'training_points': trainingPoints,
-        if (matchPoints != null) 'match_points': matchPoints,
-        if (socialPoints != null) 'social_points': socialPoints,
-        if (trainingWeight != null) 'training_weight': trainingWeight,
-        if (matchWeight != null) 'match_weight': matchWeight,
-        if (socialWeight != null) 'social_weight': socialWeight,
-        if (competitionWeight != null) 'competition_weight': competitionWeight,
-        if (miniActivityDistribution != null)
-          'mini_activity_distribution': miniActivityDistribution,
-        if (autoAwardAttendance != null)
-          'auto_award_attendance': autoAwardAttendance,
-        if (visibility != null) 'visibility': visibility,
-        if (allowOptOut != null) 'allow_opt_out': allowOptOut,
-        if (requireAbsenceReason != null)
-          'require_absence_reason': requireAbsenceReason,
-        if (requireAbsenceApproval != null)
-          'require_absence_approval': requireAbsenceApproval,
-        if (excludeValidAbsenceFromPercentage != null)
-          'exclude_valid_absence_from_percentage':
-              excludeValidAbsenceFromPercentage,
-        if (newPlayerStartMode != null)
-          'new_player_start_mode': newPlayerStartMode,
+        'season_id': ?seasonId,
+        'training_points': ?trainingPoints,
+        'match_points': ?matchPoints,
+        'social_points': ?socialPoints,
+        'training_weight': ?trainingWeight,
+        'match_weight': ?matchWeight,
+        'social_weight': ?socialWeight,
+        'competition_weight': ?competitionWeight,
+        'mini_activity_distribution': ?miniActivityDistribution,
+        'auto_award_attendance': ?autoAwardAttendance,
+        'visibility': ?visibility,
+        'allow_opt_out': ?allowOptOut,
+        'require_absence_reason': ?requireAbsenceReason,
+        'require_absence_approval': ?requireAbsenceApproval,
+        'exclude_valid_absence_from_percentage':
+              ?excludeValidAbsenceFromPercentage,
+        'new_player_start_mode': ?newPlayerStartMode,
       },
     );
     return TeamPointsConfig.fromJson(response.data as Map<String, dynamic>);
@@ -88,28 +83,22 @@ class PointsRepository {
     final response = await _client.patch(
       '/points/config/$configId',
       data: {
-        if (trainingPoints != null) 'training_points': trainingPoints,
-        if (matchPoints != null) 'match_points': matchPoints,
-        if (socialPoints != null) 'social_points': socialPoints,
-        if (trainingWeight != null) 'training_weight': trainingWeight,
-        if (matchWeight != null) 'match_weight': matchWeight,
-        if (socialWeight != null) 'social_weight': socialWeight,
-        if (competitionWeight != null) 'competition_weight': competitionWeight,
-        if (miniActivityDistribution != null)
-          'mini_activity_distribution': miniActivityDistribution,
-        if (autoAwardAttendance != null)
-          'auto_award_attendance': autoAwardAttendance,
-        if (visibility != null) 'visibility': visibility,
-        if (allowOptOut != null) 'allow_opt_out': allowOptOut,
-        if (requireAbsenceReason != null)
-          'require_absence_reason': requireAbsenceReason,
-        if (requireAbsenceApproval != null)
-          'require_absence_approval': requireAbsenceApproval,
-        if (excludeValidAbsenceFromPercentage != null)
-          'exclude_valid_absence_from_percentage':
-              excludeValidAbsenceFromPercentage,
-        if (newPlayerStartMode != null)
-          'new_player_start_mode': newPlayerStartMode,
+        'training_points': ?trainingPoints,
+        'match_points': ?matchPoints,
+        'social_points': ?socialPoints,
+        'training_weight': ?trainingWeight,
+        'match_weight': ?matchWeight,
+        'social_weight': ?socialWeight,
+        'competition_weight': ?competitionWeight,
+        'mini_activity_distribution': ?miniActivityDistribution,
+        'auto_award_attendance': ?autoAwardAttendance,
+        'visibility': ?visibility,
+        'allow_opt_out': ?allowOptOut,
+        'require_absence_reason': ?requireAbsenceReason,
+        'require_absence_approval': ?requireAbsenceApproval,
+        'exclude_valid_absence_from_percentage':
+              ?excludeValidAbsenceFromPercentage,
+        'new_player_start_mode': ?newPlayerStartMode,
       },
     );
     return TeamPointsConfig.fromJson(response.data as Map<String, dynamic>);
@@ -150,10 +139,7 @@ class PointsRepository {
       '/points/users/$userId/attendance',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['points'] as List;
-    return data
-        .map((e) => AttendancePoints.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'points', AttendancePoints.fromJson);
   }
 
   Future<AttendancePoints> awardAttendancePoints({
@@ -220,10 +206,7 @@ class PointsRepository {
       '/leaderboards/teams/$teamId/ranked',
       queryParameters: params,
     );
-    final data = response.data['entries'] as List;
-    return data
-        .map((e) => RankedLeaderboardEntry.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'entries', RankedLeaderboardEntry.fromJson);
   }
 
   Future<RankedLeaderboardEntry?> getUserRankedPosition(
@@ -261,10 +244,7 @@ class PointsRepository {
       '/leaderboards/teams/$teamId/trends',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['entries'] as List;
-    return data
-        .map((e) => RankedLeaderboardEntry.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'entries', RankedLeaderboardEntry.fromJson);
   }
 
   // ============ MONTHLY STATS ============
@@ -283,10 +263,7 @@ class PointsRepository {
       '/leaderboards/teams/$teamId/users/$userId/monthly',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['monthly_stats'] as List;
-    return data
-        .map((e) => MonthlyUserStats.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'monthly_stats', MonthlyUserStats.fromJson);
   }
 
   // ============ MANUAL ADJUSTMENTS ============
@@ -306,7 +283,7 @@ class PointsRepository {
         'points': points,
         'adjustment_type': adjustmentType.toJsonString(),
         'reason': reason,
-        if (seasonId != null) 'season_id': seasonId,
+        'season_id': ?seasonId,
       },
     );
     return ManualPointAdjustment.fromJson(response.data as Map<String, dynamic>);
@@ -325,10 +302,7 @@ class PointsRepository {
       '/points/teams/$teamId/adjustments',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['adjustments'] as List;
-    return data
-        .map((e) => ManualPointAdjustment.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'adjustments', ManualPointAdjustment.fromJson);
   }
 
   Future<List<ManualPointAdjustment>> getUserAdjustments(
@@ -344,9 +318,6 @@ class PointsRepository {
       '/points/users/$userId/adjustments',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['adjustments'] as List;
-    return data
-        .map((e) => ManualPointAdjustment.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'adjustments', ManualPointAdjustment.fromJson);
   }
 }

@@ -39,7 +39,7 @@ class MiniActivityPlayerStats {
     required this.updatedAt,
   });
 
-  factory MiniActivityPlayerStats.fromRow(Map<String, dynamic> row) {
+  factory MiniActivityPlayerStats.fromJson(Map<String, dynamic> row) {
     return MiniActivityPlayerStats(
       id: row['id'] as String,
       userId: row['user_id'] as String,
@@ -126,7 +126,7 @@ class HeadToHeadStats {
     required this.updatedAt,
   });
 
-  factory HeadToHeadStats.fromRow(Map<String, dynamic> row) {
+  factory HeadToHeadStats.fromJson(Map<String, dynamic> row) {
     return HeadToHeadStats(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -201,7 +201,7 @@ class MiniActivityTeamHistory {
     required this.recordedAt,
   });
 
-  factory MiniActivityTeamHistory.fromRow(Map<String, dynamic> row) {
+  factory MiniActivityTeamHistory.fromJson(Map<String, dynamic> row) {
     return MiniActivityTeamHistory(
       id: row['id'] as String,
       userId: row['user_id'] as String,
@@ -325,7 +325,7 @@ class LeaderboardPointSource {
     required this.recordedAt,
   });
 
-  factory LeaderboardPointSource.fromRow(Map<String, dynamic> row) {
+  factory LeaderboardPointSource.fromJson(Map<String, dynamic> row) {
     return LeaderboardPointSource(
       id: row['id'] as String,
       leaderboardEntryId: row['leaderboard_entry_id'] as String,

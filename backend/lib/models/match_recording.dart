@@ -136,7 +136,7 @@ class MatchPeriod {
     required this.createdAt,
   });
 
-  factory MatchPeriod.fromRow(Map<String, dynamic> row) {
+  factory MatchPeriod.fromJson(Map<String, dynamic> row) {
     return MatchPeriod(
       id: row['id'] as String,
       tournamentMatchId: row['tournament_match_id'] as String?,
@@ -200,7 +200,7 @@ class MatchEvent {
     required this.createdAt,
   });
 
-  factory MatchEvent.fromRow(Map<String, dynamic> row) {
+  factory MatchEvent.fromJson(Map<String, dynamic> row) {
     return MatchEvent(
       id: row['id'] as String,
       matchPeriodId: row['match_period_id'] as String,

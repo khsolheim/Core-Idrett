@@ -79,26 +79,6 @@ class TeamNotifier extends Notifier<AsyncValue<Team?>> {
     }
   }
 
-  /// @deprecated Use updateMemberPermissions instead
-  Future<bool> updateMemberRole({
-    required String teamId,
-    required String memberId,
-    required TeamRole role,
-  }) async {
-    try {
-      await _repo.updateMemberRole(
-        teamId: teamId,
-        memberId: memberId,
-        role: role,
-      );
-      ref.invalidate(teamMembersProvider(teamId));
-      ref.invalidate(teamMembersWithInactiveProvider(teamId));
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   /// Update member permissions with the new flag-based system
   Future<bool> updateMemberPermissions({
     required String teamId,

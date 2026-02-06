@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/api_response_parser.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/models/document.dart';
 
@@ -30,8 +31,7 @@ class DocumentRepository {
       '/documents/teams/$teamId',
       queryParameters: queryParams,
     );
-    final data = response.data['documents'] as List;
-    return data.map((d) => TeamDocument.fromJson(d as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'documents', TeamDocument.fromJson);
   }
 
   /// Get a single document
@@ -43,8 +43,7 @@ class DocumentRepository {
   /// Get document categories for a team
   Future<List<DocumentCategoryCount>> getCategories(String teamId) async {
     final response = await _client.get('/documents/teams/$teamId/categories');
-    final data = response.data['categories'] as List;
-    return data.map((c) => DocumentCategoryCount.fromJson(c as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'categories', DocumentCategoryCount.fromJson);
   }
 
   /// Create a document record (after uploading to storage)
@@ -62,8 +61,8 @@ class DocumentRepository {
       'file_path': filePath,
       'file_size': fileSize,
       'mime_type': mimeType,
-      if (description != null) 'description': description,
-      if (category != null) 'category': category,
+      'description': ?description,
+      'category': ?category,
     });
     return TeamDocument.fromJson(response.data as Map<String, dynamic>);
   }
@@ -76,9 +75,9 @@ class DocumentRepository {
     String? category,
   }) async {
     final response = await _client.patch('/documents/$documentId', data: {
-      if (name != null) 'name': name,
-      if (description != null) 'description': description,
-      if (category != null) 'category': category,
+      'name': ?name,
+      'description': ?description,
+      'category': ?category,
     });
     return TeamDocument.fromJson(response.data as Map<String, dynamic>);
   }
@@ -110,8 +109,8 @@ class DocumentRepository {
       'file_name': fileName,
       'file_content': base64Content,
       'mime_type': mimeType,
-      if (description != null) 'description': description,
-      if (category != null) 'category': category,
+      'description': ?description,
+      'category': ?category,
     });
 
     return TeamDocument.fromJson(response.data as Map<String, dynamic>);

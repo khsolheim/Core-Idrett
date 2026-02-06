@@ -49,7 +49,7 @@ class TournamentService {
       filters: {'id': 'eq.$tournamentId'},
     );
     if (result.isEmpty) return null;
-    return Tournament.fromRow(result.first);
+    return Tournament.fromJson(result.first);
   }
 
   Future<Tournament?> getTournamentForMiniActivity(String miniActivityId) async {
@@ -58,7 +58,7 @@ class TournamentService {
       filters: {'mini_activity_id': 'eq.$miniActivityId'},
     );
     if (result.isEmpty) return null;
-    return Tournament.fromRow(result.first);
+    return Tournament.fromJson(result.first);
   }
 
   Future<void> updateTournamentStatus(String tournamentId, TournamentStatus status) async {
@@ -96,7 +96,7 @@ class TournamentService {
       'tournaments',
       filters: {'id': 'eq.$tournamentId'},
     );
-    return Tournament.fromRow(result.first);
+    return Tournament.fromJson(result.first);
   }
 
   Future<void> deleteTournament(String tournamentId) async {
@@ -144,7 +144,7 @@ class TournamentService {
       filters: {'tournament_id': 'eq.$tournamentId'},
       order: 'round_number.asc',
     );
-    return result.map((row) => TournamentRound.fromRow(row)).toList();
+    return result.map((row) => TournamentRound.fromJson(row)).toList();
   }
 
   Future<void> updateRoundStatus(String roundId, MatchStatus status) async {
@@ -178,7 +178,7 @@ class TournamentService {
       'tournament_rounds',
       filters: {'id': 'eq.$roundId'},
     );
-    return TournamentRound.fromRow(result.first);
+    return TournamentRound.fromJson(result.first);
   }
 
   // ============ MATCHES ============
@@ -208,7 +208,7 @@ class TournamentService {
       'tournament_matches',
       filters: {'id': 'eq.$matchId'},
     );
-    return TournamentMatch.fromRow(result.first);
+    return TournamentMatch.fromJson(result.first);
   }
 
   Future<TournamentMatch> startMatch(String matchId) async {
@@ -221,7 +221,7 @@ class TournamentService {
       'tournament_matches',
       filters: {'id': 'eq.$matchId'},
     );
-    return TournamentMatch.fromRow(result.first);
+    return TournamentMatch.fromJson(result.first);
   }
 
   Future<TournamentMatch> completeMatch(String matchId, String winnerId) async {
@@ -246,7 +246,7 @@ class TournamentService {
       'tournament_matches',
       filters: {'id': 'eq.$matchId'},
     );
-    return TournamentMatch.fromRow(result.first);
+    return TournamentMatch.fromJson(result.first);
   }
 
   Future<TournamentMatch> declareWalkover({
@@ -264,7 +264,7 @@ class TournamentService {
       'tournament_matches',
       filters: {'id': 'eq.$matchId'},
     );
-    return TournamentMatch.fromRow(result.first);
+    return TournamentMatch.fromJson(result.first);
   }
 
   Future<TournamentMatch> createMatch({
@@ -315,7 +315,7 @@ class TournamentService {
       filters: {'round_id': 'eq.$roundId'},
       order: 'match_order.asc',
     );
-    return result.map((row) => TournamentMatch.fromRow(row)).toList();
+    return result.map((row) => TournamentMatch.fromJson(row)).toList();
   }
 
   Future<List<TournamentMatch>> getMatchesForTournament(String tournamentId, {String? roundId}) async {
@@ -328,7 +328,7 @@ class TournamentService {
       filters: filters,
       order: 'match_order.asc',
     );
-    return result.map((row) => TournamentMatch.fromRow(row)).toList();
+    return result.map((row) => TournamentMatch.fromJson(row)).toList();
   }
 
   Future<TournamentMatch?> getMatchById(String matchId) async {
@@ -337,7 +337,7 @@ class TournamentService {
       filters: {'id': 'eq.$matchId'},
     );
     if (result.isEmpty) return null;
-    return TournamentMatch.fromRow(result.first);
+    return TournamentMatch.fromJson(result.first);
   }
 
   Future<void> recordMatchResult({
@@ -443,7 +443,7 @@ class TournamentService {
       filters: {'match_id': 'eq.$matchId'},
       order: 'game_number.asc',
     );
-    return result.map((row) => MatchGame.fromRow(row)).toList();
+    return result.map((row) => MatchGame.fromJson(row)).toList();
   }
 
   Future<void> recordGameResult({
@@ -519,7 +519,7 @@ class TournamentService {
       'match_games',
       filters: {'id': 'eq.$gameId'},
     );
-    return MatchGame.fromRow(result.first);
+    return MatchGame.fromJson(result.first);
   }
 
   // ============ GROUPS ============
@@ -555,7 +555,7 @@ class TournamentService {
       filters: {'tournament_id': 'eq.$tournamentId'},
       order: 'sort_order.asc',
     );
-    return result.map((row) => TournamentGroup.fromRow(row)).toList();
+    return result.map((row) => TournamentGroup.fromJson(row)).toList();
   }
 
   Future<TournamentGroup> updateGroup({
@@ -581,7 +581,7 @@ class TournamentService {
       'tournament_groups',
       filters: {'id': 'eq.$groupId'},
     );
-    return TournamentGroup.fromRow(result.first);
+    return TournamentGroup.fromJson(result.first);
   }
 
   Future<void> deleteGroup(String groupId) async {
@@ -626,7 +626,7 @@ class TournamentService {
       filters: {'group_id': 'eq.$groupId'},
       order: 'points.desc,goals_for.desc',
     );
-    return result.map((row) => GroupStanding.fromRow(row)).toList();
+    return result.map((row) => GroupStanding.fromJson(row)).toList();
   }
 
   Future<void> updateGroupStanding({
@@ -708,7 +708,7 @@ class TournamentService {
       filters: {'group_id': 'eq.$groupId'},
       order: 'match_order.asc',
     );
-    return result.map((row) => GroupMatch.fromRow(row)).toList();
+    return result.map((row) => GroupMatch.fromJson(row)).toList();
   }
 
   Future<GroupMatch> updateGroupMatch({
@@ -736,7 +736,7 @@ class TournamentService {
       'group_matches',
       filters: {'id': 'eq.$matchId'},
     );
-    return GroupMatch.fromRow(result.first);
+    return GroupMatch.fromJson(result.first);
   }
 
   Future<GroupMatch> completeGroupMatch({
@@ -755,7 +755,7 @@ class TournamentService {
       'group_matches',
       filters: {'id': 'eq.$matchId'},
     );
-    return GroupMatch.fromRow(result.first);
+    return GroupMatch.fromJson(result.first);
   }
 
   Future<void> recordGroupMatchResult({
@@ -862,7 +862,7 @@ class TournamentService {
       'qualification_rounds',
       filters: {'tournament_id': 'eq.$tournamentId'},
     );
-    return result.map((row) => QualificationRound.fromRow(row)).toList();
+    return result.map((row) => QualificationRound.fromJson(row)).toList();
   }
 
   Future<QualificationRound> createQualificationRound({
@@ -919,7 +919,7 @@ class TournamentService {
       filters: {'qualification_round_id': 'eq.$qualificationRoundId'},
       order: 'result_value.desc',
     );
-    return result.map((row) => QualificationResult.fromRow(row)).toList();
+    return result.map((row) => QualificationResult.fromJson(row)).toList();
   }
 
   Future<List<QualificationResult>> finalizeQualification(String qualificationRoundId) async {
@@ -964,7 +964,7 @@ class TournamentService {
       },
       order: 'rank.asc',
     );
-    return advancedResults.map((row) => QualificationResult.fromRow(row)).toList();
+    return advancedResults.map((row) => QualificationResult.fromJson(row)).toList();
   }
 
   // ============ BRACKET GENERATION ============

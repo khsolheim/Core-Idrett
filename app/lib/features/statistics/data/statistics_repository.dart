@@ -1,3 +1,4 @@
+import '../../../core/utils/api_response_parser.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/models/statistics.dart';
 
@@ -12,8 +13,7 @@ class StatisticsRepository {
       '/statistics/teams/$teamId/leaderboard',
       queryParameters: queryParams,
     );
-    final data = response.data['leaderboard'] as List;
-    return data.map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'leaderboard', LeaderboardEntry.fromJson);
   }
 
   Future<List<AttendanceRecord>> getTeamAttendance(
@@ -29,8 +29,7 @@ class StatisticsRepository {
       '/statistics/teams/$teamId/attendance',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['attendance'] as List;
-    return data.map((e) => AttendanceRecord.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'attendance', AttendanceRecord.fromJson);
   }
 
   Future<PlayerStatistics> getPlayerStatistics(String teamId, String userId) async {
@@ -40,8 +39,7 @@ class StatisticsRepository {
 
   Future<List<MatchStats>> getMatchStats(String instanceId) async {
     final response = await _client.get('/statistics/instances/$instanceId/match-stats');
-    final data = response.data['match_stats'] as List;
-    return data.map((e) => MatchStats.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'match_stats', MatchStats.fromJson);
   }
 
   Future<MatchStats> recordMatchStats({
@@ -71,8 +69,7 @@ class StatisticsRepository {
 
   Future<List<Season>> getSeasons(String teamId) async {
     final response = await _client.get('/seasons/teams/$teamId');
-    final data = response.data['seasons'] as List;
-    return data.map((e) => Season.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'seasons', Season.fromJson);
   }
 
   Future<Season?> getActiveSeason(String teamId) async {
@@ -132,8 +129,7 @@ class StatisticsRepository {
       '/leaderboards/teams/$teamId',
       queryParameters: params,
     );
-    final data = response.data['leaderboards'] as List;
-    return data.map((e) => Leaderboard.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'leaderboards', Leaderboard.fromJson);
   }
 
   Future<Leaderboard?> getMainLeaderboard(String teamId) async {
@@ -158,8 +154,7 @@ class StatisticsRepository {
       '/leaderboards/$leaderboardId/entries',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['entries'] as List;
-    return data.map((e) => NewLeaderboardEntry.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'entries', NewLeaderboardEntry.fromJson);
   }
 
   Future<Leaderboard> createLeaderboard({
@@ -183,84 +178,5 @@ class StatisticsRepository {
 
   Future<void> deleteLeaderboard(String leaderboardId) async {
     await _client.delete('/leaderboards/$leaderboardId');
-  }
-
-  // ============ TEST TEMPLATES ============
-
-  Future<List<TestTemplate>> getTestTemplates(String teamId) async {
-    final response = await _client.get('/tests/templates/teams/$teamId');
-    final data = response.data['templates'] as List;
-    return data.map((e) => TestTemplate.fromJson(e as Map<String, dynamic>)).toList();
-  }
-
-  Future<TestTemplate> createTestTemplate({
-    required String teamId,
-    required String name,
-    String? description,
-    required String unit,
-    bool higherIsBetter = false,
-  }) async {
-    final response = await _client.post(
-      '/tests/templates/teams/$teamId',
-      data: {
-        'name': name,
-        'description': description,
-        'unit': unit,
-        'higher_is_better': higherIsBetter,
-      },
-    );
-    return TestTemplate.fromJson(response.data as Map<String, dynamic>);
-  }
-
-  Future<void> deleteTestTemplate(String templateId) async {
-    await _client.delete('/tests/templates/$templateId');
-  }
-
-  Future<List<TestResult>> getTestResults(
-    String templateId, {
-    String? userId,
-    int? limit,
-  }) async {
-    final params = <String, String>{};
-    if (userId != null) params['user_id'] = userId;
-    if (limit != null) params['limit'] = limit.toString();
-
-    final response = await _client.get(
-      '/tests/templates/$templateId/results',
-      queryParameters: params.isNotEmpty ? params : null,
-    );
-    final data = response.data['results'] as List;
-    return data.map((e) => TestResult.fromJson(e as Map<String, dynamic>)).toList();
-  }
-
-  Future<List<Map<String, dynamic>>> getTestRanking(
-    String templateId, {
-    int? limit,
-  }) async {
-    final params = limit != null ? {'limit': limit.toString()} : null;
-    final response = await _client.get(
-      '/tests/templates/$templateId/ranking',
-      queryParameters: params,
-    );
-    return (response.data['ranking'] as List).cast<Map<String, dynamic>>();
-  }
-
-  Future<TestResult> recordTestResult({
-    required String templateId,
-    required String userId,
-    String? instanceId,
-    required double value,
-    String? notes,
-  }) async {
-    final response = await _client.post(
-      '/tests/templates/$templateId/results',
-      data: {
-        'user_id': userId,
-        'instance_id': instanceId,
-        'value': value,
-        'notes': notes,
-      },
-    );
-    return TestResult.fromJson(response.data as Map<String, dynamic>);
   }
 }

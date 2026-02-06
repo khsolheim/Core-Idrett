@@ -26,7 +26,7 @@ class TournamentRepository {
       'best_of': bestOf,
       'bronze_final': bronzeFinal,
       'seeding_method': seedingMethod.toJson(),
-      if (maxParticipants != null) 'max_participants': maxParticipants,
+      'max_participants': ?maxParticipants,
     });
     return Tournament.fromJson(response.data as Map<String, dynamic>);
   }
@@ -54,10 +54,10 @@ class TournamentRepository {
     final response = await _apiClient.patch('/tournaments/$tournamentId', data: {
       if (tournamentType != null) 'tournament_type': tournamentType.toJson(),
       if (status != null) 'status': status.toJson(),
-      if (bestOf != null) 'best_of': bestOf,
-      if (bronzeFinal != null) 'bronze_final': bronzeFinal,
+      'best_of': ?bestOf,
+      'bronze_final': ?bronzeFinal,
       if (seedingMethod != null) 'seeding_method': seedingMethod.toJson(),
-      if (maxParticipants != null) 'max_participants': maxParticipants,
+      'max_participants': ?maxParticipants,
     });
     return Tournament.fromJson(response.data as Map<String, dynamic>);
   }
@@ -75,7 +75,7 @@ class TournamentRepository {
   }) async {
     final response = await _apiClient.post('/tournaments/$tournamentId/generate-bracket', data: {
       'participant_ids': participantIds,
-      if (seeds != null) 'seeds': seeds,
+      'seeds': ?seeds,
     });
     final data = response.data as List;
     return data.map((json) => TournamentMatch.fromJson(json as Map<String, dynamic>)).toList();
@@ -112,7 +112,7 @@ class TournamentRepository {
     DateTime? scheduledTime,
   }) async {
     final response = await _apiClient.patch('/tournaments/rounds/$roundId', data: {
-      if (roundName != null) 'round_name': roundName,
+      'round_name': ?roundName,
       if (status != null) 'status': status.toJson(),
       if (scheduledTime != null) 'scheduled_time': scheduledTime.toIso8601String(),
     });
@@ -146,8 +146,8 @@ class TournamentRepository {
     DateTime? scheduledTime,
   }) async {
     final response = await _apiClient.patch('/tournaments/matches/$matchId', data: {
-      if (teamAScore != null) 'team_a_score': teamAScore,
-      if (teamBScore != null) 'team_b_score': teamBScore,
+      'team_a_score': ?teamAScore,
+      'team_b_score': ?teamBScore,
       if (status != null) 'status': status.toJson(),
       if (scheduledTime != null) 'scheduled_time': scheduledTime.toIso8601String(),
     });
@@ -176,7 +176,7 @@ class TournamentRepository {
   }) async {
     final response = await _apiClient.post('/tournaments/matches/$matchId/walkover', data: {
       'winner_id': winnerId,
-      if (reason != null) 'reason': reason,
+      'reason': ?reason,
     });
     return TournamentMatch.fromJson(response.data as Map<String, dynamic>);
   }
@@ -200,7 +200,7 @@ class TournamentRepository {
       'game_number': gameNumber,
       'team_a_score': teamAScore,
       'team_b_score': teamBScore,
-      if (winnerId != null) 'winner_id': winnerId,
+      'winner_id': ?winnerId,
     });
     return MatchGame.fromJson(response.data as Map<String, dynamic>);
   }
@@ -213,9 +213,9 @@ class TournamentRepository {
     MatchStatus? status,
   }) async {
     final response = await _apiClient.patch('/tournaments/games/$gameId', data: {
-      if (teamAScore != null) 'team_a_score': teamAScore,
-      if (teamBScore != null) 'team_b_score': teamBScore,
-      if (winnerId != null) 'winner_id': winnerId,
+      'team_a_score': ?teamAScore,
+      'team_b_score': ?teamBScore,
+      'winner_id': ?winnerId,
       if (status != null) 'status': status.toJson(),
     });
     return MatchGame.fromJson(response.data as Map<String, dynamic>);
@@ -250,9 +250,9 @@ class TournamentRepository {
     int? sortOrder,
   }) async {
     final response = await _apiClient.patch('/tournaments/groups/$groupId', data: {
-      if (name != null) 'name': name,
-      if (advanceCount != null) 'advance_count': advanceCount,
-      if (sortOrder != null) 'sort_order': sortOrder,
+      'name': ?name,
+      'advance_count': ?advanceCount,
+      'sort_order': ?sortOrder,
     });
     return TournamentGroup.fromJson(response.data as Map<String, dynamic>);
   }
@@ -302,8 +302,8 @@ class TournamentRepository {
     DateTime? scheduledTime,
   }) async {
     final response = await _apiClient.patch('/tournaments/group-matches/$matchId', data: {
-      if (teamAScore != null) 'team_a_score': teamAScore,
-      if (teamBScore != null) 'team_b_score': teamBScore,
+      'team_a_score': ?teamAScore,
+      'team_b_score': ?teamBScore,
       if (status != null) 'status': status.toJson(),
       if (scheduledTime != null) 'scheduled_time': scheduledTime.toIso8601String(),
     });

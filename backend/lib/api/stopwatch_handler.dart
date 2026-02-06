@@ -1,17 +1,17 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import '../services/auth_service.dart';
 import '../services/stopwatch_service.dart';
 import '../services/team_service.dart';
 import '../models/stopwatch.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class StopwatchHandler {
   final StopwatchService _stopwatchService;
-  final AuthService _authService;
   final TeamService _teamService;
 
-  StopwatchHandler(this._stopwatchService, this._authService, this._teamService);
+  StopwatchHandler(this._stopwatchService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -51,28 +51,13 @@ class StopwatchHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
-  Future<bool> _isTeamMember(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    return team != null;
-  }
-
   // ============ SESSION CRUD ============
 
   Future<Response> _createSession(Request request) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -80,7 +65,7 @@ class StopwatchHandler {
 
       final sessionTypeStr = data['session_type'] as String?;
       if (sessionTypeStr == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (session_type)'}));
+        return resp.badRequest('Mangler påkrevd felt (session_type)');
       }
 
       final session = await _stopwatchService.createSession(
@@ -92,59 +77,59 @@ class StopwatchHandler {
         createdBy: userId,
       );
 
-      return Response.ok(jsonEncode(session.toJson()));
+      return resp.ok(session.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getSession(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final session = await _stopwatchService.getSessionById(sessionId);
       if (session == null) {
-        return Response(404, body: jsonEncode({'error': 'Økt ikke funnet'}));
+        return resp.notFound('Økt ikke funnet');
       }
 
-      return Response.ok(jsonEncode(session.toJson()));
+      return resp.ok(session.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getSessionWithTimes(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final sessionWithTimes = await _stopwatchService.getSessionWithTimes(sessionId);
       if (sessionWithTimes == null) {
-        return Response(404, body: jsonEncode({'error': 'Økt ikke funnet'}));
+        return resp.notFound('Økt ikke funnet');
       }
 
-      return Response.ok(jsonEncode(sessionWithTimes.toJson()));
+      return resp.ok(sessionWithTimes.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _deleteSession(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       await _stopwatchService.deleteSession(sessionId);
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -152,51 +137,53 @@ class StopwatchHandler {
 
   Future<Response> _getSessionsForMiniActivity(Request request, String miniActivityId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final sessions = await _stopwatchService.getSessionsForMiniActivity(miniActivityId);
-      return Response.ok(jsonEncode(sessions.map((s) => s.toJson()).toList()));
+      return resp.ok(sessions.map((s) => s.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getSessionsForTeam(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final sessions = await _stopwatchService.getSessionsForTeam(teamId);
-      return Response.ok(jsonEncode(sessions.map((s) => s.toJson()).toList()));
+      return resp.ok(sessions.map((s) => s.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getActiveSessions(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final sessions = await _stopwatchService.getActiveSessions(teamId);
-      return Response.ok(jsonEncode(sessions.map((s) => s.toJson()).toList()));
+      return resp.ok(sessions.map((s) => s.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -204,87 +191,87 @@ class StopwatchHandler {
 
   Future<Response> _startSession(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final session = await _stopwatchService.startSession(sessionId);
       if (session == null) {
-        return Response(404, body: jsonEncode({'error': 'Økt ikke funnet'}));
+        return resp.notFound('Økt ikke funnet');
       }
 
-      return Response.ok(jsonEncode(session.toJson()));
+      return resp.ok(session.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _pauseSession(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final session = await _stopwatchService.pauseSession(sessionId);
       if (session == null) {
-        return Response(404, body: jsonEncode({'error': 'Økt ikke funnet'}));
+        return resp.notFound('Økt ikke funnet');
       }
 
-      return Response.ok(jsonEncode(session.toJson()));
+      return resp.ok(session.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _stopSession(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final session = await _stopwatchService.stopSession(sessionId);
       if (session == null) {
-        return Response(404, body: jsonEncode({'error': 'Økt ikke funnet'}));
+        return resp.notFound('Økt ikke funnet');
       }
 
-      return Response.ok(jsonEncode(session.toJson()));
+      return resp.ok(session.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _resetSession(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final session = await _stopwatchService.resetSession(sessionId);
       if (session == null) {
-        return Response(404, body: jsonEncode({'error': 'Økt ikke funnet'}));
+        return resp.notFound('Økt ikke funnet');
       }
 
-      return Response.ok(jsonEncode(session.toJson()));
+      return resp.ok(session.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _cancelSession(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       await _stopwatchService.cancelSession(sessionId);
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -292,9 +279,9 @@ class StopwatchHandler {
 
   Future<Response> _recordTime(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -304,7 +291,7 @@ class StopwatchHandler {
       final timeMs = data['time_ms'] as int?;
 
       if (participantUserId == null || timeMs == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt (user_id, time_ms)'}));
+        return resp.badRequest('Mangler påkrevde felt (user_id, time_ms)');
       }
 
       final time = await _stopwatchService.recordTime(
@@ -317,17 +304,17 @@ class StopwatchHandler {
         notes: data['notes'] as String?,
       );
 
-      return Response.ok(jsonEncode(time.toJson()));
+      return resp.ok(time.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _recordCurrentTime(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -335,7 +322,7 @@ class StopwatchHandler {
 
       final participantUserId = data['user_id'] as String?;
       if (participantUserId == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (user_id)'}));
+        return resp.badRequest('Mangler påkrevd felt (user_id)');
       }
 
       final time = await _stopwatchService.recordCurrentTime(
@@ -347,51 +334,51 @@ class StopwatchHandler {
       );
 
       if (time == null) {
-        return Response(404, body: jsonEncode({'error': 'Økt ikke funnet'}));
+        return resp.notFound('Økt ikke funnet');
       }
 
-      return Response.ok(jsonEncode(time.toJson()));
+      return resp.ok(time.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getTimesForSession(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final times = await _stopwatchService.getTimesForSession(sessionId);
-      return Response.ok(jsonEncode(times.map((t) => t.toJson()).toList()));
+      return resp.ok(times.map((t) => t.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getTimesForUser(Request request, String sessionId, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final times = await _stopwatchService.getTimesForUser(
         sessionId: sessionId,
         userId: targetUserId,
       );
-      return Response.ok(jsonEncode(times.map((t) => t.toJson()).toList()));
+      return resp.ok(times.map((t) => t.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _updateTime(Request request, String timeId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -403,23 +390,23 @@ class StopwatchHandler {
         notes: data['notes'] as String?,
       );
 
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _deleteTime(Request request, String timeId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       await _stopwatchService.deleteTime(timeId);
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -427,9 +414,9 @@ class StopwatchHandler {
 
   Future<Response> _recordMultipleTimes(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -437,7 +424,7 @@ class StopwatchHandler {
 
       final times = (data['times'] as List?)?.cast<Map<String, dynamic>>();
       if (times == null || times.isEmpty) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (times)'}));
+        return resp.badRequest('Mangler påkrevd felt (times)');
       }
 
       await _stopwatchService.recordMultipleTimes(
@@ -445,9 +432,9 @@ class StopwatchHandler {
         times: times,
       );
 
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -455,15 +442,15 @@ class StopwatchHandler {
 
   Future<Response> _getSessionRankings(Request request, String sessionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final rankings = await _stopwatchService.getSessionRankings(sessionId);
-      return Response.ok(jsonEncode(rankings));
+      return resp.ok(rankings);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 }

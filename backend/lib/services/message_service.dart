@@ -16,6 +16,8 @@ class MessageService {
     // Build filters
     final filters = <String, String>{
       'team_id': 'eq.$teamId',
+      if (before != null) 'created_at': 'lt.$before',
+      if (after != null) 'created_at': 'gt.$after',
     };
 
     String order = 'created_at.desc';
@@ -30,21 +32,7 @@ class MessageService {
 
     if (messages.isEmpty) return [];
 
-    // Filter by before/after if provided
-    List<Map<String, dynamic>> filteredMessages = messages;
-    if (before != null) {
-      filteredMessages = messages.where((m) {
-        final createdAt = DateTime.parse(m['created_at'] as String);
-        final beforeTime = DateTime.parse(before);
-        return createdAt.isBefore(beforeTime);
-      }).toList();
-    } else if (after != null) {
-      filteredMessages = messages.where((m) {
-        final createdAt = DateTime.parse(m['created_at'] as String);
-        final afterTime = DateTime.parse(after);
-        return createdAt.isAfter(afterTime);
-      }).toList();
-    }
+    final filteredMessages = messages;
 
     // Get user info
     final userIds = filteredMessages.map((m) => m['user_id'] as String).toSet().toList();
@@ -298,35 +286,18 @@ class MessageService {
     String? after,
   }) async {
     // Get messages between the two users (in both directions)
-    final messages = await _db.client.select(
+    final filters = <String, String>{
+      'or': '(and(user_id.eq.$userId,recipient_id.eq.$recipientId),and(user_id.eq.$recipientId,recipient_id.eq.$userId))',
+      if (before != null) 'created_at': 'lt.$before',
+      if (after != null) 'created_at': 'gt.$after',
+    };
+
+    final filteredMessages = await _db.client.select(
       'messages',
+      filters: filters,
       order: 'created_at.desc',
       limit: limit,
     );
-
-    // Filter to only messages between these two users
-    List<Map<String, dynamic>> filteredMessages = messages.where((m) {
-      final senderId = m['user_id'] as String;
-      final recipId = m['recipient_id'] as String?;
-      if (recipId == null) return false;
-      return (senderId == userId && recipId == recipientId) ||
-             (senderId == recipientId && recipId == userId);
-    }).toList();
-
-    // Filter by before/after if provided
-    if (before != null) {
-      filteredMessages = filteredMessages.where((m) {
-        final createdAt = DateTime.parse(m['created_at'] as String);
-        final beforeTime = DateTime.parse(before);
-        return createdAt.isBefore(beforeTime);
-      }).toList();
-    } else if (after != null) {
-      filteredMessages = filteredMessages.where((m) {
-        final createdAt = DateTime.parse(m['created_at'] as String);
-        final afterTime = DateTime.parse(after);
-        return createdAt.isAfter(afterTime);
-      }).toList();
-    }
 
     // Get user info for both participants
     final userIds = {userId, recipientId};

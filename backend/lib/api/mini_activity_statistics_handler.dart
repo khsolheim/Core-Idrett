@@ -1,17 +1,17 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import '../services/auth_service.dart';
 import '../services/mini_activity_statistics_service.dart';
 import '../services/team_service.dart';
 import '../models/mini_activity_statistics.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class MiniActivityStatisticsHandler {
   final MiniActivityStatisticsService _statsService;
-  final AuthService _authService;
   final TeamService _teamService;
 
-  MiniActivityStatisticsHandler(this._statsService, this._authService, this._teamService);
+  MiniActivityStatisticsHandler(this._statsService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -41,37 +41,18 @@ class MiniActivityStatisticsHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
-  Future<bool> _isTeamMember(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    return team != null;
-  }
-
-  Future<bool> _isTeamAdmin(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    return team != null && team['user_role'] == 'admin';
-  }
-
   // ============ PLAYER STATS ============
 
   Future<Response> _getTeamPlayerStats(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -85,21 +66,22 @@ class MiniActivityStatisticsHandler {
         descending: descending,
       );
 
-      return Response.ok(jsonEncode(stats.map((s) => s.toJson()).toList()));
+      return resp.ok(stats.map((s) => s.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getPlayerStats(Request request, String teamId, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -111,24 +93,25 @@ class MiniActivityStatisticsHandler {
       );
 
       if (stats == null) {
-        return Response(404, body: jsonEncode({'error': 'Statistikk ikke funnet'}));
+        return resp.notFound('Statistikk ikke funnet');
       }
 
-      return Response.ok(jsonEncode(stats.toJson()));
+      return resp.ok(stats.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getPlayerStatsAggregate(Request request, String teamId, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -140,12 +123,12 @@ class MiniActivityStatisticsHandler {
       );
 
       if (aggregate == null) {
-        return Response(404, body: jsonEncode({'error': 'Statistikk ikke funnet'}));
+        return resp.notFound('Statistikk ikke funnet');
       }
 
-      return Response.ok(jsonEncode(aggregate.toJson()));
+      return resp.ok(aggregate.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -153,13 +136,14 @@ class MiniActivityStatisticsHandler {
 
   Future<Response> _getHeadToHead(Request request, String teamId, String user1Id, String user2Id) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final stats = await _statsService.getHeadToHead(
@@ -169,24 +153,25 @@ class MiniActivityStatisticsHandler {
       );
 
       if (stats == null) {
-        return Response(404, body: jsonEncode({'error': 'Head-to-head statistikk ikke funnet'}));
+        return resp.notFound('Head-to-head statistikk ikke funnet');
       }
 
-      return Response.ok(jsonEncode(stats.toJson()));
+      return resp.ok(stats.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getHeadToHeadForUser(Request request, String teamId, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final stats = await _statsService.getHeadToHeadForUser(
@@ -194,9 +179,9 @@ class MiniActivityStatisticsHandler {
         userId: targetUserId,
       );
 
-      return Response.ok(jsonEncode(stats.map((s) => s.toJson()).toList()));
+      return resp.ok(stats.map((s) => s.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -204,9 +189,9 @@ class MiniActivityStatisticsHandler {
 
   Future<Response> _getTeamHistoryForUser(Request request, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final limitStr = request.url.queryParameters['limit'];
@@ -217,9 +202,9 @@ class MiniActivityStatisticsHandler {
         limit: limit,
       );
 
-      return Response.ok(jsonEncode(history.map((h) => h.toJson()).toList()));
+      return resp.ok(history.map((h) => h.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -227,13 +212,14 @@ class MiniActivityStatisticsHandler {
 
   Future<Response> _getMiniActivityLeaderboard(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -246,9 +232,9 @@ class MiniActivityStatisticsHandler {
         limit: limit,
       );
 
-      return Response.ok(jsonEncode(leaderboard));
+      return resp.ok(leaderboard);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -256,9 +242,9 @@ class MiniActivityStatisticsHandler {
 
   Future<Response> _getPointSourcesForUser(Request request, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final leaderboardEntryId = request.url.queryParameters['leaderboard_entry_id'];
@@ -278,23 +264,23 @@ class MiniActivityStatisticsHandler {
         limit: limit,
       );
 
-      return Response.ok(jsonEncode(sources.map((s) => s.toJson()).toList()));
+      return resp.ok(sources.map((s) => s.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getPointSourcesForEntry(Request request, String entryId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final sources = await _statsService.getPointSourcesForEntry(entryId);
-      return Response.ok(jsonEncode(sources.map((s) => s.toJson()).toList()));
+      return resp.ok(sources.map((s) => s.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -302,9 +288,9 @@ class MiniActivityStatisticsHandler {
 
   Future<Response> _processMiniActivityResults(Request request, String miniActivityId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -314,11 +300,12 @@ class MiniActivityStatisticsHandler {
       final results = (data['results'] as List?)?.cast<Map<String, dynamic>>();
 
       if (teamId == null || results == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt (team_id, results)'}));
+        return resp.badRequest('Mangler pakrevde felt (team_id, results)');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Kun administratorer kan behandle resultater'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null || !isAdmin(team)) {
+        return resp.forbidden('Kun administratorer kan behandle resultater');
       }
 
       await _statsService.processMiniActivityResults(
@@ -328,9 +315,9 @@ class MiniActivityStatisticsHandler {
         results: results,
       );
 
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 }

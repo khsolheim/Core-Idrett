@@ -13,7 +13,7 @@ class Team {
     required this.createdAt,
   });
 
-  factory Team.fromRow(Map<String, dynamic> row) {
+  factory Team.fromJson(Map<String, dynamic> row) {
     return Team(
       id: row['id'] as String,
       name: row['name'] as String,
@@ -50,7 +50,7 @@ class TrainerType {
     required this.createdAt,
   });
 
-  factory TrainerType.fromRow(Map<String, dynamic> row) {
+  factory TrainerType.fromJson(Map<String, dynamic> row) {
     return TrainerType(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -117,7 +117,7 @@ class TeamMember {
     required this.joinedAt,
   });
 
-  factory TeamMember.fromRow(Map<String, dynamic> row) {
+  factory TeamMember.fromJson(Map<String, dynamic> row) {
     return TeamMember(
       id: row['id'] as String,
       userId: row['user_id'] as String,

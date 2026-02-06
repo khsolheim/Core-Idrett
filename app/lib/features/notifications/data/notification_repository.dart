@@ -48,13 +48,13 @@ class NotificationRepository {
     bool? teamMessage,
   }) async {
     final response = await _client.put('/notifications/preferences', data: {
-      if (teamId != null) 'team_id': teamId,
-      if (newActivity != null) 'new_activity': newActivity,
-      if (activityReminder != null) 'activity_reminder': activityReminder,
-      if (activityCancelled != null) 'activity_cancelled': activityCancelled,
-      if (newFine != null) 'new_fine': newFine,
-      if (fineDecision != null) 'fine_decision': fineDecision,
-      if (teamMessage != null) 'team_message': teamMessage,
+      'team_id': ?teamId,
+      'new_activity': ?newActivity,
+      'activity_reminder': ?activityReminder,
+      'activity_cancelled': ?activityCancelled,
+      'new_fine': ?newFine,
+      'fine_decision': ?fineDecision,
+      'team_message': ?teamMessage,
     });
     return NotificationPreferences.fromJson(response.data as Map<String, dynamic>);
   }

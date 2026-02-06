@@ -15,7 +15,7 @@ class DeviceToken {
     required this.lastUsedAt,
   });
 
-  factory DeviceToken.fromRow(Map<String, dynamic> row) {
+  factory DeviceToken.fromJson(Map<String, dynamic> row) {
     return DeviceToken(
       id: row['id'] as String,
       userId: row['user_id'] as String,
@@ -61,7 +61,7 @@ class NotificationPreferences {
     required this.teamMessage,
   });
 
-  factory NotificationPreferences.fromRow(Map<String, dynamic> row) {
+  factory NotificationPreferences.fromJson(Map<String, dynamic> row) {
     return NotificationPreferences(
       id: row['id'] as String,
       userId: row['user_id'] as String,

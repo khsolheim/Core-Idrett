@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import '../services/auth_service.dart';
 import '../services/message_service.dart';
 import '../services/team_service.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class MessagesHandler {
   final MessageService _messageService;
-  final AuthService _authService;
   final TeamService _teamService;
 
-  MessagesHandler(this._messageService, this._authService, this._teamService);
+  MessagesHandler(this._messageService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -36,35 +36,16 @@ class MessagesHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
-  Future<bool> _isTeamMember(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    return team != null;
-  }
-
-  Future<bool> _isTeamAdmin(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    return team != null && team['user_role'] == 'admin';
-  }
-
   Future<Response> _getMessages(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final limitParam = request.url.queryParameters['limit'];
@@ -79,21 +60,22 @@ class MessagesHandler {
         after: after,
       );
 
-      return Response.ok(jsonEncode({'messages': messages}));
+      return resp.ok({'messages': messages});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _sendMessage(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final body = await request.readAsString();
@@ -101,7 +83,7 @@ class MessagesHandler {
 
       final content = data['content'] as String?;
       if (content == null || content.trim().isEmpty) {
-        return Response(400, body: jsonEncode({'error': 'Meldingen kan ikke være tom'}));
+        return resp.badRequest('Meldingen kan ikke være tom');
       }
 
       final message = await _messageService.sendMessage(
@@ -111,17 +93,17 @@ class MessagesHandler {
         replyToId: data['reply_to_id'] as String?,
       );
 
-      return Response.ok(jsonEncode(message));
+      return resp.ok(message);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _editMessage(Request request, String messageId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -129,7 +111,7 @@ class MessagesHandler {
 
       final content = data['content'] as String?;
       if (content == null || content.trim().isEmpty) {
-        return Response(400, body: jsonEncode({'error': 'Meldingen kan ikke være tom'}));
+        return resp.badRequest('Meldingen kan ikke være tom');
       }
 
       final message = await _messageService.editMessage(
@@ -139,75 +121,83 @@ class MessagesHandler {
       );
 
       if (message == null) {
-        return Response(404, body: jsonEncode({'error': 'Melding ikke funnet eller du har ikke tilgang'}));
+        return resp.notFound('Melding ikke funnet eller du har ikke tilgang');
       }
 
-      return Response.ok(jsonEncode(message));
+      return resp.ok(message);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _deleteMessage(Request request, String messageId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       // Get teamId from query parameter to check admin status
       final teamId = request.url.queryParameters['team_id'];
-      final isAdmin = teamId != null && await _isTeamAdmin(userId, teamId);
+      var adminStatus = false;
+      if (teamId != null) {
+        final team = await requireTeamMember(_teamService, teamId, userId);
+        if (team != null) {
+          adminStatus = isAdmin(team);
+        }
+      }
 
       final success = await _messageService.deleteMessage(
         messageId: messageId,
         userId: userId,
-        isAdmin: isAdmin,
+        isAdmin: adminStatus,
       );
 
       if (!success) {
-        return Response(404, body: jsonEncode({'error': 'Melding ikke funnet eller du har ikke tilgang'}));
+        return resp.notFound('Melding ikke funnet eller du har ikke tilgang');
       }
 
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _markAsRead(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       await _messageService.markAsRead(userId, teamId);
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getUnreadCount(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final count = await _messageService.getUnreadCount(userId, teamId);
-      return Response.ok(jsonEncode({'unread_count': count}));
+      return resp.ok({'unread_count': count});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -215,24 +205,25 @@ class MessagesHandler {
 
   Future<Response> _getAllConversations(Request request) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final teamId = request.url.queryParameters['team_id'];
       if (teamId == null) {
-        return Response(400, body: jsonEncode({'error': 'team_id er pakrevd'}));
+        return resp.badRequest('team_id er pakrevd');
       }
 
-      if (!await _isTeamMember(userId, teamId)) {
-        return Response(403, body: jsonEncode({'error': 'Ingen tilgang til dette laget'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final conversations = await _messageService.getAllConversations(userId, teamId);
-      return Response.ok(jsonEncode({'conversations': conversations}));
+      return resp.ok({'conversations': conversations});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -240,23 +231,23 @@ class MessagesHandler {
 
   Future<Response> _getConversations(Request request) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final conversations = await _messageService.getConversations(userId);
-      return Response.ok(jsonEncode({'conversations': conversations}));
+      return resp.ok({'conversations': conversations});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getDirectMessages(Request request, String recipientId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final limitParam = request.url.queryParameters['limit'];
@@ -272,17 +263,17 @@ class MessagesHandler {
         after: after,
       );
 
-      return Response.ok(jsonEncode({'messages': messages}));
+      return resp.ok({'messages': messages});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _sendDirectMessage(Request request, String recipientId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -290,7 +281,7 @@ class MessagesHandler {
 
       final content = data['content'] as String?;
       if (content == null || content.trim().isEmpty) {
-        return Response(400, body: jsonEncode({'error': 'Meldingen kan ikke vare tom'}));
+        return resp.badRequest('Meldingen kan ikke vare tom');
       }
 
       final message = await _messageService.sendDirectMessage(
@@ -300,37 +291,37 @@ class MessagesHandler {
         replyToId: data['reply_to_id'] as String?,
       );
 
-      return Response.ok(jsonEncode(message));
+      return resp.ok(message);
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _markDirectAsRead(Request request, String recipientId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       await _messageService.markDirectAsRead(userId, recipientId);
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getDirectUnreadCount(Request request, String recipientId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final count = await _messageService.getDirectUnreadCount(userId, recipientId);
-      return Response.ok(jsonEncode({'unread_count': count}));
+      return resp.ok({'unread_count': count});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 }

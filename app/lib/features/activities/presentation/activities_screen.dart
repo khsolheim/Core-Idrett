@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/activity.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/activity_provider.dart';
@@ -31,32 +33,14 @@ class ActivitiesScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: upcomingAsync.when(
+      body: upcomingAsync.when2(
+        onRetry: () => ref.invalidate(upcomingInstancesProvider(teamId)),
         data: (instances) {
           if (instances.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.event_busy,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Ingen kommende aktiviteter',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Opprett en ny aktivitet for å komme i gang',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                  ),
-                ],
-              ),
+            return const EmptyStateWidget(
+              icon: Icons.event_busy,
+              title: 'Ingen kommende aktiviteter',
+              subtitle: 'Opprett en ny aktivitet for å komme i gang',
             );
           }
 
@@ -77,22 +61,6 @@ class ActivitiesScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              const SizedBox(height: 16),
-              Text('Kunne ikke laste aktiviteter: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(upcomingInstancesProvider(teamId)),
-                child: const Text('Prøv igjen'),
-              ),
-            ],
-          ),
-        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.pushNamed('create-activity', pathParameters: {'teamId': teamId}),

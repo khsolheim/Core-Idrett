@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/points_config.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../points/providers/points_provider.dart';
 import '../../points/presentation/manual_points_sheet.dart';
@@ -132,34 +134,20 @@ class _CategoryLeaderboard extends ConsumerWidget {
       (teamId: teamId, category: category, seasonId: seasonId),
     ));
     final currentUser = ref.watch(authStateProvider).value;
-    final theme = Theme.of(context);
 
-    return entriesAsync.when(
+    return entriesAsync.when2(
+      onRetry: () {
+        ref.invalidate(activeSeasonProvider(teamId));
+        ref.invalidate(rankedLeaderboardProvider(
+          (teamId: teamId, category: category, seasonId: seasonId),
+        ));
+      },
       data: (entries) {
         if (entries.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.leaderboard_outlined,
-                  size: 64,
-                  color: theme.colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Ingen poeng ennå',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Delta i aktiviteter for å tjene poeng',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
+          return const EmptyStateWidget(
+            icon: Icons.leaderboard_outlined,
+            title: 'Ingen poeng ennå',
+            subtitle: 'Delta i aktiviteter for å tjene poeng',
           );
         }
 
@@ -185,27 +173,6 @@ class _CategoryLeaderboard extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 16),
-            Text('Kunne ikke laste poengtavle: $error'),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () {
-                ref.invalidate(activeSeasonProvider(teamId));
-                ref.invalidate(rankedLeaderboardProvider(
-                  (teamId: teamId, category: category, seasonId: seasonId),
-                ));
-              },
-              child: const Text('Prøv igjen'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -2,20 +2,16 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/achievement_service.dart';
-import '../services/auth_service.dart';
 import '../services/team_service.dart';
 import '../models/achievement.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class AchievementsHandler {
   final AchievementService _achievementService;
-  final AuthService _authService;
   final TeamService _teamService;
 
-  AchievementsHandler(
-    this._achievementService,
-    this._authService,
-    this._teamService,
-  );
+  AchievementsHandler(this._achievementService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -41,40 +37,18 @@ class AchievementsHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
-  Future<bool> _isTeamAdmin(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    if (team == null) return false;
-    return team['user_is_admin'] == true || team['user_role'] == 'admin';
-  }
-
   // ============ DEFINITIONS ============
 
   Future<Response> _getDefinitions(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final includeGlobal =
@@ -94,35 +68,28 @@ class AchievementsHandler {
         category: category,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'definitions': definitions.map((d) => d.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'definitions': definitions.map((d) => d.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente achievements: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente achievements: $e');
     }
   }
 
   Future<Response> _createDefinition(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan opprette achievements'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan opprette achievements');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -133,12 +100,7 @@ class AchievementsHandler {
       final criteriaJson = body['criteria'] as Map<String, dynamic>?;
 
       if (code == null || name == null || categoryStr == null || criteriaJson == null) {
-        return Response.badRequest(
-          body: jsonEncode({
-            'error': 'code, name, category og criteria er påkrevd',
-          }),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('code, name, category og criteria er påkrevd');
       }
 
       final category = AchievementCategory.fromString(categoryStr);
@@ -166,60 +128,39 @@ class AchievementsHandler {
         repeatCooldownDays: body['repeat_cooldown_days'] as int?,
       );
 
-      return Response.ok(
-        jsonEncode(definition.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(definition.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke opprette achievement: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette achievement: $e');
     }
   }
 
   Future<Response> _getDefinitionById(
       Request request, String definitionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
       final definition =
           await _achievementService.getDefinitionById(definitionId);
 
       if (definition == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Achievement ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Achievement ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode(definition.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(definition.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente achievement: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente achievement: $e');
     }
   }
 
   Future<Response> _updateDefinition(
       Request request, String definitionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
       final teamId =
@@ -227,17 +168,16 @@ class AchievementsHandler {
 
       // Global achievements can't be modified by team admins
       if (teamId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kan ikke endre globale achievements'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Kan ikke endre globale achievements');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan oppdatere achievements'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan oppdatere achievements');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -270,63 +210,44 @@ class AchievementsHandler {
       );
 
       if (definition == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Achievement ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Achievement ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode(definition.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(definition.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke oppdatere achievement: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke oppdatere achievement: $e');
     }
   }
 
   Future<Response> _deleteDefinition(
       Request request, String definitionId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
       final teamId =
           await _achievementService.getTeamIdForDefinition(definitionId);
 
       if (teamId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kan ikke slette globale achievements'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Kan ikke slette globale achievements');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan slette achievements'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan slette achievements');
       }
 
       await _achievementService.deleteDefinition(definitionId);
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke slette achievement: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke slette achievement: $e');
     }
   }
 
@@ -335,12 +256,9 @@ class AchievementsHandler {
   Future<Response> _getUserAchievements(
       Request request, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -352,29 +270,20 @@ class AchievementsHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'achievements': achievements.map((a) => a.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'achievements': achievements.map((a) => a.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente brukers achievements: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente brukers achievements: $e');
     }
   }
 
   Future<Response> _getUserProgress(
       Request request, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -386,30 +295,20 @@ class AchievementsHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'progress': progress.map((p) => p.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'progress': progress.map((p) => p.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body:
-            jsonEncode({'error': 'Kunne ikke hente achievement-progress: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente achievement-progress: $e');
     }
   }
 
   Future<Response> _getUserSummary(
       Request request, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -421,33 +320,26 @@ class AchievementsHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode(summary),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(summary);
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente achievement-sammendrag: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente achievement-sammendrag: $e');
     }
   }
 
   Future<Response> _awardAchievement(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan tildele achievements'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan tildele achievements');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -455,10 +347,7 @@ class AchievementsHandler {
       final achievementId = body['achievement_id'] as String?;
 
       if (targetUserId == null || achievementId == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'user_id og achievement_id er påkrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('user_id og achievement_id er påkrevd');
       }
 
       final achievement = await _achievementService.awardAchievement(
@@ -470,36 +359,26 @@ class AchievementsHandler {
         triggerReference: body['trigger_reference'] as Map<String, dynamic>?,
       );
 
-      return Response.ok(
-        jsonEncode(achievement.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(achievement.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke tildele achievement: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke tildele achievement: $e');
     }
   }
 
   Future<Response> _checkAndAwardAchievements(
       Request request, String teamId, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
       // Only admin can trigger check for other users
-      if (targetUserId != userId && !await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode(
-              {'error': 'Kun admin kan sjekke achievements for andre'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      if (targetUserId != userId) {
+        final team = await requireTeamMember(_teamService, teamId, userId);
+        if (team == null || !isAdmin(team)) {
+          return resp.forbidden('Kun admin kan sjekke achievements for andre');
+        }
       }
 
       final body = await request.readAsString();
@@ -518,18 +397,12 @@ class AchievementsHandler {
         context: context,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'awarded': awarded.map((a) => a.toJson()).toList(),
-          'count': awarded.length,
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'awarded': awarded.map((a) => a.toJson()).toList(),
+        'count': awarded.length,
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke sjekke achievements: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke sjekke achievements: $e');
     }
   }
 
@@ -538,20 +411,14 @@ class AchievementsHandler {
   Future<Response> _getTeamRecentAchievements(
       Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -564,37 +431,25 @@ class AchievementsHandler {
         limit: limit,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'achievements': achievements.map((a) => a.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'achievements': achievements.map((a) => a.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente nylige achievements: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente nylige achievements: $e');
     }
   }
 
   Future<Response> _getTeamAchievementCounts(
       Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ikke autorisert');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -604,15 +459,9 @@ class AchievementsHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode(counts),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(counts);
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente achievement-statistikk: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente achievement-statistikk: $e');
     }
   }
 }

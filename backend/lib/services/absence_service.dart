@@ -27,7 +27,7 @@ class AbsenceService {
       order: 'sort_order.asc,name.asc',
     );
 
-    return result.map((row) => AbsenceCategory.fromRow(row)).toList();
+    return result.map((row) => AbsenceCategory.fromJson(row)).toList();
   }
 
   /// Get a category by ID
@@ -38,7 +38,7 @@ class AbsenceService {
     );
 
     if (result.isEmpty) return null;
-    return AbsenceCategory.fromRow(result.first);
+    return AbsenceCategory.fromJson(result.first);
   }
 
   /// Create a new absence category
@@ -188,7 +188,7 @@ class AbsenceService {
     );
 
     if (result.isEmpty) return null;
-    return AbsenceRecord.fromRow(result.first);
+    return AbsenceRecord.fromJson(result.first);
   }
 
   /// Get absence records with full details (from view)
@@ -214,7 +214,7 @@ class AbsenceService {
       offset: offset,
     );
 
-    return result.map((row) => AbsenceRecord.fromRow(row)).toList();
+    return result.map((row) => AbsenceRecord.fromJson(row)).toList();
   }
 
   /// Get pending absences for approval
@@ -286,7 +286,7 @@ class AbsenceService {
     );
 
     if (result.isEmpty) return null;
-    return AbsenceRecord.fromRow(result.first);
+    return AbsenceRecord.fromJson(result.first);
   }
 
   /// Check if user has valid absence for instance

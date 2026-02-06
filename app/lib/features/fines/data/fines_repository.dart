@@ -1,3 +1,4 @@
+import '../../../core/utils/api_response_parser.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/models/fine.dart';
 
@@ -13,8 +14,7 @@ class FinesRepository {
       '/fines/teams/$teamId/fine-rules',
       queryParameters: queryParams,
     );
-    final data = response.data['rules'] as List;
-    return data.map((e) => FineRule.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'rules', FineRule.fromJson);
   }
 
   Future<FineRule> createFineRule({
@@ -44,10 +44,10 @@ class FinesRepository {
     final response = await _client.patch(
       '/fines/fine-rules/$ruleId',
       data: {
-        if (name != null) 'name': name,
-        if (amount != null) 'amount': amount,
-        if (description != null) 'description': description,
-        if (active != null) 'active': active,
+        'name': ?name,
+        'amount': ?amount,
+        'description': ?description,
+        'active': ?active,
       },
     );
     return FineRule.fromJson(response.data as Map<String, dynamic>);
@@ -76,8 +76,7 @@ class FinesRepository {
       '/fines/teams/$teamId/fines',
       queryParameters: params,
     );
-    final data = response.data['fines'] as List;
-    return data.map((e) => Fine.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'fines', Fine.fromJson);
   }
 
   Future<Fine> getFine(String fineId) async {
@@ -139,7 +138,7 @@ class FinesRepository {
       '/fines/appeals/$appealId/resolve',
       data: {
         'accepted': accepted,
-        if (extraFee != null) 'extra_fee': extraFee,
+        'extra_fee': ?extraFee,
       },
     );
     return FineAppeal.fromJson(response.data as Map<String, dynamic>);
@@ -147,8 +146,7 @@ class FinesRepository {
 
   Future<List<FineAppeal>> getPendingAppeals(String teamId) async {
     final response = await _client.get('/fines/teams/$teamId/pending-appeals');
-    final data = response.data['appeals'] as List;
-    return data.map((e) => FineAppeal.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'appeals', FineAppeal.fromJson);
   }
 
   // Payments
@@ -171,7 +169,6 @@ class FinesRepository {
 
   Future<List<UserFinesSummary>> getUserSummaries(String teamId) async {
     final response = await _client.get('/fines/teams/$teamId/user-fines-summary');
-    final data = response.data['summaries'] as List;
-    return data.map((e) => UserFinesSummary.fromJson(e as Map<String, dynamic>)).toList();
+    return parseList(response.data, 'summaries', UserFinesSummary.fromJson);
   }
 }

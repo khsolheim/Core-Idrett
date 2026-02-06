@@ -49,7 +49,7 @@ class StopwatchService {
       filters: {'id': 'eq.$sessionId'},
     );
     if (result.isEmpty) return null;
-    return StopwatchSession.fromRow(result.first);
+    return StopwatchSession.fromJson(result.first);
   }
 
   Future<List<StopwatchSession>> getSessionsForMiniActivity(String miniActivityId) async {
@@ -58,7 +58,7 @@ class StopwatchService {
       filters: {'mini_activity_id': 'eq.$miniActivityId'},
       order: 'created_at.desc',
     );
-    return result.map((row) => StopwatchSession.fromRow(row)).toList();
+    return result.map((row) => StopwatchSession.fromJson(row)).toList();
   }
 
   Future<List<StopwatchSession>> getSessionsForTeam(String teamId) async {
@@ -67,7 +67,7 @@ class StopwatchService {
       filters: {'team_id': 'eq.$teamId'},
       order: 'created_at.desc',
     );
-    return result.map((row) => StopwatchSession.fromRow(row)).toList();
+    return result.map((row) => StopwatchSession.fromJson(row)).toList();
   }
 
   Future<List<StopwatchSession>> getActiveSessions(String teamId) async {
@@ -79,7 +79,7 @@ class StopwatchService {
       },
       order: 'created_at.desc',
     );
-    return result.map((row) => StopwatchSession.fromRow(row)).toList();
+    return result.map((row) => StopwatchSession.fromJson(row)).toList();
   }
 
   Future<void> deleteSession(String sessionId) async {
@@ -263,7 +263,7 @@ class StopwatchService {
       filters: {'session_id': 'eq.$sessionId'},
       order: 'time_ms.asc',
     );
-    return result.map((row) => StopwatchTime.fromRow(row)).toList();
+    return result.map((row) => StopwatchTime.fromJson(row)).toList();
   }
 
   Future<List<StopwatchTime>> getTimesForUser({
@@ -278,7 +278,7 @@ class StopwatchService {
       },
       order: 'recorded_at.asc',
     );
-    return result.map((row) => StopwatchTime.fromRow(row)).toList();
+    return result.map((row) => StopwatchTime.fromJson(row)).toList();
   }
 
   Future<void> deleteTime(String timeId) async {
@@ -353,7 +353,7 @@ class StopwatchService {
     for (int i = 0; i < times.length; i++) {
       final time = times[i];
       final user = userMap[time['user_id']] ?? {};
-      final stopwatchTime = StopwatchTime.fromRow(time);
+      final stopwatchTime = StopwatchTime.fromJson(time);
 
       rankings.add({
         'rank': i + 1,

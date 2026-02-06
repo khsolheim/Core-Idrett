@@ -18,7 +18,7 @@ class TestTemplate {
     required this.createdAt,
   });
 
-  factory TestTemplate.fromRow(Map<String, dynamic> row) {
+  factory TestTemplate.fromJson(Map<String, dynamic> row) {
     return TestTemplate(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -73,7 +73,7 @@ class TestResult {
     this.testUnit,
   });
 
-  factory TestResult.fromRow(Map<String, dynamic> row) {
+  factory TestResult.fromJson(Map<String, dynamic> row) {
     return TestResult(
       id: row['id'] as String,
       testTemplateId: row['test_template_id'] as String,

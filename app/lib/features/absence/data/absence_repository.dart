@@ -1,3 +1,4 @@
+import '../../../core/utils/api_response_parser.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/models/absence.dart';
 
@@ -10,10 +11,7 @@ class AbsenceRepository {
 
   Future<List<AbsenceCategory>> getCategories(String teamId) async {
     final response = await _client.get('/absence/teams/$teamId/categories');
-    final data = response.data['categories'] as List;
-    return data
-        .map((e) => AbsenceCategory.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'categories', AbsenceCategory.fromJson);
   }
 
   Future<AbsenceCategory> createCategory({
@@ -29,7 +27,7 @@ class AbsenceRepository {
         'name': name,
         'requires_approval': requiresApproval,
         'counts_as_valid': countsAsValid,
-        if (sortOrder != null) 'sort_order': sortOrder,
+        'sort_order': ?sortOrder,
       },
     );
     return AbsenceCategory.fromJson(response.data as Map<String, dynamic>);
@@ -45,10 +43,10 @@ class AbsenceRepository {
     final response = await _client.patch(
       '/absence/categories/$categoryId',
       data: {
-        if (name != null) 'name': name,
-        if (requiresApproval != null) 'requires_approval': requiresApproval,
-        if (countsAsValid != null) 'counts_as_valid': countsAsValid,
-        if (sortOrder != null) 'sort_order': sortOrder,
+        'name': ?name,
+        'requires_approval': ?requiresApproval,
+        'counts_as_valid': ?countsAsValid,
+        'sort_order': ?sortOrder,
       },
     );
     return AbsenceCategory.fromJson(response.data as Map<String, dynamic>);
@@ -73,8 +71,8 @@ class AbsenceRepository {
         'team_id': teamId,
         'user_id': userId,
         'instance_id': instanceId,
-        if (categoryId != null) 'category_id': categoryId,
-        if (reason != null) 'reason': reason,
+        'category_id': ?categoryId,
+        'reason': ?reason,
       },
     );
     return AbsenceRecord.fromJson(response.data as Map<String, dynamic>);
@@ -99,18 +97,12 @@ class AbsenceRepository {
       '/absence/teams/$teamId',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['absences'] as List;
-    return data
-        .map((e) => AbsenceRecord.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'absences', AbsenceRecord.fromJson);
   }
 
   Future<List<AbsenceRecord>> getPendingAbsences(String teamId) async {
     final response = await _client.get('/absence/teams/$teamId/pending');
-    final data = response.data['absences'] as List;
-    return data
-        .map((e) => AbsenceRecord.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'absences', AbsenceRecord.fromJson);
   }
 
   Future<AbsenceRecord?> getAbsenceDetails(String absenceId) async {
@@ -151,7 +143,7 @@ class AbsenceRepository {
     final response = await _client.patch(
       '/absence/$absenceId/reject',
       data: {
-        if (reason != null) 'reason': reason,
+        'reason': ?reason,
       },
     );
     return AbsenceRecord.fromJson(response.data as Map<String, dynamic>);

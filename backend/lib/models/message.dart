@@ -33,7 +33,7 @@ class Message {
     this.replyTo,
   });
 
-  factory Message.fromRow(Map<String, dynamic> row) {
+  factory Message.fromJson(Map<String, dynamic> row) {
     return Message(
       id: row['id'] as String,
       teamId: row['team_id'] as String?,
@@ -86,7 +86,7 @@ class MessageRead {
     required this.lastReadAt,
   });
 
-  factory MessageRead.fromRow(Map<String, dynamic> row) {
+  factory MessageRead.fromJson(Map<String, dynamic> row) {
     return MessageRead(
       id: row['id'] as String,
       userId: row['user_id'] as String,

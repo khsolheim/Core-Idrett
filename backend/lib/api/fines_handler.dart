@@ -1,24 +1,14 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import '../services/auth_service.dart';
 import '../services/fine_service.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class FinesHandler {
   final FineService _fineService;
-  final AuthService _authService;
 
-  FinesHandler(this._fineService, this._authService);
-
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
+  FinesHandler(this._fineService);
 
   Router get router {
     final router = Router();
@@ -57,15 +47,9 @@ class FinesHandler {
       final activeOnly = request.url.queryParameters['active'] == 'true';
       final rules = await _fineService.getFineRules(teamId, activeOnly: activeOnly ? true : null);
 
-      return Response.ok(
-        jsonEncode({'rules': rules.map((r) => r.toJson()).toList()}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'rules': rules.map((r) => r.toJson()).toList()});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente bøteregler: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente bøteregler: $e');
     }
   }
 
@@ -80,15 +64,9 @@ class FinesHandler {
         description: body['description'],
       );
 
-      return Response.ok(
-        jsonEncode(rule.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(rule.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke opprette bøteregel: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette bøteregel: $e');
     }
   }
 
@@ -105,21 +83,12 @@ class FinesHandler {
       );
 
       if (rule == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Bøteregel ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Bøteregel ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode(rule.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(rule.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke oppdatere bøteregel: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke oppdatere bøteregel: $e');
     }
   }
 
@@ -128,21 +97,12 @@ class FinesHandler {
       final success = await _fineService.deleteFineRule(ruleId);
 
       if (!success) {
-        return Response.notFound(
-          jsonEncode({'error': 'Bøteregel ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Bøteregel ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke slette bøteregel: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke slette bøteregel: $e');
     }
   }
 
@@ -162,28 +122,19 @@ class FinesHandler {
         offset: offset,
       );
 
-      return Response.ok(
-        jsonEncode({'fines': fines.map((f) => f.toJson()).toList()}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'fines': fines.map((f) => f.toJson()).toList()});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente bøter: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente bøter: $e');
     }
   }
 
   Future<Response> _createFine(Request request, String teamId) async {
     try {
       final body = jsonDecode(await request.readAsString());
-      final reporterId = await _getUserId(request);
+      final reporterId = getUserId(request);
 
       if (reporterId == null) {
-        return Response(401,
-          body: jsonEncode({'error': 'Ikke autentisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final fine = await _fineService.createFine(
@@ -197,15 +148,9 @@ class FinesHandler {
         isGameDay: body['is_game_day'] == true,
       );
 
-      return Response.ok(
-        jsonEncode(fine.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(fine.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke opprette bøte: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette bøte: $e');
     }
   }
 
@@ -214,85 +159,52 @@ class FinesHandler {
       final fine = await _fineService.getFine(fineId);
 
       if (fine == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Bøte ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Bøte ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode(fine.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(fine.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente bøte: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente bøte: $e');
     }
   }
 
   Future<Response> _approveFine(Request request, String fineId) async {
     try {
-      final approvedBy = await _getUserId(request);
+      final approvedBy = getUserId(request);
 
       if (approvedBy == null) {
-        return Response(401,
-          body: jsonEncode({'error': 'Ikke autentisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final fine = await _fineService.approveFine(fineId, approvedBy);
 
       if (fine == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Kunne ikke godkjenne bøte (kanskje allerede behandlet)'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Kunne ikke godkjenne bøte (kanskje allerede behandlet)');
       }
 
-      return Response.ok(
-        jsonEncode(fine.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(fine.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke godkjenne bøte: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke godkjenne bøte: $e');
     }
   }
 
   Future<Response> _rejectFine(Request request, String fineId) async {
     try {
-      final approvedBy = await _getUserId(request);
+      final approvedBy = getUserId(request);
 
       if (approvedBy == null) {
-        return Response(401,
-          body: jsonEncode({'error': 'Ikke autentisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final fine = await _fineService.rejectFine(fineId, approvedBy);
 
       if (fine == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Kunne ikke avvise bøte (kanskje allerede behandlet)'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Kunne ikke avvise bøte (kanskje allerede behandlet)');
       }
 
-      return Response.ok(
-        jsonEncode(fine.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(fine.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke avvise bøte: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke avvise bøte: $e');
     }
   }
 
@@ -307,34 +219,22 @@ class FinesHandler {
       );
 
       if (appeal == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Kan ikke klage på denne bøten'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Kan ikke klage på denne bøten');
       }
 
-      return Response.ok(
-        jsonEncode(appeal.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(appeal.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke opprette klage: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette klage: $e');
     }
   }
 
   Future<Response> _resolveAppeal(Request request, String appealId) async {
     try {
       final body = jsonDecode(await request.readAsString());
-      final decidedBy = await _getUserId(request);
+      final decidedBy = getUserId(request);
 
       if (decidedBy == null) {
-        return Response(401,
-          body: jsonEncode({'error': 'Ikke autentisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final appeal = await _fineService.resolveAppeal(
@@ -345,21 +245,12 @@ class FinesHandler {
       );
 
       if (appeal == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Kunne ikke behandle klage'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Kunne ikke behandle klage');
       }
 
-      return Response.ok(
-        jsonEncode(appeal.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(appeal.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke behandle klage: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke behandle klage: $e');
     }
   }
 
@@ -367,15 +258,9 @@ class FinesHandler {
     try {
       final appeals = await _fineService.getPendingAppeals(teamId);
 
-      return Response.ok(
-        jsonEncode({'appeals': appeals.map((a) => a.toJson()).toList()}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'appeals': appeals.map((a) => a.toJson()).toList()});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente klager: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente klager: $e');
     }
   }
 
@@ -383,13 +268,10 @@ class FinesHandler {
   Future<Response> _recordPayment(Request request, String fineId) async {
     try {
       final body = jsonDecode(await request.readAsString());
-      final registeredBy = await _getUserId(request);
+      final registeredBy = getUserId(request);
 
       if (registeredBy == null) {
-        return Response(401,
-          body: jsonEncode({'error': 'Ikke autentisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final payment = await _fineService.recordPayment(
@@ -398,15 +280,9 @@ class FinesHandler {
         registeredBy: registeredBy,
       );
 
-      return Response.ok(
-        jsonEncode(payment.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(payment.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke registrere betaling: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke registrere betaling: $e');
     }
   }
 
@@ -415,15 +291,9 @@ class FinesHandler {
     try {
       final summary = await _fineService.getTeamSummary(teamId);
 
-      return Response.ok(
-        jsonEncode(summary.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(summary.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente sammendrag: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente sammendrag: $e');
     }
   }
 
@@ -431,15 +301,9 @@ class FinesHandler {
     try {
       final summaries = await _fineService.getUserSummaries(teamId);
 
-      return Response.ok(
-        jsonEncode({'summaries': summaries.map((s) => s.toJson()).toList()}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'summaries': summaries.map((s) => s.toJson()).toList()});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente brukersammendrag: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente brukersammendrag: $e');
     }
   }
 }

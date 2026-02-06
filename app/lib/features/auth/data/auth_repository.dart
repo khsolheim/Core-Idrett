@@ -77,8 +77,8 @@ class AuthRepository {
     String? avatarUrl,
   }) async {
     final response = await _apiClient.patch('/auth/profile', data: {
-      if (name != null) 'name': name,
-      if (avatarUrl != null) 'avatar_url': avatarUrl,
+      'name': ?name,
+      'avatar_url': ?avatarUrl,
     });
     return User.fromJson(response.data as Map<String, dynamic>);
   }

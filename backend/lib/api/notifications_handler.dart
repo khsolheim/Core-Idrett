@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import '../services/auth_service.dart';
 import '../services/notification_service.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class NotificationsHandler {
   final NotificationService _notificationService;
-  final AuthService _authService;
 
-  NotificationsHandler(this._notificationService, this._authService);
+  NotificationsHandler(this._notificationService);
 
   Router get router {
     final router = Router();
@@ -24,21 +24,11 @@ class NotificationsHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
   Future<Response> _registerToken(Request request) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -48,11 +38,11 @@ class NotificationsHandler {
       final platform = data['platform'] as String?;
 
       if (token == null || platform == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler token eller platform'}));
+        return resp.badRequest('Mangler token eller platform');
       }
 
       if (!['ios', 'android', 'web'].contains(platform)) {
-        return Response(400, body: jsonEncode({'error': 'Ugyldig platform'}));
+        return resp.badRequest('Ugyldig platform');
       }
 
       final deviceToken = await _notificationService.registerToken(
@@ -61,17 +51,17 @@ class NotificationsHandler {
         platform: platform,
       );
 
-      return Response.ok(jsonEncode(deviceToken.toJson()));
+      return resp.ok(deviceToken.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _removeToken(Request request) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -79,21 +69,21 @@ class NotificationsHandler {
 
       final token = data['token'] as String?;
       if (token == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler token'}));
+        return resp.badRequest('Mangler token');
       }
 
       await _notificationService.removeToken(userId, token);
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getPreferences(Request request) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -103,17 +93,17 @@ class NotificationsHandler {
         teamId: teamId,
       );
 
-      return Response.ok(jsonEncode(prefs.toJson()));
+      return resp.ok(prefs.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _updatePreferences(Request request) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -130,9 +120,9 @@ class NotificationsHandler {
         teamMessage: data['team_message'] as bool?,
       );
 
-      return Response.ok(jsonEncode(prefs.toJson()));
+      return resp.ok(prefs.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 }

@@ -4,6 +4,8 @@ import 'package:shelf_router/shelf_router.dart';
 import '../services/document_service.dart';
 import '../services/team_service.dart';
 import '../models/document.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class DocumentsHandler {
   final DocumentService _documentService;
@@ -32,15 +34,15 @@ class DocumentsHandler {
   /// Get all documents for a team
   Future<Response> _getDocuments(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
       final membership = await _teamService.getMembership(teamId, userId);
       if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+        return resp.forbidden('Not a team member');
       }
 
       // Parse query parameters
@@ -56,31 +58,26 @@ class DocumentsHandler {
         offset: offset,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'documents': documents.map((d) => d.toJson()).toList(),
-        }),
-        headers: {'content-type': 'application/json'},
-      );
+      return resp.ok({
+        'documents': documents.map((d) => d.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to get documents: $e'}),
-      );
+      return resp.serverError('Failed to get documents: $e');
     }
   }
 
   /// Create a new document record (after file is uploaded to storage)
   Future<Response> _createDocument(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
       final membership = await _teamService.getMembership(teamId, userId);
       if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+        return resp.forbidden('Not a team member');
       }
 
       final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
@@ -92,9 +89,7 @@ class DocumentsHandler {
       final mimeType = body['mime_type'] as String?;
 
       if (name == null || filePath == null || fileSize == null || mimeType == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'name, file_path, file_size, and mime_type are required'}),
-        );
+        return resp.badRequest('name, file_path, file_size, and mime_type are required');
       }
 
       final document = await _documentService.createDocument(
@@ -108,29 +103,24 @@ class DocumentsHandler {
         category: body['category'] as String?,
       );
 
-      return Response.ok(
-        jsonEncode(document.toJson()),
-        headers: {'content-type': 'application/json'},
-      );
+      return resp.ok(document.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to create document: $e'}),
-      );
+      return resp.serverError('Failed to create document: $e');
     }
   }
 
   /// Get document categories for a team
   Future<Response> _getCategories(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
       final membership = await _teamService.getMembership(teamId, userId);
       if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+        return resp.forbidden('Not a team member');
       }
 
       final categories = await _documentService.getCategories(teamId);
@@ -141,59 +131,49 @@ class DocumentsHandler {
         'display_name': DocumentCategory.displayName(c['category'] as String),
       }).toList();
 
-      return Response.ok(
-        jsonEncode({'categories': result}),
-        headers: {'content-type': 'application/json'},
-      );
+      return resp.ok({'categories': result});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to get categories: $e'}),
-      );
+      return resp.serverError('Failed to get categories: $e');
     }
   }
 
   /// Get a single document
   Future<Response> _getDocument(Request request, String documentId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       final document = await _documentService.getDocument(documentId);
       if (document == null) {
-        return Response.notFound(jsonEncode({'error': 'Document not found'}));
+        return resp.notFound('Document not found');
       }
 
       // Verify team membership
       final membership = await _teamService.getMembership(document.teamId, userId);
       if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+        return resp.forbidden('Not a team member');
       }
 
-      return Response.ok(
-        jsonEncode(document.toJson()),
-        headers: {'content-type': 'application/json'},
-      );
+      return resp.ok(document.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to get document: $e'}),
-      );
+      return resp.serverError('Failed to get document: $e');
     }
   }
 
   /// Update document metadata
   Future<Response> _updateDocument(Request request, String documentId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Check permissions
       final canManage = await _documentService.canManageDocument(documentId, userId);
       if (!canManage) {
-        return Response.forbidden(jsonEncode({'error': 'Not authorized to update this document'}));
+        return resp.forbidden('Not authorized to update this document');
       }
 
       final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
@@ -206,62 +186,52 @@ class DocumentsHandler {
       );
 
       if (document == null) {
-        return Response.notFound(jsonEncode({'error': 'Document not found'}));
+        return resp.notFound('Document not found');
       }
 
-      return Response.ok(
-        jsonEncode(document.toJson()),
-        headers: {'content-type': 'application/json'},
-      );
+      return resp.ok(document.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to update document: $e'}),
-      );
+      return resp.serverError('Failed to update document: $e');
     }
   }
 
   /// Delete a document
   Future<Response> _deleteDocument(Request request, String documentId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Check permissions
       final canManage = await _documentService.canManageDocument(documentId, userId);
       if (!canManage) {
-        return Response.forbidden(jsonEncode({'error': 'Not authorized to delete this document'}));
+        return resp.forbidden('Not authorized to delete this document');
       }
 
       final success = await _documentService.deleteDocument(documentId);
       if (!success) {
-        return Response.notFound(jsonEncode({'error': 'Document not found'}));
+        return resp.notFound('Document not found');
       }
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'content-type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to delete document: $e'}),
-      );
+      return resp.serverError('Failed to delete document: $e');
     }
   }
 
   /// Upload a document (file + metadata)
   Future<Response> _uploadDocument(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
       final membership = await _teamService.getMembership(teamId, userId);
       if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+        return resp.forbidden('Not a team member');
       }
 
       // Parse multipart form data or JSON with base64 content
@@ -276,9 +246,7 @@ class DocumentsHandler {
         final mimeType = body['mime_type'] as String?;
 
         if (fileName == null || fileContent == null || mimeType == null) {
-          return Response.badRequest(
-            body: jsonEncode({'error': 'file_name, file_content (base64), and mime_type are required'}),
-          );
+          return resp.badRequest('file_name, file_content (base64), and mime_type are required');
         }
 
         // Decode base64 content
@@ -294,51 +262,39 @@ class DocumentsHandler {
           category: body['category'] as String?,
         );
 
-        return Response.ok(
-          jsonEncode(document.toJson()),
-          headers: {'content-type': 'application/json'},
-        );
+        return resp.ok(document.toJson());
       } else {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Content-Type must be application/json with base64-encoded file_content'}),
-        );
+        return resp.badRequest('Content-Type must be application/json with base64-encoded file_content');
       }
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to upload document: $e'}),
-      );
+      return resp.serverError('Failed to upload document: $e');
     }
   }
 
   /// Get download URL for a document
   Future<Response> _getDownloadUrl(Request request, String documentId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       final document = await _documentService.getDocument(documentId);
       if (document == null) {
-        return Response.notFound(jsonEncode({'error': 'Document not found'}));
+        return resp.notFound('Document not found');
       }
 
       // Verify team membership
       final membership = await _teamService.getMembership(document.teamId, userId);
       if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+        return resp.forbidden('Not a team member');
       }
 
       final url = await _documentService.getDownloadUrl(document.filePath);
 
-      return Response.ok(
-        jsonEncode({'url': url}),
-        headers: {'content-type': 'application/json'},
-      );
+      return resp.ok({'url': url});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to get download URL: $e'}),
-      );
+      return resp.serverError('Failed to get download URL: $e');
     }
   }
 }

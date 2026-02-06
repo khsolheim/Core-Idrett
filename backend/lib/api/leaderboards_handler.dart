@@ -3,15 +3,15 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../models/season.dart';
 import '../services/leaderboard_service.dart';
-import '../services/auth_service.dart';
 import '../services/team_service.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class LeaderboardsHandler {
   final LeaderboardService _leaderboardService;
-  final AuthService _authService;
   final TeamService _teamService;
 
-  LeaderboardsHandler(this._leaderboardService, this._authService, this._teamService);
+  LeaderboardsHandler(this._leaderboardService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -42,38 +42,16 @@ class LeaderboardsHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
-  Future<bool> _isTeamAdmin(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    if (team == null) return false;
-    return team['user_is_admin'] == true || team['user_role'] == 'admin';
-  }
-
   Future<Response> _getLeaderboards(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -82,45 +60,30 @@ class LeaderboardsHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'leaderboards': leaderboards.map((l) => l.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'leaderboards': leaderboards.map((l) => l.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente leaderboards: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente leaderboards: $e');
     }
   }
 
   Future<Response> _getMainLeaderboard(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final leaderboard = await _leaderboardService.getMainLeaderboard(teamId);
 
       if (leaderboard == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Ingen hovedranking funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Ingen hovedranking funnet');
       }
 
       // Also get entries
@@ -129,84 +92,59 @@ class LeaderboardsHandler {
         limit: 50,
       );
 
-      return Response.ok(
-        jsonEncode({
-          ...leaderboard.toJson(),
-          'entries': entries.map((e) => e.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        ...leaderboard.toJson(),
+        'entries': entries.map((e) => e.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente hovedranking: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente hovedranking: $e');
     }
   }
 
   Future<Response> _getLeaderboardById(Request request, String leaderboardId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final leaderboard = await _leaderboardService.getLeaderboardById(leaderboardId);
       if (leaderboard == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      final team = await _teamService.getTeamById(leaderboard.teamId, userId);
+      final team = await requireTeamMember(_teamService, leaderboard.teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette leaderboardet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette leaderboardet');
       }
 
-      return Response.ok(
-        jsonEncode(leaderboard.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(leaderboard.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente leaderboard: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente leaderboard: $e');
     }
   }
 
   Future<Response> _createLeaderboard(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan opprette leaderboards'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan opprette leaderboards');
       }
 
       final body = jsonDecode(await request.readAsString());
       final name = body['name'] as String?;
 
       if (name == null || name.isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Navn er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Navn er pakrevd');
       }
 
       final leaderboard = await _leaderboardService.createLeaderboard(
@@ -218,41 +156,31 @@ class LeaderboardsHandler {
         sortOrder: body['sort_order'] as int? ?? 0,
       );
 
-      return Response.ok(
-        jsonEncode(leaderboard.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(leaderboard.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke opprette leaderboard: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette leaderboard: $e');
     }
   }
 
   Future<Response> _updateLeaderboard(Request request, String leaderboardId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan oppdatere leaderboards'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan oppdatere leaderboards');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -267,87 +195,59 @@ class LeaderboardsHandler {
       );
 
       if (leaderboard == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode(leaderboard.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(leaderboard.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke oppdatere leaderboard: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke oppdatere leaderboard: $e');
     }
   }
 
   Future<Response> _deleteLeaderboard(Request request, String leaderboardId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan slette leaderboards'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan slette leaderboards');
       }
 
       await _leaderboardService.deleteLeaderboard(leaderboardId);
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke slette leaderboard: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke slette leaderboard: $e');
     }
   }
 
   Future<Response> _getEntries(Request request, String leaderboardId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette leaderboardet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette leaderboardet');
       }
 
       final limitParam = request.url.queryParameters['limit'];
@@ -359,90 +259,62 @@ class LeaderboardsHandler {
         offset: offsetParam != null ? int.tryParse(offsetParam) ?? 0 : 0,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'entries': entries.map((e) => e.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'entries': entries.map((e) => e.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente entries: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente entries: $e');
     }
   }
 
   Future<Response> _getUserEntry(Request request, String leaderboardId, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette leaderboardet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette leaderboardet');
       }
 
       final entry = await _leaderboardService.getUserEntry(leaderboardId, targetUserId);
 
       if (entry == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Bruker ikke funnet i leaderboard'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Bruker ikke funnet i leaderboard');
       }
 
-      return Response.ok(
-        jsonEncode(entry.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(entry.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente brukerentry: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente brukerentry: $e');
     }
   }
 
   Future<Response> _addPoints(Request request, String leaderboardId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan legge til poeng'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan legge til poeng');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -460,10 +332,7 @@ class LeaderboardsHandler {
           addToExisting: addToExisting,
         );
 
-        return Response.ok(
-          jsonEncode(entry.toJson()),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.ok(entry.toJson());
       } else if (body['user_points'] != null) {
         final userPoints = Map<String, int>.from(body['user_points'] as Map);
 
@@ -472,123 +341,88 @@ class LeaderboardsHandler {
           userPoints: userPoints,
         );
 
-        return Response.ok(
-          jsonEncode({'success': true}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.ok({'success': true});
       } else {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'user_id eller user_points er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('user_id eller user_points er pakrevd');
       }
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke legge til poeng: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke legge til poeng: $e');
     }
   }
 
   Future<Response> _resetLeaderboard(Request request, String leaderboardId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan nullstille leaderboard'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan nullstille leaderboard');
       }
 
       await _leaderboardService.resetLeaderboard(leaderboardId);
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke nullstille leaderboard: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke nullstille leaderboard: $e');
     }
   }
 
   Future<Response> _getPointConfigs(Request request, String miniActivityId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final configs = await _leaderboardService.getPointConfigsForMiniActivity(miniActivityId);
 
-      return Response.ok(
-        jsonEncode({
-          'configs': configs.map((c) => c.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'configs': configs.map((c) => c.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente poengkonfigurasjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente poengkonfigurasjon: $e');
     }
   }
 
   Future<Response> _upsertPointConfig(Request request, String miniActivityId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final body = jsonDecode(await request.readAsString());
       final leaderboardId = body['leaderboard_id'] as String?;
 
       if (leaderboardId == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'leaderboard_id er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('leaderboard_id er pakrevd');
       }
 
       // Verify admin access to leaderboard's team
       final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan konfigurere poeng'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan konfigurere poeng');
       }
 
       final config = await _leaderboardService.upsertPointConfig(
@@ -601,15 +435,9 @@ class LeaderboardsHandler {
         pointsParticipation: body['points_participation'] as int? ?? 0,
       );
 
-      return Response.ok(
-        jsonEncode(config.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(config.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke oppdatere poengkonfigurasjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke oppdatere poengkonfigurasjon: $e');
     }
   }
 
@@ -619,40 +447,30 @@ class LeaderboardsHandler {
     String leaderboardId,
   ) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Leaderboard ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Leaderboard ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan fjerne poengkonfigurasjon'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan fjerne poengkonfigurasjon');
       }
 
       await _leaderboardService.deletePointConfig(miniActivityId, leaderboardId);
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke slette poengkonfigurasjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke slette poengkonfigurasjon: $e');
     }
   }
 
@@ -660,20 +478,14 @@ class LeaderboardsHandler {
 
   Future<Response> _getRankedLeaderboard(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -699,36 +511,24 @@ class LeaderboardsHandler {
         offset: offsetParam != null ? int.tryParse(offsetParam) ?? 0 : 0,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'entries': entries.map((e) => e.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'entries': entries.map((e) => e.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente rangert leaderboard: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente rangert leaderboard: $e');
     }
   }
 
   Future<Response> _getLeaderboardWithTrends(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -750,17 +550,11 @@ class LeaderboardsHandler {
         limit: limitParam != null ? int.tryParse(limitParam) : null,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'entries': entries.map((e) => e.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'entries': entries.map((e) => e.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente leaderboard med trender: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente leaderboard med trender: $e');
     }
   }
 
@@ -770,20 +564,14 @@ class LeaderboardsHandler {
     String targetUserId,
   ) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -795,21 +583,12 @@ class LeaderboardsHandler {
       );
 
       if (entry == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Bruker ikke funnet i leaderboard'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Bruker ikke funnet i leaderboard');
       }
 
-      return Response.ok(
-        jsonEncode(entry.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(entry.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente brukerposisjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente brukerposisjon: $e');
     }
   }
 
@@ -819,20 +598,14 @@ class LeaderboardsHandler {
     String targetUserId,
   ) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final yearParam = request.url.queryParameters['year'];
@@ -847,17 +620,11 @@ class LeaderboardsHandler {
         limit: limitParam != null ? int.tryParse(limitParam) : null,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'stats': stats,
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'stats': stats,
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente månedlig statistikk: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente månedlig statistikk: $e');
     }
   }
 }

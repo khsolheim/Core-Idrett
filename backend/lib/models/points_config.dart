@@ -67,7 +67,7 @@ class TeamPointsConfig {
     return defaultValue;
   }
 
-  factory TeamPointsConfig.fromRow(Map<String, dynamic> row) {
+  factory TeamPointsConfig.fromJson(Map<String, dynamic> row) {
     return TeamPointsConfig(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -221,7 +221,7 @@ class AttendancePoints {
     required this.awardedAt,
   });
 
-  factory AttendancePoints.fromRow(Map<String, dynamic> row) {
+  factory AttendancePoints.fromJson(Map<String, dynamic> row) {
     return AttendancePoints(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -282,7 +282,7 @@ class ManualPointAdjustment {
     this.createdByName,
   });
 
-  factory ManualPointAdjustment.fromRow(Map<String, dynamic> row) {
+  factory ManualPointAdjustment.fromJson(Map<String, dynamic> row) {
     return ManualPointAdjustment(
       id: row['id'] as String,
       teamId: row['team_id'] as String,

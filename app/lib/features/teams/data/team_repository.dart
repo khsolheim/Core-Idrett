@@ -27,7 +27,7 @@ class TeamRepository {
       '/teams',
       data: {
         'name': name,
-        if (sport != null) 'sport': sport,
+        'sport': ?sport,
       },
     );
     return Team.fromJson(response.data as Map<String, dynamic>);
@@ -41,8 +41,8 @@ class TeamRepository {
     final response = await _client.patch(
       '/teams/$teamId',
       data: {
-        if (name != null) 'name': name,
-        if (sport != null) 'sport': sport,
+        'name': ?name,
+        'sport': ?sport,
       },
     );
     return Team.fromJson(response.data as Map<String, dynamic>);
@@ -66,18 +66,6 @@ class TeamRepository {
     return data.map((e) => TeamMember.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  /// @deprecated Use updateMemberPermissions instead
-  Future<void> updateMemberRole({
-    required String teamId,
-    required String memberId,
-    required TeamRole role,
-  }) async {
-    await _client.patch(
-      '/teams/$teamId/members/$memberId/role',
-      data: {'role': role.toApiString()},
-    );
-  }
-
   /// Update member permissions with the new flag-based system
   Future<void> updateMemberPermissions({
     required String teamId,
@@ -91,13 +79,12 @@ class TeamRepository {
     await _client.patch(
       '/teams/$teamId/members/$memberId/permissions',
       data: {
-        if (isAdmin != null) 'is_admin': isAdmin,
-        if (isFineBoss != null) 'is_fine_boss': isFineBoss,
-        if (isCoach != null) 'is_coach': isCoach,
+        'is_admin': ?isAdmin,
+        'is_fine_boss': ?isFineBoss,
+        'is_coach': ?isCoach,
         if (clearTrainerType)
           'trainer_type_id': null
-        else if (trainerTypeId != null)
-          'trainer_type_id': trainerTypeId,
+        else 'trainer_type_id': ?trainerTypeId,
       },
     );
   }
@@ -169,12 +156,12 @@ class TeamRepository {
     final response = await _client.patch(
       '/teams/$teamId/settings',
       data: {
-        if (attendancePoints != null) 'attendance_points': attendancePoints,
-        if (winPoints != null) 'win_points': winPoints,
-        if (drawPoints != null) 'draw_points': drawPoints,
-        if (lossPoints != null) 'loss_points': lossPoints,
-        if (appealFee != null) 'appeal_fee': appealFee,
-        if (gameDayMultiplier != null) 'game_day_multiplier': gameDayMultiplier,
+        'attendance_points': ?attendancePoints,
+        'win_points': ?winPoints,
+        'draw_points': ?drawPoints,
+        'loss_points': ?lossPoints,
+        'appeal_fee': ?appealFee,
+        'game_day_multiplier': ?gameDayMultiplier,
       },
     );
     return TeamSettings.fromJson(response.data as Map<String, dynamic>);

@@ -16,7 +16,7 @@ class SeasonService {
       order: 'start_date.desc.nullslast,created_at.desc',
     );
 
-    return result.map((row) => Season.fromRow(row)).toList();
+    return result.map((row) => Season.fromJson(row)).toList();
   }
 
   /// Get the active season for a team
@@ -31,7 +31,7 @@ class SeasonService {
     );
 
     if (result.isEmpty) return null;
-    return Season.fromRow(result.first);
+    return Season.fromJson(result.first);
   }
 
   /// Get a season by ID
@@ -42,7 +42,7 @@ class SeasonService {
     );
 
     if (result.isEmpty) return null;
-    return Season.fromRow(result.first);
+    return Season.fromJson(result.first);
   }
 
   /// Create a new season

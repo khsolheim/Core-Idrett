@@ -18,7 +18,7 @@ class TestService {
       order: 'name.asc',
     );
 
-    return result.map((row) => TestTemplate.fromRow(row)).toList();
+    return result.map((row) => TestTemplate.fromJson(row)).toList();
   }
 
   /// Get a test template by ID
@@ -29,7 +29,7 @@ class TestService {
     );
 
     if (result.isEmpty) return null;
-    return TestTemplate.fromRow(result.first);
+    return TestTemplate.fromJson(result.first);
   }
 
   /// Create a new test template
@@ -355,7 +355,7 @@ class TestService {
     );
 
     if (results.isEmpty) return null;
-    return TestResult.fromRow(results.first);
+    return TestResult.fromJson(results.first);
   }
 
   /// Delete a test result

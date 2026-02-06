@@ -187,8 +187,8 @@ class MiniActivityStatisticsRepository {
     String? miniActivityId,
   }) async {
     await _apiClient.post('/mini-activity-stats/team/$teamId/recalculate', data: {
-      if (userId != null) 'user_id': userId,
-      if (miniActivityId != null) 'mini_activity_id': miniActivityId,
+      'user_id': ?userId,
+      'mini_activity_id': ?miniActivityId,
     });
   }
 }

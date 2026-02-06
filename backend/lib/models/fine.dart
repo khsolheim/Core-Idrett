@@ -261,7 +261,7 @@ class TeamFinesSummary {
 }
 
 class UserFinesSummary {
-  final String oderId;
+  final String userId;
   final String userName;
   final String? userAvatarUrl;
   final double totalFines;
@@ -269,7 +269,7 @@ class UserFinesSummary {
   final int fineCount;
 
   UserFinesSummary({
-    required this.oderId,
+    required this.userId,
     required this.userName,
     this.userAvatarUrl,
     this.totalFines = 0,
@@ -280,7 +280,7 @@ class UserFinesSummary {
   double get outstandingBalance => totalFines - totalPaid;
 
   Map<String, dynamic> toJson() => {
-        'user_id': oderId,
+        'user_id': userId,
         'user_name': userName,
         'user_avatar_url': userAvatarUrl,
         'total_fines': totalFines,

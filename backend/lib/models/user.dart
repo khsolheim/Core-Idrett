@@ -13,7 +13,7 @@ class User {
     required this.createdAt,
   });
 
-  factory User.fromRow(Map<String, dynamic> row) {
+  factory User.fromJson(Map<String, dynamic> row) {
     final createdAt = row['created_at'];
     return User(
       id: row['id'] as String,

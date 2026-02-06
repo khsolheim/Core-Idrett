@@ -21,11 +21,11 @@ class StopwatchRepository {
     int? countdownDurationMs,
   }) async {
     final response = await _apiClient.post('/stopwatch/sessions', data: {
-      if (miniActivityId != null) 'mini_activity_id': miniActivityId,
-      if (teamId != null) 'team_id': teamId,
+      'mini_activity_id': ?miniActivityId,
+      'team_id': ?teamId,
       'name': name,
       'session_type': sessionType.toJson(),
-      if (countdownDurationMs != null) 'countdown_duration_ms': countdownDurationMs,
+      'countdown_duration_ms': ?countdownDurationMs,
     });
     return StopwatchSession.fromJson(response.data as Map<String, dynamic>);
   }
@@ -67,9 +67,9 @@ class StopwatchRepository {
     int? countdownDurationMs,
   }) async {
     final response = await _apiClient.patch('/stopwatch/sessions/$sessionId', data: {
-      if (name != null) 'name': name,
+      'name': ?name,
       if (sessionType != null) 'session_type': sessionType.toJson(),
-      if (countdownDurationMs != null) 'countdown_duration_ms': countdownDurationMs,
+      'countdown_duration_ms': ?countdownDurationMs,
     });
     return StopwatchSession.fromJson(response.data as Map<String, dynamic>);
   }
@@ -118,7 +118,7 @@ class StopwatchRepository {
       'user_id': userId,
       'time_ms': timeMs,
       'is_split': isSplit,
-      if (splitNumber != null) 'split_number': splitNumber,
+      'split_number': ?splitNumber,
     });
     return StopwatchTime.fromJson(response.data as Map<String, dynamic>);
   }
@@ -145,7 +145,7 @@ class StopwatchRepository {
     int? timeMs,
   }) async {
     final response = await _apiClient.patch('/stopwatch/times/$timeId', data: {
-      if (timeMs != null) 'time_ms': timeMs,
+      'time_ms': ?timeMs,
     });
     return StopwatchTime.fromJson(response.data as Map<String, dynamic>);
   }

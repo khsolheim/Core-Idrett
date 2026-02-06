@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/message.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 
@@ -111,32 +113,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: chatState.when(
+            child: chatState.when2(
+              onRetry: () => ref
+                  .read(chatNotifierProvider(widget.teamId).notifier)
+                  .refresh(),
               data: (messages) {
                 if (messages.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: theme.colorScheme.outline,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Ingen meldinger enna',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Vær den forste til a skrive!',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
+                  return const EmptyStateWidget(
+                    icon: Icons.chat_bubble_outline,
+                    title: 'Ingen meldinger enna',
+                    subtitle: 'Vær den forste til a skrive!',
                   );
                 }
 
@@ -173,24 +159,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, size: 48),
-                    const SizedBox(height: 16),
-                    Text('Kunne ikke laste meldinger: $error'),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () => ref
-                          .read(chatNotifierProvider(widget.teamId).notifier)
-                          .refresh(),
-                      child: const Text('Prov igjen'),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
           // Reply/Edit indicator

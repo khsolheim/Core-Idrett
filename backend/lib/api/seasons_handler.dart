@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/season_service.dart';
-import '../services/auth_service.dart';
 import '../services/team_service.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class SeasonsHandler {
   final SeasonService _seasonService;
-  final AuthService _authService;
   final TeamService _teamService;
 
-  SeasonsHandler(this._seasonService, this._authService, this._teamService);
+  SeasonsHandler(this._seasonService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -28,162 +28,100 @@ class SeasonsHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
-  Future<bool> _isTeamAdmin(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    if (team == null) return false;
-    return team['user_is_admin'] == true || team['user_role'] == 'admin';
-  }
-
   Future<Response> _getSeasons(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       // Verify user is team member
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasons = await _seasonService.getSeasonsForTeam(teamId);
 
-      return Response.ok(
-        jsonEncode({
-          'seasons': seasons.map((s) => s.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'seasons': seasons.map((s) => s.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente sesonger: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente sesonger: $e');
     }
   }
 
   Future<Response> _getActiveSeason(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       // Verify user is team member
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final season = await _seasonService.getActiveSeason(teamId);
 
       if (season == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Ingen aktiv sesong funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Ingen aktiv sesong funnet');
       }
 
-      return Response.ok(
-        jsonEncode(season.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(season.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente aktiv sesong: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente aktiv sesong: $e');
     }
   }
 
   Future<Response> _getSeasonById(Request request, String seasonId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final season = await _seasonService.getSeasonById(seasonId);
       if (season == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Sesong ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Sesong ikke funnet');
       }
 
       // Verify user is team member
-      final team = await _teamService.getTeamById(season.teamId, userId);
+      final team = await requireTeamMember(_teamService, season.teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til denne sesongen'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til denne sesongen');
       }
 
-      return Response.ok(
-        jsonEncode(season.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(season.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente sesong: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente sesong: $e');
     }
   }
 
   Future<Response> _createSeason(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       // Verify user is admin
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan opprette sesonger'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan opprette sesonger');
       }
 
       final body = jsonDecode(await request.readAsString());
       final name = body['name'] as String?;
 
       if (name == null || name.isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Navn er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Navn er pakrevd');
       }
 
       final startDateStr = body['start_date'] as String?;
@@ -198,41 +136,31 @@ class SeasonsHandler {
         setActive: setActive,
       );
 
-      return Response.ok(
-        jsonEncode(season.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(season.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke opprette sesong: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette sesong: $e');
     }
   }
 
   Future<Response> _updateSeason(Request request, String seasonId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _seasonService.getTeamIdForSeason(seasonId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Sesong ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Sesong ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan oppdatere sesonger'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan oppdatere sesonger');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -250,138 +178,102 @@ class SeasonsHandler {
       );
 
       if (season == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Sesong ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Sesong ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode(season.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(season.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke oppdatere sesong: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke oppdatere sesong: $e');
     }
   }
 
   Future<Response> _activateSeason(Request request, String seasonId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _seasonService.getTeamIdForSeason(seasonId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Sesong ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Sesong ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan aktivere sesonger'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan aktivere sesonger');
       }
 
       await _seasonService.setActiveSeason(teamId, seasonId);
 
       final season = await _seasonService.getSeasonById(seasonId);
 
-      return Response.ok(
-        jsonEncode(season?.toJson() ?? {}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(season?.toJson() ?? {});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke aktivere sesong: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke aktivere sesong: $e');
     }
   }
 
   Future<Response> _deleteSeason(Request request, String seasonId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _seasonService.getTeamIdForSeason(seasonId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Sesong ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Sesong ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan slette sesonger'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan slette sesonger');
       }
 
       final success = await _seasonService.deleteSeason(seasonId);
 
       if (!success) {
-        return Response.badRequest(
-          body: jsonEncode({
-            'error': 'Kan ikke slette aktiv sesong eller sesong med data'
-          }),
-          headers: {'Content-Type': 'application/json'},
+        return resp.badRequest(
+          'Kan ikke slette aktiv sesong eller sesong med data',
         );
       }
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke slette sesong: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke slette sesong: $e');
     }
   }
 
   Future<Response> _startNewSeason(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan starte ny sesong'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan starte ny sesong');
       }
 
       final body = jsonDecode(await request.readAsString());
       final name = body['name'] as String?;
 
       if (name == null || name.isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Navn er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Navn er pakrevd');
       }
 
       final startDateStr = body['start_date'] as String?;
@@ -394,15 +286,9 @@ class SeasonsHandler {
         endDate: endDateStr != null ? DateTime.tryParse(endDateStr) : null,
       );
 
-      return Response.ok(
-        jsonEncode(season.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(season.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke starte ny sesong: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke starte ny sesong: $e');
     }
   }
 }

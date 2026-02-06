@@ -34,7 +34,6 @@ class MockChatRepository extends Mock implements ChatRepository {}
 // ============ Register Fallback Values ============
 
 void registerFallbackValues() {
-  registerFallbackValue(TeamRole.player);
   registerFallbackValue(ActivityType.training);
   registerFallbackValue(RecurrenceType.once);
   registerFallbackValue(ResponseType.yesNo);

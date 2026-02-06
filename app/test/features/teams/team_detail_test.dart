@@ -24,7 +24,6 @@ void main() {
       id: 'team-1',
       name: 'Test Team',
       sport: 'Fotball',
-      userRole: TeamRole.player,
     );
   });
 
@@ -101,7 +100,6 @@ void main() {
       final adminTeam = TestTeamFactory.create(
         id: 'team-1',
         name: 'Admin Team',
-        userRole: TeamRole.admin,
         userIsAdmin: true,
       );
       scenario.setupLoggedIn();
@@ -123,7 +121,6 @@ void main() {
       final playerTeam = TestTeamFactory.create(
         id: 'team-1',
         name: 'Player Team',
-        userRole: TeamRole.player,
         userIsAdmin: false,
       );
       scenario.setupLoggedIn();

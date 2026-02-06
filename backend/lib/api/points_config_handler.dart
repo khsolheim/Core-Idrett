@@ -2,17 +2,16 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/points_config_service.dart' show PointsConfigService, AdjustmentType;
-import '../services/auth_service.dart';
 import '../services/team_service.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class PointsConfigHandler {
   final PointsConfigService _pointsConfigService;
-  final AuthService _authService;
   final TeamService _teamService;
 
   PointsConfigHandler(
     this._pointsConfigService,
-    this._authService,
     this._teamService,
   );
 
@@ -42,38 +41,16 @@ class PointsConfigHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
-  Future<bool> _isTeamAdmin(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    if (team == null) return false;
-    return team['user_is_admin'] == true || team['user_role'] == 'admin';
-  }
-
   Future<Response> _getConfig(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -82,33 +59,26 @@ class PointsConfigHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode(config.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(config.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente poengkonfigurasjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente poengkonfigurasjon: $e');
     }
   }
 
   Future<Response> _createOrUpdateConfig(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan endre poengkonfigurasjon'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan endre poengkonfigurasjon');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -141,10 +111,7 @@ class PointsConfigHandler {
           newPlayerStartMode: body['new_player_start_mode'] as String?,
         );
 
-        return Response.ok(
-          jsonEncode(config?.toJson()),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.ok(config?.toJson());
       }
 
       // Create new
@@ -173,43 +140,32 @@ class PointsConfigHandler {
             body['new_player_start_mode'] as String? ?? 'from_join',
       );
 
-      return Response.ok(
-        jsonEncode(config.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(config.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body:
-            jsonEncode({'error': 'Kunne ikke opprette/oppdatere konfigurasjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette/oppdatere konfigurasjon: $e');
     }
   }
 
   Future<Response> _updateConfig(Request request, String configId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       // Fetch config to get teamId for authorization check
       final existingConfig = await _pointsConfigService.getConfigById(configId);
       if (existingConfig == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Konfigurasjon ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Konfigurasjon ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, existingConfig.teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan endre poengkonfigurasjon'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, existingConfig.teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan endre poengkonfigurasjon');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -235,81 +191,56 @@ class PointsConfigHandler {
       );
 
       if (config == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Konfigurasjon ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Konfigurasjon ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode(config.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(config.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke oppdatere konfigurasjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke oppdatere konfigurasjon: $e');
     }
   }
 
   Future<Response> _deleteConfig(Request request, String configId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       // Fetch config to get teamId for authorization check
       final existingConfig = await _pointsConfigService.getConfigById(configId);
       if (existingConfig == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Konfigurasjon ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Konfigurasjon ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, existingConfig.teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan slette poengkonfigurasjon'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, existingConfig.teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan slette poengkonfigurasjon');
       }
 
       await _pointsConfigService.deleteConfig(configId);
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke slette konfigurasjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke slette konfigurasjon: $e');
     }
   }
 
   Future<Response> _getTeamAttendancePoints(
       Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final targetUserId =
@@ -322,27 +253,18 @@ class PointsConfigHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode(stats),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(stats);
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente oppmøtepoeng: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente oppmøtepoeng: $e');
     }
   }
 
   Future<Response> _getUserAttendancePoints(
       Request request, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -354,36 +276,29 @@ class PointsConfigHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'points': points.map((p) => p.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'points': points.map((p) => p.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente oppmøtepoeng: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente oppmøtepoeng: $e');
     }
   }
 
   Future<Response> _awardAttendancePoints(
       Request request, String teamId, String instanceId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan tildele poeng'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan tildele poeng');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -402,34 +317,22 @@ class PointsConfigHandler {
         weightedPoints: weightedPoints,
       );
 
-      return Response.ok(
-        jsonEncode(points.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(points.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke tildele poeng: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke tildele poeng: $e');
     }
   }
 
   Future<Response> _setOptOut(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -437,66 +340,42 @@ class PointsConfigHandler {
       final optOut = body['opt_out'] as bool? ?? false;
 
       // Only allow setting own opt-out unless admin
-      if (targetUserId != userId && !await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kan kun endre egen opt-out status'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      if (targetUserId != userId && !isAdmin(team)) {
+        return resp.forbidden('Kan kun endre egen opt-out status');
       }
 
       // Check if opt-out is allowed
       final config = await _pointsConfigService.getConfig(teamId);
       if (config != null && !config.allowOptOut && optOut) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Opt-out er ikke aktivert for dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Opt-out er ikke aktivert for dette laget');
       }
 
       await _pointsConfigService.setOptOut(targetUserId, teamId, optOut);
 
-      return Response.ok(
-        jsonEncode({'success': true, 'opt_out': optOut}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true, 'opt_out': optOut});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke endre opt-out status: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke endre opt-out status: $e');
     }
   }
 
   Future<Response> _getOptOut(
       Request request, String teamId, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final optOut = await _pointsConfigService.hasOptedOut(targetUserId, teamId);
 
-      return Response.ok(
-        jsonEncode({'opt_out': optOut}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'opt_out': optOut});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente opt-out status: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente opt-out status: $e');
     }
   }
 
@@ -504,19 +383,18 @@ class PointsConfigHandler {
 
   Future<Response> _createAdjustment(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan justere poeng'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan justere poeng');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -530,19 +408,13 @@ class PointsConfigHandler {
           points == null ||
           adjustmentTypeStr == null ||
           reason == null) {
-        return Response.badRequest(
-          body: jsonEncode({
-            'error': 'user_id, points, adjustment_type og reason er påkrevd',
-          }),
-          headers: {'Content-Type': 'application/json'},
+        return resp.badRequest(
+          'user_id, points, adjustment_type og reason er påkrevd',
         );
       }
 
       if (reason.trim().isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Begrunnelse kan ikke være tom'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Begrunnelse kan ikke være tom');
       }
 
       final adjustmentType = AdjustmentType.fromString(adjustmentTypeStr);
@@ -557,34 +429,22 @@ class PointsConfigHandler {
         seasonId: body['season_id'] as String?,
       );
 
-      return Response.ok(
-        jsonEncode(adjustment.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(adjustment.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke opprette justering: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette justering: $e');
     }
   }
 
   Future<Response> _getTeamAdjustments(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final seasonId = request.url.queryParameters['season_id'];
@@ -597,29 +457,20 @@ class PointsConfigHandler {
         limit: limit,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'adjustments': adjustments.map((a) => a.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'adjustments': adjustments.map((a) => a.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente justeringer: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente justeringer: $e');
     }
   }
 
   Future<Response> _getUserAdjustments(
       Request request, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -631,17 +482,11 @@ class PointsConfigHandler {
         seasonId: seasonId,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'adjustments': adjustments.map((a) => a.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'adjustments': adjustments.map((a) => a.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente justeringer: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente justeringer: $e');
     }
   }
 }

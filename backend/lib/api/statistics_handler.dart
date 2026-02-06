@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/statistics_service.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class StatisticsHandler {
   final StatisticsService _statisticsService;
@@ -32,17 +33,11 @@ class StatisticsHandler {
 
       final leaderboard = await _statisticsService.getLeaderboard(teamId, seasonYear: year);
 
-      return Response.ok(
-        jsonEncode({
-          'leaderboard': leaderboard.map((e) => e.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'leaderboard': leaderboard.map((e) => e.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente leaderboard: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente leaderboard: $e');
     }
   }
 
@@ -60,17 +55,11 @@ class StatisticsHandler {
         toDate: to,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'attendance': attendance.map((e) => e.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'attendance': attendance.map((e) => e.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente oppmøte: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente oppmote: $e');
     }
   }
 
@@ -79,21 +68,12 @@ class StatisticsHandler {
       final stats = await _statisticsService.getPlayerStatistics(userId, teamId);
 
       if (stats == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Spiller ikke funnet i laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Spiller ikke funnet i laget');
       }
 
-      return Response.ok(
-        jsonEncode(stats.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(stats.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente spillerstatistikk: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente spillerstatistikk: $e');
     }
   }
 
@@ -101,17 +81,11 @@ class StatisticsHandler {
     try {
       final stats = await _statisticsService.getMatchStats(instanceId);
 
-      return Response.ok(
-        jsonEncode({
-          'match_stats': stats.map((e) => e.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'match_stats': stats.map((e) => e.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente kampstatistikk: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente kampstatistikk: $e');
     }
   }
 
@@ -121,10 +95,7 @@ class StatisticsHandler {
       final userId = body['user_id'] as String?;
 
       if (userId == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'user_id er påkrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('user_id er pakrevd');
       }
 
       final stats = await _statisticsService.recordMatchStats(
@@ -138,21 +109,12 @@ class StatisticsHandler {
       );
 
       if (stats == null) {
-        return Response.internalServerError(
-          body: jsonEncode({'error': 'Kunne ikke registrere statistikk'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.serverError('Kunne ikke registrere statistikk');
       }
 
-      return Response.ok(
-        jsonEncode(stats.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(stats.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke registrere kampstatistikk: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke registrere kampstatistikk: $e');
     }
   }
 }

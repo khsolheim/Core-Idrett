@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/document.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../providers/document_provider.dart';
 import 'upload_document_sheet.dart';
 
@@ -21,7 +23,6 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
   Widget build(BuildContext context) {
     final documentsState = ref.watch(documentNotifierProvider(widget.teamId));
     final categoriesAsync = ref.watch(documentCategoriesProvider(widget.teamId));
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,34 +71,17 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
           ),
           // Document list
           Expanded(
-            child: documentsState.when(
+            child: documentsState.when2(
+              onRetry: () =>
+                  ref.read(documentNotifierProvider(widget.teamId).notifier).refresh(),
               data: (documents) {
                 if (documents.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.folder_open,
-                          size: 64,
-                          color: theme.colorScheme.outline,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _selectedCategory != null
-                              ? 'Ingen dokumenter i denne kategorien'
-                              : 'Ingen dokumenter enna',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Trykk + for a laste opp',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
+                  return EmptyStateWidget(
+                    icon: Icons.folder_open,
+                    title: _selectedCategory != null
+                        ? 'Ingen dokumenter i denne kategorien'
+                        : 'Ingen dokumenter enna',
+                    subtitle: 'Trykk + for a laste opp',
                   );
                 }
 
@@ -119,23 +103,6 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, size: 48),
-                    const SizedBox(height: 16),
-                    Text('Kunne ikke laste dokumenter: $error'),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () =>
-                          ref.read(documentNotifierProvider(widget.teamId).notifier).refresh(),
-                      child: const Text('Prov igjen'),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
         ],

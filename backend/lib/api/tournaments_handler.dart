@@ -1,17 +1,15 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import '../services/auth_service.dart';
 import '../services/tournament_service.dart';
-import '../services/team_service.dart';
 import '../models/tournament.dart';
+import 'helpers/response_helpers.dart' as resp;
+import 'helpers/auth_helpers.dart';
 
 class TournamentsHandler {
   final TournamentService _tournamentService;
-  final AuthService _authService;
-  final TeamService _teamService;
 
-  TournamentsHandler(this._tournamentService, this._authService, this._teamService);
+  TournamentsHandler(this._tournamentService);
 
   Router get router {
     final router = Router();
@@ -69,23 +67,13 @@ class TournamentsHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
   // ============ TOURNAMENT CRUD ============
 
   Future<Response> _createTournament(Request request, String miniActivityId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -93,7 +81,7 @@ class TournamentsHandler {
 
       final typeStr = data['tournament_type'] as String?;
       if (typeStr == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (tournament_type)'}));
+        return resp.badRequest('Mangler påkrevd felt (tournament_type)');
       }
 
       final tournament = await _tournamentService.createTournament(
@@ -107,53 +95,53 @@ class TournamentsHandler {
         maxParticipants: data['max_participants'] as int?,
       );
 
-      return Response.ok(jsonEncode(tournament.toJson()));
+      return resp.ok(tournament.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getTournamentForMiniActivity(Request request, String miniActivityId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final tournament = await _tournamentService.getTournamentForMiniActivity(miniActivityId);
       if (tournament == null) {
-        return Response(404, body: jsonEncode({'error': 'Turnering ikke funnet'}));
+        return resp.notFound('Turnering ikke funnet');
       }
 
-      return Response.ok(jsonEncode(tournament.toJson()));
+      return resp.ok(tournament.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getTournamentById(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final tournament = await _tournamentService.getTournamentById(tournamentId);
       if (tournament == null) {
-        return Response(404, body: jsonEncode({'error': 'Turnering ikke funnet'}));
+        return resp.notFound('Turnering ikke funnet');
       }
 
-      return Response.ok(jsonEncode(tournament.toJson()));
+      return resp.ok(tournament.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _updateTournament(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -168,23 +156,23 @@ class TournamentsHandler {
             : null,
       );
 
-      return Response.ok(jsonEncode(tournament.toJson()));
+      return resp.ok(tournament.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _deleteTournament(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       await _tournamentService.deleteTournament(tournamentId);
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -192,9 +180,9 @@ class TournamentsHandler {
 
   Future<Response> _generateBracket(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -202,7 +190,7 @@ class TournamentsHandler {
 
       final teamIds = (data['team_ids'] as List?)?.cast<String>() ?? [];
       if (teamIds.isEmpty) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (team_ids)'}));
+        return resp.badRequest('Mangler påkrevd felt (team_ids)');
       }
 
       final matches = await _tournamentService.generateSingleEliminationBracket(
@@ -210,9 +198,9 @@ class TournamentsHandler {
         teamIds: teamIds,
       );
 
-      return Response.ok(jsonEncode(matches.map((m) => m.toJson()).toList()));
+      return resp.ok(matches.map((m) => m.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -220,23 +208,23 @@ class TournamentsHandler {
 
   Future<Response> _getRounds(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final rounds = await _tournamentService.getRoundsForTournament(tournamentId);
-      return Response.ok(jsonEncode(rounds.map((r) => r.toJson()).toList()));
+      return resp.ok(rounds.map((r) => r.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _createRound(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -246,7 +234,7 @@ class TournamentsHandler {
       final roundName = data['round_name'] as String?;
 
       if (roundNumber == null || roundName == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt (round_number, round_name)'}));
+        return resp.badRequest('Mangler påkrevde felt (round_number, round_name)');
       }
 
       final round = await _tournamentService.createRound(
@@ -261,17 +249,17 @@ class TournamentsHandler {
             : null,
       );
 
-      return Response.ok(jsonEncode(round.toJson()));
+      return resp.ok(round.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _updateRound(Request request, String roundId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -288,9 +276,9 @@ class TournamentsHandler {
             : null,
       );
 
-      return Response.ok(jsonEncode(round.toJson()));
+      return resp.ok(round.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -298,9 +286,9 @@ class TournamentsHandler {
 
   Future<Response> _getMatches(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final roundId = request.url.queryParameters['round_id'];
@@ -308,35 +296,35 @@ class TournamentsHandler {
         tournamentId,
         roundId: roundId,
       );
-      return Response.ok(jsonEncode(matches.map((m) => m.toJson()).toList()));
+      return resp.ok(matches.map((m) => m.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getMatchById(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final match = await _tournamentService.getMatchById(matchId);
       if (match == null) {
-        return Response(404, body: jsonEncode({'error': 'Kamp ikke funnet'}));
+        return resp.notFound('Kamp ikke funnet');
       }
 
-      return Response.ok(jsonEncode(match.toJson()));
+      return resp.ok(match.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _updateMatch(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -354,31 +342,31 @@ class TournamentsHandler {
             : null,
       );
 
-      return Response.ok(jsonEncode(match.toJson()));
+      return resp.ok(match.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _startMatch(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final match = await _tournamentService.startMatch(matchId);
-      return Response.ok(jsonEncode(match.toJson()));
+      return resp.ok(match.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _completeMatch(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -386,21 +374,21 @@ class TournamentsHandler {
 
       final winnerId = data['winner_id'] as String?;
       if (winnerId == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (winner_id)'}));
+        return resp.badRequest('Mangler påkrevd felt (winner_id)');
       }
 
       final match = await _tournamentService.completeMatch(matchId, winnerId);
-      return Response.ok(jsonEncode(match.toJson()));
+      return resp.ok(match.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _declareWalkover(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -410,7 +398,7 @@ class TournamentsHandler {
       final reason = data['reason'] as String?;
 
       if (winnerId == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (winner_id)'}));
+        return resp.badRequest('Mangler påkrevd felt (winner_id)');
       }
 
       final match = await _tournamentService.declareWalkover(
@@ -419,9 +407,9 @@ class TournamentsHandler {
         reason: reason,
       );
 
-      return Response.ok(jsonEncode(match.toJson()));
+      return resp.ok(match.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -429,23 +417,23 @@ class TournamentsHandler {
 
   Future<Response> _getMatchGames(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final games = await _tournamentService.getGamesForMatch(matchId);
-      return Response.ok(jsonEncode(games.map((g) => g.toJson()).toList()));
+      return resp.ok(games.map((g) => g.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _recordGame(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -455,7 +443,7 @@ class TournamentsHandler {
       final winnerId = data['winner_id'] as String?;
 
       if (gameNumber == null || winnerId == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt (game_number, winner_id)'}));
+        return resp.badRequest('Mangler påkrevde felt (game_number, winner_id)');
       }
 
       final game = await _tournamentService.recordGame(
@@ -466,17 +454,17 @@ class TournamentsHandler {
         winnerId: winnerId,
       );
 
-      return Response.ok(jsonEncode(game.toJson()));
+      return resp.ok(game.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _updateGame(Request request, String gameId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -492,9 +480,9 @@ class TournamentsHandler {
             : null,
       );
 
-      return Response.ok(jsonEncode(game.toJson()));
+      return resp.ok(game.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -502,23 +490,23 @@ class TournamentsHandler {
 
   Future<Response> _getGroups(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final groups = await _tournamentService.getGroupsForTournament(tournamentId);
-      return Response.ok(jsonEncode(groups.map((g) => g.toJson()).toList()));
+      return resp.ok(groups.map((g) => g.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _createGroup(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -526,7 +514,7 @@ class TournamentsHandler {
 
       final name = data['name'] as String?;
       if (name == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (name)'}));
+        return resp.badRequest('Mangler påkrevd felt (name)');
       }
 
       final group = await _tournamentService.createGroup(
@@ -536,17 +524,17 @@ class TournamentsHandler {
         sortOrder: data['sort_order'] as int? ?? 0,
       );
 
-      return Response.ok(jsonEncode(group.toJson()));
+      return resp.ok(group.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _updateGroup(Request request, String groupId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -559,23 +547,23 @@ class TournamentsHandler {
         sortOrder: data['sort_order'] as int?,
       );
 
-      return Response.ok(jsonEncode(group.toJson()));
+      return resp.ok(group.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _deleteGroup(Request request, String groupId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       await _tournamentService.deleteGroup(groupId);
-      return Response.ok(jsonEncode({'success': true}));
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -583,15 +571,15 @@ class TournamentsHandler {
 
   Future<Response> _getGroupStandings(Request request, String groupId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final standings = await _tournamentService.getGroupStandings(groupId);
-      return Response.ok(jsonEncode(standings.map((s) => s.toJson()).toList()));
+      return resp.ok(standings.map((s) => s.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -599,23 +587,23 @@ class TournamentsHandler {
 
   Future<Response> _getGroupMatches(Request request, String groupId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final matches = await _tournamentService.getGroupMatches(groupId);
-      return Response.ok(jsonEncode(matches.map((m) => m.toJson()).toList()));
+      return resp.ok(matches.map((m) => m.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _createGroupMatch(Request request, String groupId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -625,7 +613,7 @@ class TournamentsHandler {
       final teamBId = data['team_b_id'] as String?;
 
       if (teamAId == null || teamBId == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt (team_a_id, team_b_id)'}));
+        return resp.badRequest('Mangler påkrevde felt (team_a_id, team_b_id)');
       }
 
       final match = await _tournamentService.createGroupMatch(
@@ -638,17 +626,17 @@ class TournamentsHandler {
         matchOrder: data['match_order'] as int? ?? 0,
       );
 
-      return Response.ok(jsonEncode(match.toJson()));
+      return resp.ok(match.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _updateGroupMatch(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -666,17 +654,17 @@ class TournamentsHandler {
             : null,
       );
 
-      return Response.ok(jsonEncode(match.toJson()));
+      return resp.ok(match.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _completeGroupMatch(Request request, String matchId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -686,7 +674,7 @@ class TournamentsHandler {
       final teamBScore = data['team_b_score'] as int?;
 
       if (teamAScore == null || teamBScore == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt (team_a_score, team_b_score)'}));
+        return resp.badRequest('Mangler påkrevde felt (team_a_score, team_b_score)');
       }
 
       final match = await _tournamentService.completeGroupMatch(
@@ -695,9 +683,9 @@ class TournamentsHandler {
         teamBScore: teamBScore,
       );
 
-      return Response.ok(jsonEncode(match.toJson()));
+      return resp.ok(match.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
@@ -705,23 +693,23 @@ class TournamentsHandler {
 
   Future<Response> _getQualificationRounds(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final rounds = await _tournamentService.getQualificationRounds(tournamentId);
-      return Response.ok(jsonEncode(rounds.map((r) => r.toJson()).toList()));
+      return resp.ok(rounds.map((r) => r.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _createQualificationRound(Request request, String tournamentId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -729,7 +717,7 @@ class TournamentsHandler {
 
       final name = data['name'] as String?;
       if (name == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevd felt (name)'}));
+        return resp.badRequest('Mangler påkrevd felt (name)');
       }
 
       final round = await _tournamentService.createQualificationRound(
@@ -739,31 +727,31 @@ class TournamentsHandler {
         sortDirection: data['sort_direction'] as String? ?? 'desc',
       );
 
-      return Response.ok(jsonEncode(round.toJson()));
+      return resp.ok(round.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _getQualificationResults(Request request, String qualificationId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final results = await _tournamentService.getQualificationResults(qualificationId);
-      return Response.ok(jsonEncode(results.map((r) => r.toJson()).toList()));
+      return resp.ok(results.map((r) => r.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _recordQualificationResult(Request request, String qualificationId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final body = await request.readAsString();
@@ -773,7 +761,7 @@ class TournamentsHandler {
       final resultValue = (data['result_value'] as num?)?.toDouble();
 
       if (participantUserId == null || resultValue == null) {
-        return Response(400, body: jsonEncode({'error': 'Mangler påkrevde felt (user_id, result_value)'}));
+        return resp.badRequest('Mangler påkrevde felt (user_id, result_value)');
       }
 
       final result = await _tournamentService.recordQualificationResult(
@@ -782,23 +770,23 @@ class TournamentsHandler {
         resultValue: resultValue,
       );
 
-      return Response.ok(jsonEncode(result.toJson()));
+      return resp.ok(result.toJson());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 
   Future<Response> _finalizeQualification(Request request, String qualificationId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response(401, body: jsonEncode({'error': 'Ikke autentisert'}));
+        return resp.unauthorized();
       }
 
       final advancedResults = await _tournamentService.finalizeQualification(qualificationId);
-      return Response.ok(jsonEncode(advancedResults.map((r) => r.toJson()).toList()));
+      return resp.ok(advancedResults.map((r) => r.toJson()).toList());
     } catch (e) {
-      return Response.internalServerError(body: jsonEncode({'error': 'En feil oppstod: $e'}));
+      return resp.serverError('En feil oppstod: $e');
     }
   }
 }

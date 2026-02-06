@@ -89,7 +89,7 @@ class StopwatchSession {
     required this.createdBy,
   });
 
-  factory StopwatchSession.fromRow(Map<String, dynamic> row) {
+  factory StopwatchSession.fromJson(Map<String, dynamic> row) {
     return StopwatchSession(
       id: row['id'] as String,
       miniActivityId: row['mini_activity_id'] as String?,
@@ -183,7 +183,7 @@ class StopwatchTime {
     required this.recordedAt,
   });
 
-  factory StopwatchTime.fromRow(Map<String, dynamic> row) {
+  factory StopwatchTime.fromJson(Map<String, dynamic> row) {
     return StopwatchTime(
       id: row['id'] as String,
       sessionId: row['session_id'] as String,

@@ -205,7 +205,7 @@ class Tournament {
     required this.createdAt,
   });
 
-  factory Tournament.fromRow(Map<String, dynamic> row) {
+  factory Tournament.fromJson(Map<String, dynamic> row) {
     return Tournament(
       id: row['id'] as String,
       miniActivityId: row['mini_activity_id'] as String,
@@ -256,7 +256,7 @@ class TournamentRound {
     required this.createdAt,
   });
 
-  factory TournamentRound.fromRow(Map<String, dynamic> row) {
+  factory TournamentRound.fromJson(Map<String, dynamic> row) {
     return TournamentRound(
       id: row['id'] as String,
       tournamentId: row['tournament_id'] as String,
@@ -323,7 +323,7 @@ class TournamentMatch {
     required this.createdAt,
   });
 
-  factory TournamentMatch.fromRow(Map<String, dynamic> row) {
+  factory TournamentMatch.fromJson(Map<String, dynamic> row) {
     return TournamentMatch(
       id: row['id'] as String,
       tournamentId: row['tournament_id'] as String,
@@ -394,7 +394,7 @@ class MatchGame {
     required this.createdAt,
   });
 
-  factory MatchGame.fromRow(Map<String, dynamic> row) {
+  factory MatchGame.fromJson(Map<String, dynamic> row) {
     return MatchGame(
       id: row['id'] as String,
       matchId: row['match_id'] as String,
@@ -439,7 +439,7 @@ class TournamentGroup {
     required this.createdAt,
   });
 
-  factory TournamentGroup.fromRow(Map<String, dynamic> row) {
+  factory TournamentGroup.fromJson(Map<String, dynamic> row) {
     return TournamentGroup(
       id: row['id'] as String,
       tournamentId: row['tournament_id'] as String,
@@ -494,7 +494,7 @@ class GroupStanding {
 
   int get goalDifference => goalsFor - goalsAgainst;
 
-  factory GroupStanding.fromRow(Map<String, dynamic> row) {
+  factory GroupStanding.fromJson(Map<String, dynamic> row) {
     return GroupStanding(
       id: row['id'] as String,
       groupId: row['group_id'] as String,
@@ -556,7 +556,7 @@ class GroupMatch {
     required this.createdAt,
   });
 
-  factory GroupMatch.fromRow(Map<String, dynamic> row) {
+  factory GroupMatch.fromJson(Map<String, dynamic> row) {
     return GroupMatch(
       id: row['id'] as String,
       groupId: row['group_id'] as String,
@@ -608,7 +608,7 @@ class QualificationRound {
     required this.createdAt,
   });
 
-  factory QualificationRound.fromRow(Map<String, dynamic> row) {
+  factory QualificationRound.fromJson(Map<String, dynamic> row) {
     return QualificationRound(
       id: row['id'] as String,
       tournamentId: row['tournament_id'] as String,
@@ -653,7 +653,7 @@ class QualificationResult {
     required this.createdAt,
   });
 
-  factory QualificationResult.fromRow(Map<String, dynamic> row) {
+  factory QualificationResult.fromJson(Map<String, dynamic> row) {
     return QualificationResult(
       id: row['id'] as String,
       qualificationRoundId: row['qualification_round_id'] as String,

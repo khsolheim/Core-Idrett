@@ -1,9 +1,10 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/export_service.dart';
 import '../services/team_service.dart';
 import '../models/export_log.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class ExportsHandler {
   final ExportService _exportService;
@@ -30,15 +31,15 @@ class ExportsHandler {
   /// Export leaderboard data
   Future<Response> _exportLeaderboard(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
-      final membership = await _teamService.getMembership(teamId, userId);
-      if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Not a team member');
       }
 
       final params = request.url.queryParameters;
@@ -66,24 +67,22 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'leaderboard');
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to export leaderboard: $e'}),
-      );
+      return resp.serverError('Failed to export leaderboard: $e');
     }
   }
 
   /// Export attendance data
   Future<Response> _exportAttendance(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
-      final membership = await _teamService.getMembership(teamId, userId);
-      if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Not a team member');
       }
 
       final params = request.url.queryParameters;
@@ -118,24 +117,22 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'attendance');
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to export attendance: $e'}),
-      );
+      return resp.serverError('Failed to export attendance: $e');
     }
   }
 
   /// Export fines data
   Future<Response> _exportFines(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
-      final membership = await _teamService.getMembership(teamId, userId);
-      if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Not a team member');
       }
 
       final params = request.url.queryParameters;
@@ -172,29 +169,27 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'fines');
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to export fines: $e'}),
-      );
+      return resp.serverError('Failed to export fines: $e');
     }
   }
 
   /// Export members data
   Future<Response> _exportMembers(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership and admin rights
-      final membership = await _teamService.getMembership(teamId, userId);
-      if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Not a team member');
       }
 
       // Only admins can export member data (contains emails)
-      if (membership['is_admin'] != true) {
-        return Response.forbidden(jsonEncode({'error': 'Only admins can export member data'}));
+      if (!isAdmin(team)) {
+        return resp.forbidden('Only admins can export member data');
       }
 
       final params = request.url.queryParameters;
@@ -212,24 +207,22 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'members');
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to export members: $e'}),
-      );
+      return resp.serverError('Failed to export members: $e');
     }
   }
 
   /// Export activities data
   Future<Response> _exportActivities(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
-      final membership = await _teamService.getMembership(teamId, userId);
-      if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Not a team member');
       }
 
       final params = request.url.queryParameters;
@@ -261,24 +254,22 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'activities');
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to export activities: $e'}),
-      );
+      return resp.serverError('Failed to export activities: $e');
     }
   }
 
   /// Get export history
   Future<Response> _getExportHistory(Request request, String teamId) async {
     try {
-      final userId = request.context['userId'] as String?;
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.unauthorized(jsonEncode({'error': 'Unauthorized'}));
+        return resp.unauthorized();
       }
 
       // Verify team membership
-      final membership = await _teamService.getMembership(teamId, userId);
-      if (membership == null) {
-        return Response.forbidden(jsonEncode({'error': 'Not a team member'}));
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Not a team member');
       }
 
       final params = request.url.queryParameters;
@@ -286,16 +277,11 @@ class ExportsHandler {
 
       final history = await _exportService.getExportHistory(teamId, limit: limit);
 
-      return Response.ok(
-        jsonEncode({
-          'exports': history.map((e) => e.toJson()).toList(),
-        }),
-        headers: {'content-type': 'application/json'},
-      );
+      return resp.ok({
+        'exports': history.map((e) => e.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Failed to get export history: $e'}),
-      );
+      return resp.serverError('Failed to get export history: $e');
     }
   }
 
@@ -313,10 +299,7 @@ class ExportsHandler {
         );
       case 'json':
       default:
-        return Response.ok(
-          jsonEncode(data),
-          headers: {'content-type': 'application/json'},
-        );
+        return resp.ok(data);
     }
   }
 }

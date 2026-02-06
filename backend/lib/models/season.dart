@@ -18,7 +18,7 @@ class Season {
     required this.createdAt,
   });
 
-  factory Season.fromRow(Map<String, dynamic> row) {
+  factory Season.fromJson(Map<String, dynamic> row) {
     return Season(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -134,7 +134,7 @@ class Leaderboard {
     required this.createdAt,
   });
 
-  factory Leaderboard.fromRow(Map<String, dynamic> row) {
+  factory Leaderboard.fromJson(Map<String, dynamic> row) {
     return Leaderboard(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -201,7 +201,7 @@ class LeaderboardEntry {
     this.rankChange,
   });
 
-  factory LeaderboardEntry.fromRow(Map<String, dynamic> row, {int? rank}) {
+  factory LeaderboardEntry.fromJson(Map<String, dynamic> row, {int? rank}) {
     return LeaderboardEntry(
       id: row['id'] as String,
       leaderboardId: row['leaderboard_id'] as String,
@@ -260,7 +260,7 @@ class MiniActivityPointConfig {
     required this.pointsParticipation,
   });
 
-  factory MiniActivityPointConfig.fromRow(Map<String, dynamic> row) {
+  factory MiniActivityPointConfig.fromJson(Map<String, dynamic> row) {
     return MiniActivityPointConfig(
       id: row['id'] as String,
       miniActivityId: row['mini_activity_id'] as String,

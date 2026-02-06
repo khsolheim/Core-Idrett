@@ -34,7 +34,7 @@ class NotificationService {
         {'last_used_at': DateTime.now().toIso8601String()},
         filters: {'id': 'eq.${existing.first['id']}'},
       );
-      return DeviceToken.fromRow(result.first);
+      return DeviceToken.fromJson(result.first);
     }
 
     // Insert new token
@@ -46,7 +46,7 @@ class NotificationService {
       'platform': platform,
     });
 
-    return DeviceToken.fromRow(result.first);
+    return DeviceToken.fromJson(result.first);
   }
 
   Future<void> removeToken(String userId, String token) async {
@@ -64,7 +64,7 @@ class NotificationService {
       'device_tokens',
       filters: {'user_id': 'eq.$userId'},
     );
-    return result.map((r) => DeviceToken.fromRow(r)).toList();
+    return result.map((r) => DeviceToken.fromJson(r)).toList();
   }
 
   Future<List<DeviceToken>> getTokensForUsers(List<String> userIds) async {
@@ -74,7 +74,7 @@ class NotificationService {
       'device_tokens',
       filters: {'user_id': 'in.(${userIds.join(',')})'},
     );
-    return result.map((r) => DeviceToken.fromRow(r)).toList();
+    return result.map((r) => DeviceToken.fromJson(r)).toList();
   }
 
   // ============ NOTIFICATION PREFERENCES ============
@@ -96,7 +96,7 @@ class NotificationService {
     );
 
     if (result.isNotEmpty) {
-      return NotificationPreferences.fromRow(result.first);
+      return NotificationPreferences.fromJson(result.first);
     }
 
     // Create default preferences
@@ -121,7 +121,7 @@ class NotificationService {
       'team_message': true,
     });
 
-    return NotificationPreferences.fromRow(result.first);
+    return NotificationPreferences.fromJson(result.first);
   }
 
   Future<NotificationPreferences> updatePreferences({
@@ -155,7 +155,7 @@ class NotificationService {
       filters: {'id': 'eq.${prefs.id}'},
     );
 
-    return NotificationPreferences.fromRow(result.first);
+    return NotificationPreferences.fromJson(result.first);
   }
 
   // ============ SEND NOTIFICATIONS ============

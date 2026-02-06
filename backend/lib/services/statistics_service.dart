@@ -161,11 +161,11 @@ class StatisticsService {
 
     if (isDraw) {
       // Update draws for all participants
-      for (final oderId in [...winnerIds, ...loserIds]) {
+      for (final playerId in [...winnerIds, ...loserIds]) {
         final existing = await _db.client.select(
           'player_ratings',
           filters: {
-            'user_id': 'eq.$oderId',
+            'user_id': 'eq.$playerId',
             'team_id': 'eq.$teamId',
           },
         );
@@ -176,7 +176,7 @@ class StatisticsService {
             'player_ratings',
             {'draws': (current['draws'] as int? ?? 0) + 1},
             filters: {
-              'user_id': 'eq.$oderId',
+              'user_id': 'eq.$playerId',
               'team_id': 'eq.$teamId',
             },
           );
@@ -189,14 +189,14 @@ class StatisticsService {
     double winnerAvg = 0;
     double loserAvg = 0;
 
-    for (final oderId in winnerIds) {
-      final rating = await getOrCreatePlayerRating(oderId, teamId);
+    for (final playerId in winnerIds) {
+      final rating = await getOrCreatePlayerRating(playerId, teamId);
       winnerAvg += rating.rating;
     }
     winnerAvg /= winnerIds.length;
 
-    for (final oderId in loserIds) {
-      final rating = await getOrCreatePlayerRating(oderId, teamId);
+    for (final playerId in loserIds) {
+      final rating = await getOrCreatePlayerRating(playerId, teamId);
       loserAvg += rating.rating;
     }
     loserAvg /= loserIds.length;
@@ -210,11 +210,11 @@ class StatisticsService {
     final loserChange = (kFactor * (0 - expectedLoser)).round();
 
     // Update winners
-    for (final oderId in winnerIds) {
+    for (final playerId in winnerIds) {
       final existing = await _db.client.select(
         'player_ratings',
         filters: {
-          'user_id': 'eq.$oderId',
+          'user_id': 'eq.$playerId',
           'team_id': 'eq.$teamId',
         },
       );
@@ -228,7 +228,7 @@ class StatisticsService {
             'wins': (current['wins'] as int? ?? 0) + 1,
           },
           filters: {
-            'user_id': 'eq.$oderId',
+            'user_id': 'eq.$playerId',
             'team_id': 'eq.$teamId',
           },
         );
@@ -236,11 +236,11 @@ class StatisticsService {
     }
 
     // Update losers
-    for (final oderId in loserIds) {
+    for (final playerId in loserIds) {
       final existing = await _db.client.select(
         'player_ratings',
         filters: {
-          'user_id': 'eq.$oderId',
+          'user_id': 'eq.$playerId',
           'team_id': 'eq.$teamId',
         },
       );
@@ -255,7 +255,7 @@ class StatisticsService {
             'losses': (current['losses'] as int? ?? 0) + 1,
           },
           filters: {
-            'user_id': 'eq.$oderId',
+            'user_id': 'eq.$playerId',
             'team_id': 'eq.$teamId',
           },
         );

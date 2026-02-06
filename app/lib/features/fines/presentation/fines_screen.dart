@@ -105,8 +105,8 @@ class FinesScreen extends ConsumerWidget {
                 loading: () => const SizedBox.shrink(),
                 error: (_, _) => const SizedBox.shrink(),
                 data: (team) {
-                  final isAdmin = team?.userRole == TeamRole.admin;
-                  final isFineBoss = team?.userRole == TeamRole.fineBoss;
+                  final isAdmin = team?.userIsAdmin ?? false;
+                  final isFineBoss = team?.userIsFineBoss ?? false;
 
                   if (isAdmin || isFineBoss) {
                     return Column(

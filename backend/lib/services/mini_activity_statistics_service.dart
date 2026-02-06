@@ -31,7 +31,7 @@ class MiniActivityStatisticsService {
     );
 
     if (result.isEmpty) return null;
-    return MiniActivityPlayerStats.fromRow(result.first);
+    return MiniActivityPlayerStats.fromJson(result.first);
   }
 
   Future<MiniActivityPlayerStats> getOrCreatePlayerStats({
@@ -96,7 +96,7 @@ class MiniActivityStatisticsService {
       order: order,
     );
 
-    return result.map((row) => MiniActivityPlayerStats.fromRow(row)).toList();
+    return result.map((row) => MiniActivityPlayerStats.fromJson(row)).toList();
   }
 
   Future<void> updatePlayerStats({
@@ -196,7 +196,7 @@ class MiniActivityStatisticsService {
     );
 
     if (result.isEmpty) return null;
-    return HeadToHeadStats.fromRow(result.first);
+    return HeadToHeadStats.fromJson(result.first);
   }
 
   Future<HeadToHeadStats> getOrCreateHeadToHead({
@@ -282,7 +282,7 @@ class MiniActivityStatisticsService {
       order: 'total_matchups.desc',
     );
 
-    return result.map((row) => HeadToHeadStats.fromRow(row)).toList();
+    return result.map((row) => HeadToHeadStats.fromJson(row)).toList();
   }
 
   // ============ TEAM HISTORY ============
@@ -323,7 +323,7 @@ class MiniActivityStatisticsService {
 
     return result
         .take(limit)
-        .map((row) => MiniActivityTeamHistory.fromRow(row))
+        .map((row) => MiniActivityTeamHistory.fromJson(row))
         .toList();
   }
 
@@ -371,7 +371,7 @@ class MiniActivityStatisticsService {
 
     return result
         .take(limit)
-        .map((row) => LeaderboardPointSource.fromRow(row))
+        .map((row) => LeaderboardPointSource.fromJson(row))
         .toList();
   }
 
@@ -382,7 +382,7 @@ class MiniActivityStatisticsService {
       order: 'recorded_at.desc',
     );
 
-    return result.map((row) => LeaderboardPointSource.fromRow(row)).toList();
+    return result.map((row) => LeaderboardPointSource.fromJson(row)).toList();
   }
 
   // ============ AGGREGATED STATS ============

@@ -46,7 +46,7 @@ class PointsConfigService {
     );
 
     if (result.isEmpty) return null;
-    return TeamPointsConfig.fromRow(result.first);
+    return TeamPointsConfig.fromJson(result.first);
   }
 
   /// Get point configuration by ID
@@ -58,7 +58,7 @@ class PointsConfigService {
     );
 
     if (result.isEmpty) return null;
-    return TeamPointsConfig.fromRow(result.first);
+    return TeamPointsConfig.fromJson(result.first);
   }
 
   /// Get or create default configuration for a team
@@ -208,7 +208,7 @@ class PointsConfigService {
     );
 
     if (result.isEmpty) return null;
-    return TeamPointsConfig.fromRow(result.first);
+    return TeamPointsConfig.fromJson(result.first);
   }
 
   /// Delete point configuration
@@ -243,7 +243,7 @@ class PointsConfigService {
     );
 
     if (existing.isNotEmpty) {
-      return AttendancePoints.fromRow(existing.first);
+      return AttendancePoints.fromJson(existing.first);
     }
 
     await _db.client.insert('attendance_points', {
@@ -286,7 +286,7 @@ class PointsConfigService {
       order: 'awarded_at.desc',
     );
 
-    return result.map((row) => AttendancePoints.fromRow(row)).toList();
+    return result.map((row) => AttendancePoints.fromJson(row)).toList();
   }
 
   /// Get attendance points for an instance
@@ -297,7 +297,7 @@ class PointsConfigService {
       filters: {'instance_id': 'eq.$instanceId'},
     );
 
-    return result.map((row) => AttendancePoints.fromRow(row)).toList();
+    return result.map((row) => AttendancePoints.fromJson(row)).toList();
   }
 
   /// Check if attendance points have been awarded for an instance
@@ -449,7 +449,7 @@ class PointsConfigService {
       order: 'created_at.desc',
     );
 
-    return result.map((row) => ManualPointAdjustment.fromRow(row)).toList();
+    return result.map((row) => ManualPointAdjustment.fromJson(row)).toList();
   }
 
   /// Get all manual point adjustments for a team
@@ -468,7 +468,7 @@ class PointsConfigService {
       limit: limit,
     );
 
-    return result.map((row) => ManualPointAdjustment.fromRow(row)).toList();
+    return result.map((row) => ManualPointAdjustment.fromJson(row)).toList();
   }
 
   /// Get total manual adjustment points for a user

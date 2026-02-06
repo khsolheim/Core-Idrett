@@ -51,7 +51,7 @@ class ActivityTemplate {
     this.leaderboardId,
   });
 
-  factory ActivityTemplate.fromRow(Map<String, dynamic> row) {
+  factory ActivityTemplate.fromJson(Map<String, dynamic> row) {
     return ActivityTemplate(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -172,7 +172,7 @@ class MiniActivity {
     this.winnerTeamId,
   });
 
-  factory MiniActivity.fromRow(Map<String, dynamic> row) {
+  factory MiniActivity.fromJson(Map<String, dynamic> row) {
     return MiniActivity(
       id: row['id'] as String,
       instanceId: row['instance_id'] as String?,
@@ -282,7 +282,7 @@ class MiniActivityTeam {
     this.finalScore,
   });
 
-  factory MiniActivityTeam.fromRow(Map<String, dynamic> row) {
+  factory MiniActivityTeam.fromJson(Map<String, dynamic> row) {
     return MiniActivityTeam(
       id: row['id'] as String,
       miniActivityId: row['mini_activity_id'] as String,
@@ -330,7 +330,7 @@ class MiniActivityParticipant {
     required this.points,
   });
 
-  factory MiniActivityParticipant.fromRow(Map<String, dynamic> row) {
+  factory MiniActivityParticipant.fromJson(Map<String, dynamic> row) {
     return MiniActivityParticipant(
       id: row['id'] as String,
       miniTeamId: row['mini_team_id'] as String?,
@@ -389,7 +389,7 @@ class MiniActivityAdjustment {
     required this.createdAt,
   });
 
-  factory MiniActivityAdjustment.fromRow(Map<String, dynamic> row) {
+  factory MiniActivityAdjustment.fromJson(Map<String, dynamic> row) {
     return MiniActivityAdjustment(
       id: row['id'] as String,
       miniActivityId: row['mini_activity_id'] as String,
@@ -439,7 +439,7 @@ class MiniActivityHandicap {
     required this.updatedAt,
   });
 
-  factory MiniActivityHandicap.fromRow(Map<String, dynamic> row) {
+  factory MiniActivityHandicap.fromJson(Map<String, dynamic> row) {
     return MiniActivityHandicap(
       id: row['id'] as String,
       miniActivityId: row['mini_activity_id'] as String,

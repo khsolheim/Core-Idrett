@@ -28,7 +28,6 @@ void main() {
     testTeam = TestTeamFactory.create(
       id: 'team-1',
       name: 'Test Team',
-      userRole: TeamRole.player,
     );
   });
 
@@ -57,7 +56,6 @@ void main() {
       final adminTeam = TestTeamFactory.create(
         id: 'team-1',
         name: 'Admin Team',
-        userRole: TeamRole.admin,
         userIsAdmin: true,
       );
       scenario.setupLoggedIn();

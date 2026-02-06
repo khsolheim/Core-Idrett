@@ -25,7 +25,7 @@ class AbsenceCategory {
     required this.createdAt,
   });
 
-  factory AbsenceCategory.fromRow(Map<String, dynamic> row) {
+  factory AbsenceCategory.fromJson(Map<String, dynamic> row) {
     return AbsenceCategory(
       id: row['id'] as String,
       teamId: row['team_id'] as String,
@@ -152,7 +152,7 @@ class AbsenceRecord {
     this.teamId,
   });
 
-  factory AbsenceRecord.fromRow(Map<String, dynamic> row) {
+  factory AbsenceRecord.fromJson(Map<String, dynamic> row) {
     return AbsenceRecord(
       id: row['id'] as String,
       userId: row['user_id'] as String,

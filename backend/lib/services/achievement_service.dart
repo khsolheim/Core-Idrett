@@ -45,7 +45,7 @@ class AchievementService {
     }
 
     final combined = [...globalResult, ...teamResult];
-    return combined.map((row) => AchievementDefinition.fromRow(row)).toList();
+    return combined.map((row) => AchievementDefinition.fromJson(row)).toList();
   }
 
   /// Get a definition by ID
@@ -56,7 +56,7 @@ class AchievementService {
     );
 
     if (result.isEmpty) return null;
-    return AchievementDefinition.fromRow(result.first);
+    return AchievementDefinition.fromJson(result.first);
   }
 
   /// Get a definition by code
@@ -77,7 +77,7 @@ class AchievementService {
     );
 
     if (result.isEmpty) return null;
-    return AchievementDefinition.fromRow(result.first);
+    return AchievementDefinition.fromJson(result.first);
   }
 
   /// Create a new achievement definition
@@ -212,7 +212,7 @@ class AchievementService {
       order: 'awarded_at.desc',
     );
 
-    return result.map((row) => UserAchievement.fromRow(row)).toList();
+    return result.map((row) => UserAchievement.fromJson(row)).toList();
   }
 
   /// Get a user achievement by ID
@@ -223,7 +223,7 @@ class AchievementService {
     );
 
     if (result.isEmpty) return null;
-    return UserAchievement.fromRow(result.first);
+    return UserAchievement.fromJson(result.first);
   }
 
   /// Check if user has earned a specific achievement
@@ -246,7 +246,7 @@ class AchievementService {
     );
 
     if (result.isEmpty) return null;
-    return UserAchievement.fromRow(result.first);
+    return UserAchievement.fromJson(result.first);
   }
 
   /// Award an achievement to a user
@@ -344,7 +344,7 @@ class AchievementService {
       order: 'progress_percent.desc',
     );
 
-    return result.map((row) => AchievementProgress.fromRow(row)).toList();
+    return result.map((row) => AchievementProgress.fromJson(row)).toList();
   }
 
   /// Update progress for an achievement
@@ -675,7 +675,7 @@ class AchievementService {
       limit: limit,
     );
 
-    return result.map((row) => UserAchievement.fromRow(row)).toList();
+    return result.map((row) => UserAchievement.fromJson(row)).toList();
   }
 
   /// Get achievement counts for a team (by tier)

@@ -1,3 +1,4 @@
+import '../../../core/utils/api_response_parser.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/models/achievement.dart';
 
@@ -24,10 +25,7 @@ class AchievementRepository {
       '/achievements/teams/$teamId/definitions',
       queryParameters: params,
     );
-    final data = response.data['definitions'] as List;
-    return data
-        .map((e) => AchievementDefinition.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'definitions', AchievementDefinition.fromJson);
   }
 
   Future<AchievementDefinition?> getDefinitionById(String definitionId) async {
@@ -62,9 +60,9 @@ class AchievementRepository {
       data: {
         'code': code,
         'name': name,
-        if (description != null) 'description': description,
-        if (icon != null) 'icon': icon,
-        if (color != null) 'color': color,
+        'description': ?description,
+        'icon': ?icon,
+        'color': ?color,
         'tier': tier.name,
         'category': category.name,
         'criteria': criteria.toJson(),
@@ -72,8 +70,7 @@ class AchievementRepository {
         'is_active': isActive,
         'is_secret': isSecret,
         'is_repeatable': isRepeatable,
-        if (repeatCooldownDays != null)
-          'repeat_cooldown_days': repeatCooldownDays,
+        'repeat_cooldown_days': ?repeatCooldownDays,
       },
     );
     return AchievementDefinition.fromJson(
@@ -98,19 +95,18 @@ class AchievementRepository {
     final response = await _client.patch(
       '/achievements/definitions/$definitionId',
       data: {
-        if (name != null) 'name': name,
+        'name': ?name,
         if (description != null || clearDescription) 'description': description,
         if (clearDescription) 'clear_description': true,
-        if (icon != null) 'icon': icon,
-        if (color != null) 'color': color,
+        'icon': ?icon,
+        'color': ?color,
         if (tier != null) 'tier': tier.name,
         if (criteria != null) 'criteria': criteria.toJson(),
-        if (bonusPoints != null) 'bonus_points': bonusPoints,
-        if (isActive != null) 'is_active': isActive,
-        if (isSecret != null) 'is_secret': isSecret,
-        if (isRepeatable != null) 'is_repeatable': isRepeatable,
-        if (repeatCooldownDays != null)
-          'repeat_cooldown_days': repeatCooldownDays,
+        'bonus_points': ?bonusPoints,
+        'is_active': ?isActive,
+        'is_secret': ?isSecret,
+        'is_repeatable': ?isRepeatable,
+        'repeat_cooldown_days': ?repeatCooldownDays,
       },
     );
     return AchievementDefinition.fromJson(
@@ -136,10 +132,7 @@ class AchievementRepository {
       '/achievements/users/$userId',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['achievements'] as List;
-    return data
-        .map((e) => UserAchievement.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'achievements', UserAchievement.fromJson);
   }
 
   Future<List<AchievementProgress>> getUserProgress(
@@ -155,10 +148,7 @@ class AchievementRepository {
       '/achievements/users/$userId/progress',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['progress'] as List;
-    return data
-        .map((e) => AchievementProgress.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'progress', AchievementProgress.fromJson);
   }
 
   Future<UserAchievement> awardAchievement({
@@ -174,9 +164,9 @@ class AchievementRepository {
       data: {
         'user_id': userId,
         'achievement_id': achievementId,
-        if (seasonId != null) 'season_id': seasonId,
-        if (pointsAwarded != null) 'points_awarded': pointsAwarded,
-        if (triggerReference != null) 'trigger_reference': triggerReference,
+        'season_id': ?seasonId,
+        'points_awarded': ?pointsAwarded,
+        'trigger_reference': ?triggerReference,
       },
     );
     return UserAchievement.fromJson(response.data as Map<String, dynamic>);
@@ -196,10 +186,7 @@ class AchievementRepository {
       '/achievements/teams/$teamId/check/$userId',
       data: requestData,
     );
-    final data = response.data['awarded'] as List;
-    return data
-        .map((e) => UserAchievement.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'awarded', UserAchievement.fromJson);
   }
 
   // ============ ACHIEVEMENT SUMMARY ============
@@ -236,10 +223,7 @@ class AchievementRepository {
       '/achievements/teams/$teamId/recent',
       queryParameters: params.isNotEmpty ? params : null,
     );
-    final data = response.data['achievements'] as List;
-    return data
-        .map((e) => UserAchievement.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return parseList(response.data, 'achievements', UserAchievement.fromJson);
   }
 
   Future<Map<String, int>> getTeamAchievementCounts(

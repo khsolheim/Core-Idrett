@@ -23,7 +23,7 @@ class MiniActivityService {
       filters: {'team_id': 'eq.$teamId'},
       order: 'name.asc',
     );
-    return result.map((row) => ActivityTemplate.fromRow(row)).toList();
+    return result.map((row) => ActivityTemplate.fromJson(row)).toList();
   }
 
   Future<ActivityTemplate> createTemplate({
@@ -116,7 +116,7 @@ class MiniActivityService {
     );
 
     if (result.isEmpty) return null;
-    return ActivityTemplate.fromRow(result.first);
+    return ActivityTemplate.fromJson(result.first);
   }
 
   Future<void> toggleTemplateFavorite(String templateId) async {
@@ -287,7 +287,7 @@ class MiniActivityService {
     );
 
     if (result.isEmpty) return null;
-    return MiniActivity.fromRow(result.first);
+    return MiniActivity.fromJson(result.first);
   }
 
   // BS-003: Reset team division
@@ -375,7 +375,7 @@ class MiniActivityService {
       filters: {'mini_activity_id': 'eq.$miniActivityId'},
       order: 'created_at.desc',
     );
-    return result.map((row) => MiniActivityAdjustment.fromRow(row)).toList();
+    return result.map((row) => MiniActivityAdjustment.fromJson(row)).toList();
   }
 
   // BS-007: Duplicate mini-activity
@@ -394,7 +394,7 @@ class MiniActivityService {
       throw Exception('Mini-activity not found');
     }
 
-    final original = MiniActivity.fromRow(result.first);
+    final original = MiniActivity.fromJson(result.first);
     final id = _uuid.v4();
 
     await _db.client.insert('mini_activities', {
@@ -530,7 +530,7 @@ class MiniActivityService {
     );
 
     if (result.isEmpty) return null;
-    return MiniActivity.fromRow(result.first);
+    return MiniActivity.fromJson(result.first);
   }
 
   Future<List<Map<String, dynamic>>> getMiniActivitiesForInstance(String instanceId) async {
@@ -1047,7 +1047,7 @@ class MiniActivityService {
       'mini_activity_handicaps',
       filters: {'mini_activity_id': 'eq.$miniActivityId'},
     );
-    return result.map((row) => MiniActivityHandicap.fromRow(row)).toList();
+    return result.map((row) => MiniActivityHandicap.fromJson(row)).toList();
   }
 
   Future<void> removeHandicap({
@@ -1272,7 +1272,7 @@ class MiniActivityService {
     );
 
     if (result.isEmpty) return null;
-    return MiniActivityTeam.fromRow(result.first);
+    return MiniActivityTeam.fromJson(result.first);
   }
 
   // Get teams for mini-activity
@@ -1282,7 +1282,7 @@ class MiniActivityService {
       filters: {'mini_activity_id': 'eq.$miniActivityId'},
       order: 'name.asc',
     );
-    return result.map((row) => MiniActivityTeam.fromRow(row)).toList();
+    return result.map((row) => MiniActivityTeam.fromJson(row)).toList();
   }
 
   // Remove participant from activity

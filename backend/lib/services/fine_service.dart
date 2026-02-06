@@ -621,7 +621,7 @@ class FineService {
       final data = summaries[userId]!;
 
       results.add(UserFinesSummary(
-        oderId: userId,
+        userId: userId,
         userName: user['name'] as String? ?? '',
         userAvatarUrl: user['avatar_url'] as String?,
         fineCount: data.fineCount,

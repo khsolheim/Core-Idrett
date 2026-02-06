@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/achievement.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../providers/achievement_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../teams/providers/team_provider.dart';
@@ -75,34 +77,18 @@ class _MyAchievementsTab extends ConsumerWidget {
     ));
     final theme = Theme.of(context);
 
-    return achievementsAsync.when(
+    return achievementsAsync.when2(
+      onRetry: () => ref.invalidate(userAchievementsProvider(
+        (userId: userId, teamId: teamId, seasonId: null),
+      )),
       data: (achievements) {
         final inProgress = progressAsync.value ?? [];
 
         if (achievements.isEmpty && inProgress.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.emoji_events_outlined,
-                  size: 64,
-                  color: theme.colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Ingen achievements enna',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Delta i aktiviteter for a tjene achievements',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
+          return const EmptyStateWidget(
+            icon: Icons.emoji_events_outlined,
+            title: 'Ingen achievements enna',
+            subtitle: 'Delta i aktiviteter for a tjene achievements',
           );
         }
 
@@ -153,24 +139,6 @@ class _MyAchievementsTab extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 16),
-            Text('Kunne ikke laste achievements: $error'),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () => ref.invalidate(userAchievementsProvider(
-                (userId: userId, teamId: teamId, seasonId: null),
-              )),
-              child: const Text('Prov igjen'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -193,7 +161,8 @@ class _AvailableAchievementsTab extends ConsumerWidget {
     final selectedCategory = ref.watch(selectedAchievementCategoryProvider);
     final theme = Theme.of(context);
 
-    return definitionsAsync.when(
+    return definitionsAsync.when2(
+      onRetry: () => ref.invalidate(teamAchievementsProvider(teamId)),
       data: (definitions) {
         final earnedIds =
             earnedAsync.value?.map((a) => a.achievementId).toSet() ?? {};
@@ -281,22 +250,6 @@ class _AvailableAchievementsTab extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 16),
-            Text('Kunne ikke laste achievements: $error'),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () => ref.invalidate(teamAchievementsProvider(teamId)),
-              child: const Text('Prov igjen'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -309,27 +262,14 @@ class _TeamAchievementsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recentAsync = ref.watch(teamRecentAchievementsProvider(teamId));
-    final theme = Theme.of(context);
 
-    return recentAsync.when(
+    return recentAsync.when2(
+      onRetry: () => ref.invalidate(teamRecentAchievementsProvider(teamId)),
       data: (achievements) {
         if (achievements.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.group_outlined,
-                  size: 64,
-                  color: theme.colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Ingen achievements pa laget enna',
-                  style: theme.textTheme.titleMedium,
-                ),
-              ],
-            ),
+          return const EmptyStateWidget(
+            icon: Icons.group_outlined,
+            title: 'Ingen achievements pa laget enna',
           );
         }
 
@@ -346,22 +286,6 @@ class _TeamAchievementsTab extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 16),
-            Text('Kunne ikke laste achievements: $error'),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () => ref.invalidate(teamRecentAchievementsProvider(teamId)),
-              child: const Text('Prov igjen'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/test_service.dart';
-import '../services/auth_service.dart';
 import '../services/team_service.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
 
 class TestsHandler {
   final TestService _testService;
-  final AuthService _authService;
   final TeamService _teamService;
 
-  TestsHandler(this._testService, this._authService, this._teamService);
+  TestsHandler(this._testService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -37,109 +37,65 @@ class TestsHandler {
     return router;
   }
 
-  Future<String?> _getUserId(Request request) async {
-    final authHeader = request.headers['authorization'];
-    if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-      return null;
-    }
-    final token = authHeader.substring(7);
-    final user = await _authService.getUserFromToken(token);
-    return user?.id;
-  }
-
-  Future<bool> _isTeamAdmin(String userId, String teamId) async {
-    final team = await _teamService.getTeamById(teamId, userId);
-    if (team == null) return false;
-    return team['user_is_admin'] == true || team['user_role'] == 'admin';
-  }
-
   Future<Response> _getTemplates(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final templates = await _testService.getTemplatesForTeam(teamId);
 
-      return Response.ok(
-        jsonEncode({
-          'templates': templates.map((t) => t.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'templates': templates.map((t) => t.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente testmaler: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente testmaler: $e');
     }
   }
 
   Future<Response> _getTemplateById(Request request, String templateId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final template = await _testService.getTemplateById(templateId);
       if (template == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      final team = await _teamService.getTeamById(template.teamId, userId);
+      final team = await requireTeamMember(_teamService, template.teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til denne testmalen'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til denne testmalen');
       }
 
-      return Response.ok(
-        jsonEncode(template.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(template.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente testmal: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente testmal: $e');
     }
   }
 
   Future<Response> _createTemplate(Request request, String teamId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan opprette testmaler'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan opprette testmaler');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -147,17 +103,11 @@ class TestsHandler {
       final unit = body['unit'] as String?;
 
       if (name == null || name.isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Navn er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Navn er pakrevd');
       }
 
       if (unit == null || unit.isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Enhet er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('Enhet er pakrevd');
       }
 
       final template = await _testService.createTemplate(
@@ -168,41 +118,31 @@ class TestsHandler {
         higherIsBetter: body['higher_is_better'] as bool? ?? false,
       );
 
-      return Response.ok(
-        jsonEncode(template.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(template.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke opprette testmal: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke opprette testmal: $e');
     }
   }
 
   Future<Response> _updateTemplate(Request request, String templateId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _testService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan oppdatere testmaler'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan oppdatere testmaler');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -217,87 +157,59 @@ class TestsHandler {
       );
 
       if (template == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      return Response.ok(
-        jsonEncode(template.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(template.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke oppdatere testmal: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke oppdatere testmal: $e');
     }
   }
 
   Future<Response> _deleteTemplate(Request request, String templateId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _testService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan slette testmaler'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan slette testmaler');
       }
 
       await _testService.deleteTemplate(templateId);
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke slette testmal: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke slette testmal: $e');
     }
   }
 
   Future<Response> _getResults(Request request, String templateId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _testService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til denne testmalen'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til denne testmalen');
       }
 
       final targetUserId = request.url.queryParameters['user_id'];
@@ -311,44 +223,29 @@ class TestsHandler {
         offset: offsetParam != null ? int.tryParse(offsetParam) ?? 0 : 0,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'results': results.map((r) => r.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'results': results.map((r) => r.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente resultater: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente resultater: $e');
     }
   }
 
   Future<Response> _getRanking(Request request, String templateId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _testService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til denne testmalen'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til denne testmalen');
       }
 
       final limitParam = request.url.queryParameters['limit'];
@@ -358,43 +255,33 @@ class TestsHandler {
         limit: limitParam != null ? int.tryParse(limitParam) : null,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'ranking': ranking,
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'ranking': ranking,
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente ranking: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente ranking: $e');
     }
   }
 
   Future<Response> _recordResult(Request request, String templateId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _testService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan registrere resultater'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan registrere resultater');
       }
 
       final body = jsonDecode(await request.readAsString());
@@ -402,17 +289,11 @@ class TestsHandler {
       final value = body['value'];
 
       if (targetUserId == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'user_id er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('user_id er pakrevd');
       }
 
       if (value == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'value er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('value er pakrevd');
       }
 
       final result = await _testService.recordResult(
@@ -423,51 +304,38 @@ class TestsHandler {
         notes: body['notes'] as String?,
       );
 
-      return Response.ok(
-        jsonEncode(result.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(result.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke registrere resultat: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke registrere resultat: $e');
     }
   }
 
   Future<Response> _recordBulkResults(Request request, String templateId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _testService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      if (!await _isTeamAdmin(userId, teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan registrere resultater'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan registrere resultater');
       }
 
       final body = jsonDecode(await request.readAsString());
       final results = body['results'] as List?;
 
       if (results == null || results.isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'results er pakrevd'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.badRequest('results er pakrevd');
       }
 
       final recorded = await _testService.recordMultipleResults(
@@ -476,86 +344,61 @@ class TestsHandler {
         results: results.cast<Map<String, dynamic>>(),
       );
 
-      return Response.ok(
-        jsonEncode({
-          'results': recorded.map((r) => r.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'results': recorded.map((r) => r.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke registrere resultater: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke registrere resultater: $e');
     }
   }
 
   Future<Response> _deleteResult(Request request, String resultId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       // Hent resultatet
       final result = await _testService.getResultById(resultId);
       if (result == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Resultat ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Resultat ikke funnet');
       }
 
       // Hent template for å finne teamet
       final template = await _testService.getTemplateById(result.testTemplateId);
       if (template == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Test-mal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Test-mal ikke funnet');
       }
 
       // Sjekk at brukeren har admin-tilgang til teamet
-      if (!await _isTeamAdmin(userId, template.teamId)) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Kun admin kan slette resultater'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final team = await requireTeamMember(_teamService, template.teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan slette resultater');
       }
 
       await _testService.deleteResult(resultId);
 
-      return Response.ok(
-        jsonEncode({'success': true}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({'success': true});
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke slette resultat: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke slette resultat: $e');
     }
   }
 
   Future<Response> _getUserResults(Request request, String teamId, String targetUserId) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til dette laget'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til dette laget');
       }
 
       final limitParam = request.url.queryParameters['limit'];
@@ -568,17 +411,11 @@ class TestsHandler {
         offset: offsetParam != null ? int.tryParse(offsetParam) ?? 0 : 0,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'results': results.map((r) => r.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'results': results.map((r) => r.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente brukerresultater: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente brukerresultater: $e');
     }
   }
 
@@ -588,48 +425,30 @@ class TestsHandler {
     String targetUserId,
   ) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _testService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til denne testmalen'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til denne testmalen');
       }
 
       final result = await _testService.getPersonalBest(templateId, targetUserId);
 
       if (result == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Ingen resultater funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Ingen resultater funnet');
       }
 
-      return Response.ok(
-        jsonEncode(result.toJson()),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok(result.toJson());
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente personlig rekord: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente personlig rekord: $e');
     }
   }
 
@@ -639,28 +458,19 @@ class TestsHandler {
     String targetUserId,
   ) async {
     try {
-      final userId = await _getUserId(request);
+      final userId = getUserId(request);
       if (userId == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ikke autorisert'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.unauthorized();
       }
 
       final teamId = await _testService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
-        return Response.notFound(
-          jsonEncode({'error': 'Testmal ikke funnet'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.notFound('Testmal ikke funnet');
       }
 
-      final team = await _teamService.getTeamById(teamId, userId);
+      final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) {
-        return Response.forbidden(
-          jsonEncode({'error': 'Ingen tilgang til denne testmalen'}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return resp.forbidden('Ingen tilgang til denne testmalen');
       }
 
       final limitParam = request.url.queryParameters['limit'];
@@ -671,17 +481,11 @@ class TestsHandler {
         limit: limitParam != null ? int.tryParse(limitParam) : null,
       );
 
-      return Response.ok(
-        jsonEncode({
-          'progress': results.map((r) => r.toJson()).toList(),
-        }),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.ok({
+        'progress': results.map((r) => r.toJson()).toList(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Kunne ikke hente progresjon: $e'}),
-        headers: {'Content-Type': 'application/json'},
-      );
+      return resp.serverError('Kunne ikke hente progresjon: $e');
     }
   }
 }

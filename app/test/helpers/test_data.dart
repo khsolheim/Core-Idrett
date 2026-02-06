@@ -43,9 +43,9 @@ class TestTeamFactory {
     String? sport,
     String? inviteCode,
     DateTime? createdAt,
-    TeamRole? userRole,
     bool userIsAdmin = false,
     bool userIsFineBoss = false,
+    bool userIsCoach = false,
     TrainerType? userTrainerType,
   }) {
     _counter++;
@@ -55,9 +55,9 @@ class TestTeamFactory {
       sport: sport,
       inviteCode: inviteCode ?? 'INVITE$_counter',
       createdAt: createdAt ?? DateTime.now(),
-      userRole: userRole,
       userIsAdmin: userIsAdmin,
       userIsFineBoss: userIsFineBoss,
+      userIsCoach: userIsCoach,
       userTrainerType: userTrainerType,
     );
   }
@@ -76,9 +76,9 @@ class TestTeamMemberFactory {
     String? userName,
     String? userAvatarUrl,
     DateTime? userBirthDate,
-    TeamRole role = TeamRole.player,
     bool isAdmin = false,
     bool isFineBoss = false,
+    bool isCoach = false,
     TrainerType? trainerType,
     bool isActive = true,
     DateTime? joinedAt,
@@ -91,9 +91,9 @@ class TestTeamMemberFactory {
       userName: userName ?? 'Member $_counter',
       userAvatarUrl: userAvatarUrl,
       userBirthDate: userBirthDate,
-      role: role,
       isAdmin: isAdmin,
       isFineBoss: isFineBoss,
+      isCoach: isCoach,
       trainerType: trainerType,
       isActive: isActive,
       joinedAt: joinedAt ?? DateTime.now(),

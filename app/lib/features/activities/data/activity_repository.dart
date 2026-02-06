@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/models/activity.dart';
@@ -11,9 +12,30 @@ class ActivityRepository {
 
   ActivityRepository(this._apiClient);
 
+  /// Helper to safely parse list responses from API
+  List<dynamic> _parseListResponse(dynamic responseData) {
+    if (responseData == null) {
+      return [];
+    }
+    if (responseData is List) {
+      return responseData;
+    }
+    if (responseData is String) {
+      final decoded = jsonDecode(responseData);
+      if (decoded is List) {
+        return decoded;
+      }
+      if (decoded == null) {
+        return [];
+      }
+      throw Exception('Unexpected response format: expected List, got ${decoded.runtimeType}');
+    }
+    throw Exception('Unexpected response format: expected List, got ${responseData.runtimeType}');
+  }
+
   Future<List<Activity>> getActivitiesForTeam(String teamId) async {
     final response = await _apiClient.get('/activities/team/$teamId');
-    final data = response.data as List;
+    final data = _parseListResponse(response.data);
     return data.map((json) => Activity.fromJson(json as Map<String, dynamic>)).toList();
   }
 
@@ -22,7 +44,7 @@ class ActivityRepository {
       '/activities/team/$teamId/upcoming',
       queryParameters: {'limit': limit.toString()},
     );
-    final data = response.data as List;
+    final data = _parseListResponse(response.data);
     return data.map((json) => ActivityInstance.fromJson(json as Map<String, dynamic>)).toList();
   }
 
@@ -99,7 +121,7 @@ class ActivityRepository {
         'to': to.toIso8601String().split('T').first,
       },
     );
-    final data = response.data as List;
+    final data = _parseListResponse(response.data);
     return data.map((json) => ActivityInstance.fromJson(json as Map<String, dynamic>)).toList();
   }
 

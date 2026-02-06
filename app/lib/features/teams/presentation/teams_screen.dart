@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/team.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../providers/team_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -27,27 +29,19 @@ class TeamsScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(teamsProvider);
         },
-        child: teamsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                const SizedBox(height: 16),
-                Text('Feil: $e'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => ref.invalidate(teamsProvider),
-                  child: const Text('Prøv igjen'),
-                ),
-              ],
-            ),
-          ),
+        child: teamsAsync.when2(
+          onRetry: () => ref.invalidate(teamsProvider),
           data: (teams) {
             if (teams.isEmpty) {
-              return _EmptyState(
-                onCreateTeam: () => context.goNamed('create-team'),
+              return EmptyStateWidget(
+                icon: Icons.groups_outlined,
+                title: 'Ingen lag enda',
+                subtitle: 'Opprett et lag eller bli invitert av noen andre',
+                action: ElevatedButton.icon(
+                  onPressed: () => context.goNamed('create-team'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Opprett lag'),
+                ),
               );
             }
 
@@ -128,48 +122,6 @@ class TeamsScreen extends ConsumerWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  final VoidCallback onCreateTeam;
-
-  const _EmptyState({required this.onCreateTeam});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.groups_outlined,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Ingen lag enda',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Opprett et lag eller bli invitert av noen andre',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: onCreateTeam,
-              icon: const Icon(Icons.add),
-              label: const Text('Opprett lag'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _TeamCard extends StatelessWidget {
   final Team team;
   final VoidCallback onTap;
@@ -222,27 +174,25 @@ class _TeamCard extends StatelessWidget {
                         ),
                       ),
                     ],
-                    if (team.userRole != null) ...[
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getRoleColor(team.userRole!).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          team.userRole!.displayName,
-                          style: TextStyle(
-                            color: _getRoleColor(team.userRole!),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getRoleColor(team.userRoleColorKey).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        team.userRoleDisplayName,
+                        style: TextStyle(
+                          color: _getRoleColor(team.userRoleColorKey),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),
@@ -278,13 +228,15 @@ class _TeamCard extends StatelessWidget {
     }
   }
 
-  Color _getRoleColor(TeamRole role) {
-    switch (role) {
-      case TeamRole.admin:
+  Color _getRoleColor(String roleKey) {
+    switch (roleKey) {
+      case 'admin':
         return Colors.blue;
-      case TeamRole.fineBoss:
+      case 'coach':
+        return Colors.teal;
+      case 'fineBoss':
         return Colors.orange;
-      case TeamRole.player:
+      default:
         return Colors.green;
     }
   }

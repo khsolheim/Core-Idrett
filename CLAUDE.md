@@ -9,9 +9,10 @@ Core - Idrett is a Norwegian sports team management application with a Flutter f
 ### Features
 - **Team Management**: Teams with admin/coach/fine_boss/player roles
 - **Activities**: Training, matches, events with recurring schedules and attendance tracking
-- **Mini-Activities**: Sub-activities within events (games, drills) with points/scoring
+- **Mini-Activities**: Sub-activities within events (games, drills) with points/scoring; also standalone mini-activities
 - **Tournaments**: Tournament brackets with match scheduling and results
 - **Statistics**: Leaderboards, attendance rates, player profiles, seasons
+- **Points**: Manual point adjustments and point configuration per team
 - **Fine System**: Customizable rules, payment tracking, team accounting
 - **Chat**: Team chat + direct messages with reply/edit/delete
 - **Documents**: File upload/download per team
@@ -19,6 +20,7 @@ Core - Idrett is a Norwegian sports team management application with a Flutter f
 - **Achievements**: Player achievement system
 - **Absence**: Absence reporting and management
 - **Export**: Data export functionality
+- **Notifications**: Push notification support
 
 ## Development Commands
 
@@ -42,7 +44,7 @@ flutter test integration_test/app_test.dart  # Run integration tests
 ```
 
 ### Database
-SQL migrations are in `/database/migrations/` (files 001-017). Apply sequentially via Supabase dashboard or the setup script in `/database/setup.sh`.
+SQL migrations are in `/database/migrations/` (files 001-027). Apply sequentially via Supabase dashboard or the setup script in `/database/setup.sh`.
 
 ## Architecture
 
@@ -95,7 +97,7 @@ Frontend API URL is configured in `/app/lib/core/config.dart` (defaults to `http
 | Auth | `/auth/register`, `/auth/login`, `/auth/me`, `/auth/profile`, `/auth/invite/:code` |
 | Teams | `/teams`, `/teams/:id`, `/teams/:id/members`, `/teams/:id/settings` |
 | Activities | `/activities/team/:teamId`, `/activities/:id`, `/activities/instances/:id/respond` |
-| Mini-Activities | `/mini-activities/instance/:instanceId`, `/mini-activities/:id` |
+| Mini-Activities | `/mini-activities/instance/:instanceId`, `/mini-activities/:id`, `/mini-activities/team/:teamId/standalone` |
 | Tournaments | `/tournaments/team/:teamId`, `/tournaments/:id` |
 | Messages | `/messages/teams/:teamId`, `/messages/all-conversations`, `/messages/direct/:recipientId` |
 | Fines | `/fines/team/:teamId`, `/fines/team/:teamId/rules` |

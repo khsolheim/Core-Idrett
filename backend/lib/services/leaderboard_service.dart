@@ -27,7 +27,7 @@ class LeaderboardService {
       order: 'is_main.desc,sort_order.asc,name.asc',
     );
 
-    return result.map((row) => Leaderboard.fromRow(row)).toList();
+    return result.map((row) => Leaderboard.fromJson(row)).toList();
   }
 
   /// Get a leaderboard by ID
@@ -38,7 +38,7 @@ class LeaderboardService {
     );
 
     if (result.isEmpty) return null;
-    return Leaderboard.fromRow(result.first);
+    return Leaderboard.fromJson(result.first);
   }
 
   /// Get the main leaderboard for a team's active season
@@ -53,7 +53,7 @@ class LeaderboardService {
     );
 
     if (result.isEmpty) return null;
-    return Leaderboard.fromRow(result.first);
+    return Leaderboard.fromJson(result.first);
   }
 
   /// Create a new leaderboard
@@ -259,7 +259,7 @@ class LeaderboardService {
 
     final rank = pointsResult.length + 1;
 
-    return LeaderboardEntry.fromRow(result.first, rank: rank);
+    return LeaderboardEntry.fromJson(result.first, rank: rank);
   }
 
   /// Add or update points for a user in a leaderboard
@@ -456,7 +456,7 @@ class LeaderboardService {
       filters: {'mini_activity_id': 'eq.$miniActivityId'},
     );
 
-    return result.map((row) => MiniActivityPointConfig.fromRow(row)).toList();
+    return result.map((row) => MiniActivityPointConfig.fromJson(row)).toList();
   }
 
   /// Create or update point configuration
@@ -564,7 +564,7 @@ class LeaderboardService {
     );
 
     if (result.isEmpty) return null;
-    return Leaderboard.fromRow(result.first);
+    return Leaderboard.fromJson(result.first);
   }
 
   /// Get or create a category leaderboard
@@ -625,7 +625,7 @@ class LeaderboardService {
 
     final map = <LeaderboardCategory, Leaderboard>{};
     for (final row in result) {
-      final leaderboard = Leaderboard.fromRow(row);
+      final leaderboard = Leaderboard.fromJson(row);
       map[leaderboard.category] = leaderboard;
     }
 
