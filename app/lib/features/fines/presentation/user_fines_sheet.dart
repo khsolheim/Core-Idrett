@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/fine.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../providers/fines_provider.dart';
 import 'record_payment_sheet.dart';
 
@@ -94,20 +96,13 @@ class UserFinesSheet extends ConsumerWidget {
             const Divider(height: 1),
             // Fines list
             Expanded(
-              child: finesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Feil: $e')),
+              child: finesAsync.when2(
+                onRetry: () => ref.invalidate(unpaidUserFinesProvider((teamId: teamId, userId: user.userId))),
                 data: (fines) {
                   if (fines.isEmpty) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.check_circle, size: 64, color: Colors.green),
-                          SizedBox(height: 16),
-                          Text('Ingen ubetalte bøter'),
-                        ],
-                      ),
+                    return const EmptyStateWidget(
+                      icon: Icons.check_circle,
+                      title: 'Ingen ubetalte bøter',
                     );
                   }
 

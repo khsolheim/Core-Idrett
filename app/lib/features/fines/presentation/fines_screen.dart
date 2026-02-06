@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/team.dart';
 import '../../teams/providers/team_provider.dart' as team;
 import '../providers/fines_provider.dart';
@@ -28,9 +29,7 @@ class FinesScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: membersAsync.when(
-        loading: () => null,
-        error: (_, _) => null,
+      floatingActionButton: membersAsync.whenOrNull(
         data: (members) => FloatingActionButton.extended(
           onPressed: () => _showReportFineSheet(context, members),
           icon: const Icon(Icons.add),
@@ -48,9 +47,8 @@ class FinesScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Summary card
-              summaryAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('Feil: $e'),
+              summaryAsync.when2(
+                onRetry: () => ref.invalidate(teamFinesSummaryProvider(teamId)),
                 data: (summary) => Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -101,12 +99,13 @@ class FinesScreen extends ConsumerWidget {
               ),
 
               // Check if user is admin or fine_boss
-              teamAsync.when(
+              teamAsync.when2(
+                onRetry: () => ref.invalidate(team.teamDetailProvider(teamId)),
                 loading: () => const SizedBox.shrink(),
                 error: (_, _) => const SizedBox.shrink(),
-                data: (team) {
-                  final isAdmin = team?.userIsAdmin ?? false;
-                  final isFineBoss = team?.userIsFineBoss ?? false;
+                data: (teamData) {
+                  final isAdmin = teamData?.userIsAdmin ?? false;
+                  final isFineBoss = teamData?.userIsFineBoss ?? false;
 
                   if (isAdmin || isFineBoss) {
                     return Column(

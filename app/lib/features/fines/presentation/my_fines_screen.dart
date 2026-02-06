@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/fine.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/fines_provider.dart';
 
@@ -26,21 +28,14 @@ class MyFinesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Mine bøter'),
       ),
-      body: finesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Feil: $e')),
+      body: finesAsync.when2(
+        onRetry: () => ref.invalidate(userFinesProvider((teamId: teamId, userId: user.id))),
         data: (fines) {
           if (fines.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.celebration, size: 64, color: Colors.green),
-                  SizedBox(height: 16),
-                  Text('Ingen bøter!'),
-                  Text('Hold det slik 👍', style: TextStyle(color: Colors.grey)),
-                ],
-              ),
+            return const EmptyStateWidget(
+              icon: Icons.celebration,
+              title: 'Ingen bøter!',
+              subtitle: 'Hold det slik',
             );
           }
 

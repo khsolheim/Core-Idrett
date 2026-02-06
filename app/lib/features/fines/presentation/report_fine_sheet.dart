@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/fine.dart';
 import '../../../data/models/team.dart';
@@ -102,9 +103,9 @@ class _ReportFineSheetState extends ConsumerState<ReportFineSheet> {
             // Select rule or custom amount
             const Text('Type bøte', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            rulesAsync.when(
+            rulesAsync.when2(
+              onRetry: () => ref.invalidate(fineRulesProvider(widget.teamId)),
               loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('Kunne ikke laste regler: $e'),
               data: (rules) {
                 return Column(
                   children: [

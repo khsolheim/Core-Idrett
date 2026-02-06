@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/fine.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../providers/fines_provider.dart';
 
 class FineRulesScreen extends ConsumerWidget {
@@ -21,13 +23,14 @@ class FineRulesScreen extends ConsumerWidget {
         onPressed: () => _showCreateRuleDialog(context, ref),
         child: const Icon(Icons.add),
       ),
-      body: rulesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Feil: $e')),
+      body: rulesAsync.when2(
+        onRetry: () => ref.invalidate(allFineRulesProvider(teamId)),
         data: (rules) {
           if (rules.isEmpty) {
-            return const Center(
-              child: Text('Ingen bøteregler enda.\nTrykk + for å legge til.'),
+            return const EmptyStateWidget(
+              icon: Icons.rule,
+              title: 'Ingen bøteregler enda',
+              subtitle: 'Trykk + for å legge til.',
             );
           }
 

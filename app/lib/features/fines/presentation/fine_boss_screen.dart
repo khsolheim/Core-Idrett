@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/fine.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/fines_provider.dart';
 
@@ -64,20 +66,13 @@ class _PendingFinesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final finesAsync = ref.watch(pendingFinesProvider(teamId));
 
-    return finesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Feil: $e')),
+    return finesAsync.when2(
+      onRetry: () => ref.invalidate(pendingFinesProvider(teamId)),
       data: (fines) {
         if (fines.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.check_circle, size: 64, color: Colors.green),
-                SizedBox(height: 16),
-                Text('Ingen ventende bøter'),
-              ],
-            ),
+          return const EmptyStateWidget(
+            icon: Icons.check_circle,
+            title: 'Ingen ventende bøter',
           );
         }
 
@@ -218,20 +213,13 @@ class _PendingAppealsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appealsAsync = ref.watch(pendingAppealsProvider(teamId));
 
-    return appealsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Feil: $e')),
+    return appealsAsync.when2(
+      onRetry: () => ref.invalidate(pendingAppealsProvider(teamId)),
       data: (appeals) {
         if (appeals.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.check_circle, size: 64, color: Colors.green),
-                SizedBox(height: 16),
-                Text('Ingen ventende klager'),
-              ],
-            ),
+          return const EmptyStateWidget(
+            icon: Icons.check_circle,
+            title: 'Ingen ventende klager',
           );
         }
 

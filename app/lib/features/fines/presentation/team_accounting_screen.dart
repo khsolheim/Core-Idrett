@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/fine.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../providers/fines_provider.dart';
 import 'user_fines_sheet.dart';
 
@@ -42,9 +44,8 @@ class TeamAccountingScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Team summary
-              summaryAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('Feil: $e'),
+              summaryAsync.when2(
+                onRetry: () => ref.invalidate(teamFinesSummaryProvider(teamId)),
                 data: (summary) => Column(
                   children: [
                     _SummaryCard(
@@ -100,12 +101,14 @@ class TeamAccountingScreen extends ConsumerWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              userSummariesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('Feil: $e'),
+              userSummariesAsync.when2(
+                onRetry: () => ref.invalidate(userFinesSummariesProvider(teamId)),
                 data: (summaries) {
                   if (summaries.isEmpty) {
-                    return const Center(child: Text('Ingen data'));
+                    return const EmptyStateWidget(
+                      icon: Icons.people_outline,
+                      title: 'Ingen data',
+                    );
                   }
 
                   return ListView.builder(
