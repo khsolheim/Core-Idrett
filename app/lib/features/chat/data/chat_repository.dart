@@ -1,9 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/api_response_parser.dart';
 import '../../../data/api/api_client.dart';
-import '../../../data/models/message.dart';
 import '../../../data/models/conversation.dart';
-
+import '../../../data/models/message.dart';
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
   return ChatRepository(ref.watch(apiClientProvider));
 });
@@ -81,11 +80,6 @@ class ChatRepository {
   }
 
   // ============ Direct Message Methods ============
-
-  Future<List<Conversation>> getConversations() async {
-    final response = await _client.get('/messages/conversations');
-    return parseList(response.data, 'conversations', Conversation.fromJson);
-  }
 
   Future<List<Message>> getDirectMessages(
     String recipientId, {

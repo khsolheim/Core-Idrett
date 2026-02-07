@@ -96,33 +96,3 @@ class MessageRead {
     );
   }
 }
-
-class Conversation {
-  final String oderId;
-  final String recipientId;
-  final String recipientName;
-  final String? recipientAvatarUrl;
-  final String? lastMessage;
-  final DateTime? lastMessageAt;
-  final int unreadCount;
-
-  Conversation({
-    required this.oderId,
-    required this.recipientId,
-    required this.recipientName,
-    this.recipientAvatarUrl,
-    this.lastMessage,
-    this.lastMessageAt,
-    required this.unreadCount,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'oder_id': oderId,
-        'recipient_id': recipientId,
-        'recipient_name': recipientName,
-        'recipient_avatar_url': recipientAvatarUrl,
-        'last_message': lastMessage,
-        'last_message_at': lastMessageAt?.toIso8601String(),
-        'unread_count': unreadCount,
-      };
-}

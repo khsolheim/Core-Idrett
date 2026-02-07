@@ -23,3 +23,7 @@ export 'stopwatch_time_sheet.dart';
 export 'team_stats_tab.dart';
 export 'tournament_bracket.dart';
 export 'tournament_setup_sheet.dart';
+export 'set_winner_dialog.dart';
+export 'record_scores_sheet.dart';
+export 'mini_activity_history_sheet.dart';
+export 'team_division_sheet.dart';
