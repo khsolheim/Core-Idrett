@@ -36,7 +36,9 @@ dart test                 # Run backend tests
 ### Frontend (from `/app`)
 ```bash
 flutter pub get           # Install dependencies
-flutter run               # Run app (debug mode)
+flutter run \             # Run app (debug mode)
+  --dart-define=SUPABASE_URL=https://your-project.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=your-anon-key
 flutter analyze           # Run static analysis
 flutter test              # Run all widget tests
 flutter test test/features/auth/  # Run tests for a specific feature
@@ -81,14 +83,21 @@ Feature-specific error handlers in `/app/lib/core/errors/handlers/` transform AP
 - Use `TestScenario` to set up common test states (logged in, with teams, etc.)
 - Mock repositories in `mock_repositories.dart`, test data factories in `test_data.dart`
 
-## Environment Variables (Backend)
+## Environment Variables
+
+### Backend
 Required in `/backend/.env`:
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
-- `JWT_SECRET`
+- `SUPABASE_SERVICE_KEY`
+- `JWT_SECRET` (server fails fast at startup if missing)
 
-## API Base URL
-Frontend API URL is configured in `/app/lib/core/config.dart` (defaults to `http://localhost:8080`).
+### Frontend
+Passed via `--dart-define` at build/run time:
+- `SUPABASE_URL` — Supabase project URL (realtime disabled if empty)
+- `SUPABASE_ANON_KEY` — Supabase anon key (realtime disabled if empty)
+
+API base URL defaults to `http://localhost:8080` in `/app/lib/core/config.dart`.
 
 ## Key API Endpoints
 
