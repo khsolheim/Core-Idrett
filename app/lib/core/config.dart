@@ -1,6 +1,9 @@
 class AppConfig {
   static const String appName = 'Core - Idrett';
-  static const String apiBaseUrl = 'http://localhost:8080';
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8080',
+  );
 
   // Supabase configuration for realtime features
   static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');

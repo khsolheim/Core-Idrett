@@ -38,7 +38,8 @@ dart test                 # Run backend tests
 flutter pub get           # Install dependencies
 flutter run \             # Run app (debug mode)
   --dart-define=SUPABASE_URL=https://your-project.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=your-anon-key
+  --dart-define=SUPABASE_ANON_KEY=your-anon-key \
+  --dart-define=API_BASE_URL=http://localhost:8080  # optional, this is the default
 flutter analyze           # Run static analysis
 flutter test              # Run all widget tests
 flutter test test/features/auth/  # Run tests for a specific feature
@@ -96,8 +97,7 @@ Required in `/backend/.env`:
 Passed via `--dart-define` at build/run time:
 - `SUPABASE_URL` — Supabase project URL (realtime disabled if empty)
 - `SUPABASE_ANON_KEY` — Supabase anon key (realtime disabled if empty)
-
-API base URL defaults to `http://localhost:8080` in `/app/lib/core/config.dart`.
+- `API_BASE_URL` — Backend API URL (defaults to `http://localhost:8080`)
 
 ## Key API Endpoints
 

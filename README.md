@@ -63,14 +63,30 @@ Core-Idrett/
    dart pub get
    ```
 
-3. Set environment variables:
+3. Create your `.env` file from the template:
    ```bash
-   export SUPABASE_URL=your_supabase_url
-   export SUPABASE_ANON_KEY=your_anon_key
-   export JWT_SECRET=your_jwt_secret
+   cp .env.example .env
    ```
+   Then edit `.env` with your actual values. Required variables:
+   - `SUPABASE_URL` — your Supabase project URL
+   - `SUPABASE_ANON_KEY` — your Supabase anon/public key
+   - `SUPABASE_SERVICE_KEY` — your Supabase service role key
+   - `JWT_SECRET` — secret for signing JWTs
+   - `PORT` — server port (default: 8080)
 
 4. Run the server:
+
+   **macOS / Linux:**
+   ```bash
+   ./run.sh
+   ```
+
+   **Windows (PowerShell):**
+   ```powershell
+   ./run.ps1
+   ```
+
+   Or run directly (requires env vars already exported):
    ```bash
    dart run bin/server.dart
    ```
@@ -87,11 +103,19 @@ Core-Idrett/
    flutter pub get
    ```
 
-3. Update the API URL in `lib/core/config.dart`
-
-4. Run the app:
+3. Run the app:
    ```bash
-   flutter run
+   flutter run \
+     --dart-define=SUPABASE_URL=https://your-project.supabase.co \
+     --dart-define=SUPABASE_ANON_KEY=your-anon-key
+   ```
+
+   Optional: override the API base URL (defaults to `http://localhost:8080`):
+   ```bash
+   flutter run \
+     --dart-define=SUPABASE_URL=https://your-project.supabase.co \
+     --dart-define=SUPABASE_ANON_KEY=your-anon-key \
+     --dart-define=API_BASE_URL=http://your-server:8080
    ```
 
 ### Database Setup

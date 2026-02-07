@@ -7,11 +7,13 @@ class Database {
   SupabaseClient get client => _client;
 
   Future<void> connect() async {
-    final projectUrl = Platform.environment['SUPABASE_URL'] ??
-        'https://mxlzmnxdwkntnwlnxoys.supabase.co';
+    final projectUrl = Platform.environment['SUPABASE_URL'] ?? '';
     final anonKey = Platform.environment['SUPABASE_ANON_KEY'] ?? '';
     final serviceKey = Platform.environment['SUPABASE_SERVICE_KEY'] ?? '';
 
+    if (projectUrl.isEmpty) {
+      throw Exception('SUPABASE_URL is required');
+    }
     if (serviceKey.isEmpty) {
       throw Exception('SUPABASE_SERVICE_KEY is required');
     }
