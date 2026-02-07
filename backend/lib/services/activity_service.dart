@@ -501,25 +501,8 @@ class ActivityService {
       return date.compareTo(toDate) <= 0;
     }).toList();
 
-    // Get user responses for these instances
+    // Get all responses for these instances in one query
     final instanceIds = filteredInstances.map((i) => i['id'] as String).toList();
-    final responses = instanceIds.isNotEmpty
-        ? await _db.client.select(
-            'activity_responses',
-            filters: {
-              'instance_id': 'in.(${instanceIds.join(',')})',
-              'user_id': 'eq.$userId',
-            },
-          )
-        : <Map<String, dynamic>>[];
-
-    // Create response lookup
-    final responseMap = <String, String?>{};
-    for (final r in responses) {
-      responseMap[r['instance_id'] as String] = r['response'] as String?;
-    }
-
-    // Get response counts for all instances
     final allResponses = instanceIds.isNotEmpty
         ? await _db.client.select(
             'activity_responses',
@@ -528,6 +511,14 @@ class ActivityService {
             },
           )
         : <Map<String, dynamic>>[];
+
+    // Create user response lookup (filter in memory)
+    final responseMap = <String, String?>{};
+    for (final r in allResponses) {
+      if (r['user_id'] == userId) {
+        responseMap[r['instance_id'] as String] = r['response'] as String?;
+      }
+    }
 
     // Count responses per instance
     final responseCounts = <String, Map<String, int>>{};

@@ -52,8 +52,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
 
   @override
   Widget build(BuildContext context) {
-    final teamAsync = ref.watch(teamDetailProvider(widget.teamId));
-    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
+    final isAdmin = ref.watch(
+      teamDetailProvider(widget.teamId).select((t) => t.value?.userIsAdmin ?? false),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -128,12 +129,15 @@ class _CategoryLeaderboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeSeasonAsync = ref.watch(activeSeasonProvider(teamId));
-    final seasonId = activeSeasonAsync.value?.id;
+    final seasonId = ref.watch(
+      activeSeasonProvider(teamId).select((a) => a.value?.id),
+    );
     final entriesAsync = ref.watch(rankedLeaderboardProvider(
       (teamId: teamId, category: category, seasonId: seasonId),
     ));
-    final currentUser = ref.watch(authStateProvider).value;
+    final currentUserId = ref.watch(
+      authStateProvider.select((a) => a.value?.id),
+    );
 
     return entriesAsync.when2(
       onRetry: () {
@@ -163,7 +167,7 @@ class _CategoryLeaderboard extends ConsumerWidget {
             itemCount: entries.length,
             itemBuilder: (context, index) {
               final entry = entries[index];
-              final isCurrentUser = currentUser?.id == entry.userId;
+              final isCurrentUser = currentUserId == entry.userId;
               return _RankedLeaderboardCard(
                 entry: entry,
                 isCurrentUser: isCurrentUser,

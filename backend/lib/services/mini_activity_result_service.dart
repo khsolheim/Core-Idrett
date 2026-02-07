@@ -113,44 +113,27 @@ class MiniActivityResultService {
     int drawPoints = miniActivity['draw_points'] as int? ?? 1;
     int lossPoints = miniActivity['loss_points'] as int? ?? 0;
 
+    // Resolve teamId: directly from mini-activity, or via instance -> activity chain
     String? teamId;
+    if (miniActivity['team_id'] != null) {
+      teamId = miniActivity['team_id'] as String;
+    } else if (miniActivity['instance_id'] != null) {
+      teamId = await _resolveTeamIdFromInstance(miniActivity['instance_id'] as String);
+    }
 
-    // If no activity-specific values, try team settings
-    if (miniActivity['instance_id'] != null) {
-      // Get activity instance
-      final instanceResult = await _db.client.select(
-        'activity_instances',
-        filters: {'id': 'eq.${miniActivity['instance_id']}'},
+    // If we have a teamId, try team settings for default point values
+    if (teamId != null) {
+      final settingsResult = await _db.client.select(
+        'team_settings',
+        filters: {'team_id': 'eq.$teamId'},
       );
 
-      if (instanceResult.isNotEmpty) {
-        final instance = instanceResult.first;
-
-        // Get activity to find team_id
-        final activityResult = await _db.client.select(
-          'activities',
-          filters: {'id': 'eq.${instance['activity_id']}'},
-        );
-
-        if (activityResult.isNotEmpty) {
-          teamId = activityResult.first['team_id'] as String;
-
-          // Get team settings
-          final settingsResult = await _db.client.select(
-            'team_settings',
-            filters: {'team_id': 'eq.$teamId'},
-          );
-
-          if (settingsResult.isNotEmpty) {
-            final settings = settingsResult.first;
-            winPoints = settings['win_points'] as int? ?? winPoints;
-            drawPoints = settings['draw_points'] as int? ?? drawPoints;
-            lossPoints = settings['loss_points'] as int? ?? lossPoints;
-          }
-        }
+      if (settingsResult.isNotEmpty) {
+        final settings = settingsResult.first;
+        winPoints = settings['win_points'] as int? ?? winPoints;
+        drawPoints = settings['draw_points'] as int? ?? drawPoints;
+        lossPoints = settings['loss_points'] as int? ?? lossPoints;
       }
-    } else if (miniActivity['team_id'] != null) {
-      teamId = miniActivity['team_id'] as String;
     }
 
     // Get main leaderboard if we should add to it
@@ -366,10 +349,32 @@ class MiniActivityResultService {
     }
   }
 
-  /// Get team_id for a mini-activity (looks up via instance or team_id field)
+  /// Resolve team_id from an activity instance by looking up instance -> activity -> team
+  Future<String?> _resolveTeamIdFromInstance(String instanceId) async {
+    final instanceResult = await _db.client.select(
+      'activity_instances',
+      select: 'activity_id',
+      filters: {'id': 'eq.$instanceId'},
+    );
+
+    if (instanceResult.isEmpty) return null;
+    final activityId = instanceResult.first['activity_id'] as String;
+
+    final activityResult = await _db.client.select(
+      'activities',
+      select: 'team_id',
+      filters: {'id': 'eq.$activityId'},
+    );
+
+    if (activityResult.isEmpty) return null;
+    return activityResult.first['team_id'] as String?;
+  }
+
+  /// Get team_id for a mini-activity (looks up via team_id field or instance chain)
   Future<String?> _getTeamIdForMiniActivity(String miniActivityId) async {
     final result = await _db.client.select(
       'mini_activities',
+      select: 'team_id,instance_id',
       filters: {'id': 'eq.$miniActivityId'},
     );
 
@@ -385,22 +390,7 @@ class MiniActivityResultService {
     final instanceId = miniActivity['instance_id'] as String?;
     if (instanceId == null) return null;
 
-    final instanceResult = await _db.client.select(
-      'activity_instances',
-      filters: {'id': 'eq.$instanceId'},
-    );
-
-    if (instanceResult.isEmpty) return null;
-    final activityId = instanceResult.first['activity_id'] as String;
-
-    final activityResult = await _db.client.select(
-      'activities',
-      select: 'team_id',
-      filters: {'id': 'eq.$activityId'},
-    );
-
-    if (activityResult.isEmpty) return null;
-    return activityResult.first['team_id'] as String?;
+    return _resolveTeamIdFromInstance(instanceId);
   }
 
   /// Clear the result of a mini-activity (reset scores and winner)

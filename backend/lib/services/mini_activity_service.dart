@@ -457,16 +457,26 @@ class MiniActivityService {
 
     if (miniActivities.isEmpty) return [];
 
+    // Batch fetch ALL teams for all mini-activities in one query
+    final allMaIds = miniActivities.map((m) => m['id'] as String).toList();
+    final allTeams = await _db.client.select(
+      'mini_activity_teams',
+      filters: {'mini_activity_id': 'in.(${allMaIds.join(",")})'},
+      order: 'name.asc',
+    );
+
+    // Group teams by mini_activity_id
+    final teamsByMa = <String, List<Map<String, dynamic>>>{};
+    for (final t in allTeams) {
+      final maId = t['mini_activity_id'] as String;
+      teamsByMa.putIfAbsent(maId, () => []).add(t);
+    }
+
     final result = <Map<String, dynamic>>[];
 
     for (final ma in miniActivities) {
       final miniActivityId = ma['id'] as String;
-
-      final teams = await _db.client.select(
-        'mini_activity_teams',
-        filters: {'mini_activity_id': 'eq.$miniActivityId'},
-        order: 'name.asc',
-      );
+      final teams = teamsByMa[miniActivityId] ?? [];
 
       final hasResult = teams.any((t) => t['final_score'] != null) ||
           ma['winner_team_id'] != null;

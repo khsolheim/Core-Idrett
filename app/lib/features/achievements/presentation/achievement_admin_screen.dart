@@ -16,15 +16,15 @@ class AchievementAdminScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final teamAsync = ref.watch(teamDetailProvider(teamId));
+    final isAdmin = ref.watch(
+      teamDetailProvider(teamId).select((t) => t.value?.userIsAdmin ?? false),
+    );
     final definitionsAsync = ref.watch(achievementDefinitionsProvider((
       teamId: teamId,
       includeGlobal: false,
       activeOnly: false,
       category: null,
     )));
-
-    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
 
     if (!isAdmin) {
       return Scaffold(

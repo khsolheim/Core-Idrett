@@ -578,18 +578,97 @@ class LeaderboardService {
     );
 
     final memberUserIds = await _teamService.getTeamMemberUserIds(teamId);
+    if (memberUserIds.isEmpty) return;
 
+    // Fetch weights once (shared across all users)
+    final configResult = await _db.client.select(
+      'team_points_config',
+      filters: {'team_id': 'eq.$teamId'},
+      limit: 1,
+    );
+
+    double trainingWeight = 1.0;
+    double matchWeight = 1.5;
+    double socialWeight = 0.5;
+    double competitionWeight = 1.0;
+
+    if (configResult.isNotEmpty) {
+      final config = configResult.first;
+      trainingWeight = (config['training_weight'] as num?)?.toDouble() ?? 1.0;
+      matchWeight = (config['match_weight'] as num?)?.toDouble() ?? 1.5;
+      socialWeight = (config['social_weight'] as num?)?.toDouble() ?? 0.5;
+      competitionWeight =
+          (config['competition_weight'] as num?)?.toDouble() ?? 1.0;
+    }
+
+    // Fetch category leaderboards once (shared across all users)
+    final categoryLeaderboards = await getCategoryLeaderboards(
+      teamId,
+      seasonId: seasonId,
+    );
+
+    if (categoryLeaderboards.isEmpty) {
+      // No category leaderboards, set all to 0
+      for (final userId in memberUserIds) {
+        await upsertEntry(
+          leaderboardId: totalLeaderboard.id,
+          userId: userId,
+          points: 0,
+          addToExisting: false,
+        );
+      }
+      return;
+    }
+
+    // Batch fetch ALL entries for all category leaderboards at once
+    final leaderboardIds = categoryLeaderboards.values.map((lb) => lb.id).toList();
+    final allEntries = await _db.client.select(
+      'leaderboard_entries',
+      filters: {
+        'leaderboard_id': 'in.(${leaderboardIds.join(',')})',
+        'user_id': 'in.(${memberUserIds.join(',')})',
+      },
+    );
+
+    // Build lookup: leaderboardId -> userId -> points
+    final entryLookup = <String, Map<String, int>>{};
+    for (final e in allEntries) {
+      final lbId = e['leaderboard_id'] as String;
+      final uId = e['user_id'] as String;
+      final pts = e['points'] as int? ?? 0;
+      entryLookup.putIfAbsent(lbId, () => {})[uId] = pts;
+    }
+
+    // Calculate weighted total per user in memory
     for (final userId in memberUserIds) {
-      final weightedTotal = await calculateWeightedTotal(
-        userId,
-        teamId,
-        seasonId: seasonId,
-      );
+      double total = 0.0;
+
+      for (final entry in categoryLeaderboards.entries) {
+        final lbId = entry.value.id;
+        final points = (entryLookup[lbId]?[userId] ?? 0).toDouble();
+
+        switch (entry.key) {
+          case LeaderboardCategory.training:
+            total += points * trainingWeight;
+            break;
+          case LeaderboardCategory.match:
+            total += points * matchWeight;
+            break;
+          case LeaderboardCategory.social:
+            total += points * socialWeight;
+            break;
+          case LeaderboardCategory.competition:
+            total += points * competitionWeight;
+            break;
+          default:
+            total += points;
+        }
+      }
 
       await upsertEntry(
         leaderboardId: totalLeaderboard.id,
         userId: userId,
-        points: weightedTotal.round(),
+        points: total.round(),
         addToExisting: false,
       );
     }

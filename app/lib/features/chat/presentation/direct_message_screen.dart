@@ -95,7 +95,9 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(directMessageNotifierProvider(widget.recipientId));
-    final currentUser = ref.watch(authStateProvider).value;
+    final currentUserId = ref.watch(
+      authStateProvider.select((a) => a.value?.id),
+    );
     final membersAsync = ref.watch(teamMembersProvider(widget.teamId));
 
     // Get recipient name from team members
@@ -141,7 +143,7 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    final isOwn = message.userId == currentUser?.id;
+                    final isOwn = message.userId == currentUserId;
                     final showDate = index == messages.length - 1 ||
                         !isSameDay(
                           message.createdAt,

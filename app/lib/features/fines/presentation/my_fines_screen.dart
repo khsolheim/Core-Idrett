@@ -15,21 +15,23 @@ class MyFinesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authStateProvider).value;
-    if (user == null) {
+    final userId = ref.watch(
+      authStateProvider.select((a) => a.value?.id),
+    );
+    if (userId == null) {
       return const Scaffold(
         body: Center(child: Text('Ikke innlogget')),
       );
     }
 
-    final finesAsync = ref.watch(userFinesProvider((teamId: teamId, userId: user.id)));
+    final finesAsync = ref.watch(userFinesProvider((teamId: teamId, userId: userId)));
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mine bøter'),
       ),
       body: finesAsync.when2(
-        onRetry: () => ref.invalidate(userFinesProvider((teamId: teamId, userId: user.id))),
+        onRetry: () => ref.invalidate(userFinesProvider((teamId: teamId, userId: userId))),
         data: (fines) {
           if (fines.isEmpty) {
             return const EmptyStateWidget(

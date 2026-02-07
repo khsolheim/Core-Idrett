@@ -172,7 +172,9 @@ class ChatPanelState extends ConsumerState<ChatPanel> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currentUser = ref.watch(authStateProvider).value;
+    final currentUserId = ref.watch(
+      authStateProvider.select((a) => a.value?.id),
+    );
 
     final AsyncValue<List<Message>> messagesState;
     if (widget.conversation.isTeamChat) {
@@ -275,7 +277,7 @@ class ChatPanelState extends ConsumerState<ChatPanel> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    final isOwn = message.userId == currentUser?.id;
+                    final isOwn = message.userId == currentUserId;
                     final showDate = index == messages.length - 1 ||
                         !isSameDay(
                           message.createdAt,

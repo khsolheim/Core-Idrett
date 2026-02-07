@@ -129,10 +129,13 @@ class MessageService {
         .toSet();
 
     if (teamMemberIds.isNotEmpty) {
-      // Get all direct messages involving this user
+      // Get direct messages involving this user (DB-level filtering)
       final allMessages = await _db.client.select(
         'messages',
-        filters: {'recipient_id': 'not.is.null'},
+        filters: {
+          'recipient_id': 'not.is.null',
+          'or': '(user_id.eq.$userId,recipient_id.eq.$userId)',
+        },
         order: 'created_at.desc',
       );
 
@@ -141,11 +144,8 @@ class MessageService {
         final recipientId = m['recipient_id'] as String?;
         if (recipientId == null) return false;
         final senderId = m['user_id'] as String;
-        // Must involve current user and a team member
-        final isUserInvolved = senderId == userId || recipientId == userId;
         final partnerId = senderId == userId ? recipientId : senderId;
-        final isTeamMember = teamMemberIds.contains(partnerId);
-        return isUserInvolved && isTeamMember;
+        return teamMemberIds.contains(partnerId);
       }).toList();
 
       // Group by conversation partner
@@ -233,19 +233,15 @@ class MessageService {
   }
 
   Future<List<Map<String, dynamic>>> getConversations(String userId) async {
-    // Get all direct messages involving this user
-    final allMessages = await _db.client.select(
+    // Get direct messages involving this user (DB-level filtering)
+    final directMessages = await _db.client.select(
       'messages',
+      filters: {
+        'recipient_id': 'not.is.null',
+        'or': '(user_id.eq.$userId,recipient_id.eq.$userId)',
+      },
       order: 'created_at.desc',
     );
-
-    // Filter to only direct messages involving this user
-    final directMessages = allMessages.where((m) {
-      final recipientId = m['recipient_id'] as String?;
-      if (recipientId == null) return false;
-      final senderId = m['user_id'] as String;
-      return senderId == userId || recipientId == userId;
-    }).toList();
 
     // Group by conversation partner
     final conversationMap = <String, Map<String, dynamic>>{};

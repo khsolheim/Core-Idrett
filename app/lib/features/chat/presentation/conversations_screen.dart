@@ -219,7 +219,9 @@ class _NewConversationSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(teamMembersProvider(teamId));
-    final currentUser = ref.watch(authStateProvider).value;
+    final currentUserId = ref.watch(
+      authStateProvider.select((a) => a.value?.id),
+    );
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(
@@ -253,7 +255,7 @@ class _NewConversationSheet extends ConsumerWidget {
                 data: (members) {
                   // Filter out current user
                   final otherMembers = members
-                      .where((m) => m.userId != currentUser?.id)
+                      .where((m) => m.userId != currentUserId)
                       .toList();
 
                   if (otherMembers.isEmpty) {

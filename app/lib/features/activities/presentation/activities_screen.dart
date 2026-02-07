@@ -84,12 +84,14 @@ class _ActivityInstanceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('EEEE d. MMMM', 'nb_NO');
     final theme = Theme.of(context);
-    final teamAsync = ref.watch(teamDetailProvider(teamId));
-    final userAsync = ref.watch(authStateProvider);
+    final isAdmin = ref.watch(
+      teamDetailProvider(teamId).select((t) => t.value?.userIsAdmin ?? false),
+    );
+    final userId = ref.watch(
+      authStateProvider.select((a) => a.value?.id),
+    );
 
     // Check if user can manage this activity
-    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
-    final userId = userAsync.value?.id;
     final isCreator = userId != null && instance.createdBy == userId;
     final canManage = isAdmin || isCreator;
 

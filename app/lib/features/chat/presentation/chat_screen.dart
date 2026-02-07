@@ -90,7 +90,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatNotifierProvider(widget.teamId));
-    final currentUser = ref.watch(authStateProvider).value;
+    final currentUserId = ref.watch(
+      authStateProvider.select((a) => a.value?.id),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -132,7 +134,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    final isOwn = message.userId == currentUser?.id;
+                    final isOwn = message.userId == currentUserId;
                     final showDate = index == messages.length - 1 ||
                         !isSameDay(
                           message.createdAt,

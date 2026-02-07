@@ -16,11 +16,14 @@ class AchievementsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authStateProvider).value;
-    final teamAsync = ref.watch(teamDetailProvider(teamId));
-    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
+    final userId = ref.watch(
+      authStateProvider.select((a) => a.value?.id),
+    );
+    final isAdmin = ref.watch(
+      teamDetailProvider(teamId).select((t) => t.value?.userIsAdmin ?? false),
+    );
 
-    if (user == null) {
+    if (userId == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
@@ -52,8 +55,8 @@ class AchievementsScreen extends ConsumerWidget {
         ),
         body: TabBarView(
           children: [
-            _MyAchievementsTab(teamId: teamId, userId: user.id),
-            _AvailableAchievementsTab(teamId: teamId, userId: user.id),
+            _MyAchievementsTab(teamId: teamId, userId: userId),
+            _AvailableAchievementsTab(teamId: teamId, userId: userId),
             _TeamAchievementsTab(teamId: teamId),
           ],
         ),

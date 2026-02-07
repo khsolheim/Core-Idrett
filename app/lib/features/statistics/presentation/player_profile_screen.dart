@@ -21,11 +21,11 @@ class PlayerProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(playerStatisticsProvider((teamId: teamId, userId: userId)));
-    final teamAsync = ref.watch(teamDetailProvider(teamId));
+    final isAdmin = ref.watch(
+      teamDetailProvider(teamId).select((t) => t.value?.userIsAdmin ?? false),
+    );
     final membersAsync = ref.watch(teamMembersProvider(teamId));
     final theme = Theme.of(context);
-
-    final isAdmin = teamAsync.value?.userIsAdmin ?? false;
 
     return Scaffold(
       appBar: AppBar(

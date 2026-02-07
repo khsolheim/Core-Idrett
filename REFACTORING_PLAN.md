@@ -48,7 +48,7 @@ grep -rn "serverError.*\$e" lib/api/
 ## Fase 15: Backend Input Validation & Type Safety
 **Priority: HIGH (Crash prevention)**
 **Files: ~12 files**
-**Status: TODO**
+**Status: DONE** (commit 225b5de)
 
 ### Problem
 1. 12+ unsafe `body['key'] as Type` casts without null checks — crash on missing fields
@@ -200,7 +200,7 @@ cd app && flutter analyze
 ## Fase 19: Frontend Navigation Consistency
 **Priority: MEDIUM (Maintainability)**
 **Files: ~15 files**
-**Status: TODO**
+**Status: DONE** (commit 225b5de)
 
 ### Problem
 1. Mixed use of `context.pushNamed()` (named routes) vs `context.push('/path')` (path-based)
