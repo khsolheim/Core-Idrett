@@ -80,7 +80,6 @@ class MiniActivityTeamsHandler {
     } on ArgumentError catch (e) {
       return resp.badRequest(e.message);
     } catch (e) {
-      print('Divide teams error: $e');
       return resp.serverError('En feil oppstod ved lagdeling');
     }
   }
