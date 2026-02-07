@@ -44,7 +44,7 @@ class _PendingAbsenceCardState extends ConsumerState<PendingAbsenceCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Kunne ikke godkjenne: $e'),
+            content: const Text('Kunne ikke godkjenne fravær. Prøv igjen.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -80,7 +80,7 @@ class _PendingAbsenceCardState extends ConsumerState<PendingAbsenceCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Kunne ikke avvise: $e'),
+            content: const Text('Kunne ikke avvise fravær. Prøv igjen.'),
             backgroundColor: Colors.red,
           ),
         );

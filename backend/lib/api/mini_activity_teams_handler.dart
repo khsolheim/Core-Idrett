@@ -81,7 +81,7 @@ class MiniActivityTeamsHandler {
       return resp.badRequest(e.message);
     } catch (e) {
       print('Divide teams error: $e');
-      return resp.serverError('En feil oppstod ved lagdeling: $e');
+      return resp.serverError('En feil oppstod ved lagdeling');
     }
   }
 
@@ -96,7 +96,7 @@ class MiniActivityTeamsHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -125,7 +125,7 @@ class MiniActivityTeamsHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -147,7 +147,7 @@ class MiniActivityTeamsHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -173,7 +173,7 @@ class MiniActivityTeamsHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -200,7 +200,7 @@ class MiniActivityTeamsHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -226,7 +226,7 @@ class MiniActivityTeamsHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -242,7 +242,7 @@ class MiniActivityTeamsHandler {
       final handicaps = await _divisionService.getHandicaps(miniActivityId);
       return resp.ok(handicaps.map((h) => h.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -270,7 +270,7 @@ class MiniActivityTeamsHandler {
 
       return resp.ok(handicap.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -284,7 +284,7 @@ class MiniActivityTeamsHandler {
       await _divisionService.removeHandicap(miniActivityId: miniActivityId, userId: targetUserId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

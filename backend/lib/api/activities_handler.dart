@@ -53,7 +53,7 @@ class ActivitiesHandler {
       final activities = await _activityService.getActivitiesForTeam(teamId);
       return resp.ok(activities);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -103,7 +103,7 @@ class ActivitiesHandler {
 
       return resp.ok(activity.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -124,7 +124,7 @@ class ActivitiesHandler {
       final instances = await _activityService.getUpcomingInstances(teamId, limit: limit);
       return resp.ok(instances);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -157,7 +157,7 @@ class ActivitiesHandler {
       );
       return resp.ok(instances);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -181,7 +181,7 @@ class ActivitiesHandler {
       await _activityService.deleteActivity(activityId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -221,7 +221,7 @@ class ActivitiesHandler {
 
       return resp.ok(activity.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

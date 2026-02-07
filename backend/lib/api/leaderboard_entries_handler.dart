@@ -59,7 +59,7 @@ class LeaderboardEntriesHandler {
         'entries': entries.map((e) => e.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente entries: $e');
+      return resp.serverError('Kunne ikke hente entries');
     }
   }
 
@@ -88,7 +88,7 @@ class LeaderboardEntriesHandler {
 
       return resp.ok(entry.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente brukerentry: $e');
+      return resp.serverError('Kunne ikke hente brukerentry');
     }
   }
 
@@ -142,7 +142,7 @@ class LeaderboardEntriesHandler {
         return resp.badRequest('user_id eller user_points er pakrevd');
       }
     } catch (e) {
-      return resp.serverError('Kunne ikke legge til poeng: $e');
+      return resp.serverError('Kunne ikke legge til poeng');
     }
   }
 
@@ -171,7 +171,7 @@ class LeaderboardEntriesHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke nullstille leaderboard: $e');
+      return resp.serverError('Kunne ikke nullstille leaderboard');
     }
   }
 
@@ -188,7 +188,7 @@ class LeaderboardEntriesHandler {
         'configs': configs.map((c) => c.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente poengkonfigurasjon: $e');
+      return resp.serverError('Kunne ikke hente poengkonfigurasjon');
     }
   }
 
@@ -233,7 +233,7 @@ class LeaderboardEntriesHandler {
 
       return resp.ok(config.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke oppdatere poengkonfigurasjon: $e');
+      return resp.serverError('Kunne ikke oppdatere poengkonfigurasjon');
     }
   }
 
@@ -266,7 +266,7 @@ class LeaderboardEntriesHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette poengkonfigurasjon: $e');
+      return resp.serverError('Kunne ikke slette poengkonfigurasjon');
     }
   }
 }

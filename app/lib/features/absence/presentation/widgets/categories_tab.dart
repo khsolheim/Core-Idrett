@@ -265,7 +265,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Kunne ikke lagre: $e'),
+            content: const Text('Kunne ikke lagre kategori. Prøv igjen.'),
             backgroundColor: Colors.red,
           ),
         );

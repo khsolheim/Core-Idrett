@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/message.dart';
 import '../../../data/models/conversation.dart';
 import '../data/chat_repository.dart';
@@ -92,6 +93,7 @@ class DirectMessageNotifier extends AsyncNotifier<List<Message>> {
       ref.invalidate(conversationsProvider);
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke sende melding. Prøv igjen.');
       return false;
     }
   }
@@ -112,6 +114,7 @@ class DirectMessageNotifier extends AsyncNotifier<List<Message>> {
       }
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke redigere melding. Prøv igjen.');
       return false;
     }
   }
@@ -147,6 +150,7 @@ class DirectMessageNotifier extends AsyncNotifier<List<Message>> {
       }
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke slette melding. Prøv igjen.');
       return false;
     }
   }

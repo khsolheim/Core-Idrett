@@ -243,7 +243,7 @@ class _UploadDocumentSheetState extends ConsumerState<UploadDocumentSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Feil: $e'),
+            content: const Text('Kunne ikke laste opp dokument. Prøv igjen.'),
             backgroundColor: Colors.red,
           ),
         );

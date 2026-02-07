@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/document.dart';
 import '../data/document_repository.dart';
 
@@ -98,6 +99,7 @@ class DocumentNotifier extends AsyncNotifier<List<TeamDocument>> {
       ref.invalidate(documentCategoriesProvider(_teamId));
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke laste opp dokument. Prøv igjen.');
       return false;
     }
   }
@@ -126,6 +128,7 @@ class DocumentNotifier extends AsyncNotifier<List<TeamDocument>> {
       ref.invalidate(documentCategoriesProvider(_teamId));
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke opprette dokument. Prøv igjen.');
       return false;
     }
   }
@@ -154,6 +157,7 @@ class DocumentNotifier extends AsyncNotifier<List<TeamDocument>> {
       ref.invalidate(documentCategoriesProvider(_teamId));
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke oppdatere dokument. Prøv igjen.');
       return false;
     }
   }
@@ -169,6 +173,7 @@ class DocumentNotifier extends AsyncNotifier<List<TeamDocument>> {
       ref.invalidate(documentCategoriesProvider(_teamId));
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke slette dokument. Prøv igjen.');
       return false;
     }
   }

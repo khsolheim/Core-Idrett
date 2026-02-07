@@ -68,7 +68,7 @@ class _StopwatchTimeSheetState extends ConsumerState<StopwatchTimeSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Feil: $e')),
+          const SnackBar(content: Text('Kunne ikke registrere tid. Prøv igjen.')),
         );
       }
     } finally {

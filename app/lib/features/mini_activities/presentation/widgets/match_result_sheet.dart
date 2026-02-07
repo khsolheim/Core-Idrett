@@ -91,7 +91,7 @@ class _MatchResultSheetState extends ConsumerState<MatchResultSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Feil: $e')),
+          const SnackBar(content: Text('Kunne ikke lagre resultat. Prøv igjen.')),
         );
       }
     } finally {

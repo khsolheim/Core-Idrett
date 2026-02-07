@@ -58,7 +58,7 @@ class LeaderboardsHandler {
         'leaderboards': leaderboards.map((l) => l.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente leaderboards: $e');
+      return resp.serverError('Kunne ikke hente leaderboards');
     }
   }
 
@@ -91,7 +91,7 @@ class LeaderboardsHandler {
         'entries': entries.map((e) => e.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente hovedranking: $e');
+      return resp.serverError('Kunne ikke hente hovedranking');
     }
   }
 
@@ -114,7 +114,7 @@ class LeaderboardsHandler {
 
       return resp.ok(leaderboard.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente leaderboard: $e');
+      return resp.serverError('Kunne ikke hente leaderboard');
     }
   }
 
@@ -152,7 +152,7 @@ class LeaderboardsHandler {
 
       return resp.ok(leaderboard.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke opprette leaderboard: $e');
+      return resp.serverError('Kunne ikke opprette leaderboard');
     }
   }
 
@@ -194,7 +194,7 @@ class LeaderboardsHandler {
 
       return resp.ok(leaderboard.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke oppdatere leaderboard: $e');
+      return resp.serverError('Kunne ikke oppdatere leaderboard');
     }
   }
 
@@ -223,7 +223,7 @@ class LeaderboardsHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette leaderboard: $e');
+      return resp.serverError('Kunne ikke slette leaderboard');
     }
   }
 
@@ -268,7 +268,7 @@ class LeaderboardsHandler {
         'entries': entries.map((e) => e.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente rangert leaderboard: $e');
+      return resp.serverError('Kunne ikke hente rangert leaderboard');
     }
   }
 
@@ -307,7 +307,7 @@ class LeaderboardsHandler {
         'entries': entries.map((e) => e.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente leaderboard med trender: $e');
+      return resp.serverError('Kunne ikke hente leaderboard med trender');
     }
   }
 
@@ -341,7 +341,7 @@ class LeaderboardsHandler {
 
       return resp.ok(entry.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente brukerposisjon: $e');
+      return resp.serverError('Kunne ikke hente brukerposisjon');
     }
   }
 
@@ -377,7 +377,7 @@ class LeaderboardsHandler {
         'stats': stats,
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente månedlig statistikk: $e');
+      return resp.serverError('Kunne ikke hente månedlig statistikk');
     }
   }
 }

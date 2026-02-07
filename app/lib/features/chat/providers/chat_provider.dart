@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/message.dart';
 import '../data/chat_repository.dart';
 
@@ -82,6 +83,7 @@ class ChatNotifier extends AsyncNotifier<List<Message>> {
       _lastMessageTime = message.createdAt;
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke sende melding. Prøv igjen.');
       return false;
     }
   }
@@ -102,6 +104,7 @@ class ChatNotifier extends AsyncNotifier<List<Message>> {
       }
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke redigere melding. Prøv igjen.');
       return false;
     }
   }
@@ -134,6 +137,7 @@ class ChatNotifier extends AsyncNotifier<List<Message>> {
       }
       return true;
     } catch (e) {
+      ErrorDisplayService.showWarning('Kunne ikke slette melding. Prøv igjen.');
       return false;
     }
   }

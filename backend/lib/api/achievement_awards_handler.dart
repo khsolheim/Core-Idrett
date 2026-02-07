@@ -40,7 +40,7 @@ class AchievementAwardsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -56,7 +56,7 @@ class AchievementAwardsHandler {
         'achievements': achievements.map((a) => a.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente brukers achievements: $e');
+      return resp.serverError('Kunne ikke hente brukers achievements');
     }
   }
 
@@ -65,7 +65,7 @@ class AchievementAwardsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -81,7 +81,7 @@ class AchievementAwardsHandler {
         'progress': progress.map((p) => p.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente achievement-progress: $e');
+      return resp.serverError('Kunne ikke hente achievement-progress');
     }
   }
 
@@ -90,7 +90,7 @@ class AchievementAwardsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final teamId = request.url.queryParameters['team_id'];
@@ -104,7 +104,7 @@ class AchievementAwardsHandler {
 
       return resp.ok(summary);
     } catch (e) {
-      return resp.serverError('Kunne ikke hente achievement-sammendrag: $e');
+      return resp.serverError('Kunne ikke hente achievement-sammendrag');
     }
   }
 
@@ -112,7 +112,7 @@ class AchievementAwardsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
@@ -143,7 +143,7 @@ class AchievementAwardsHandler {
 
       return resp.ok(achievement.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke tildele achievement: $e');
+      return resp.serverError('Kunne ikke tildele achievement');
     }
   }
 
@@ -152,7 +152,7 @@ class AchievementAwardsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       if (targetUserId != userId) {
@@ -184,7 +184,7 @@ class AchievementAwardsHandler {
         'count': awarded.length,
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke sjekke achievements: $e');
+      return resp.serverError('Kunne ikke sjekke achievements');
     }
   }
 
@@ -193,7 +193,7 @@ class AchievementAwardsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
@@ -215,7 +215,7 @@ class AchievementAwardsHandler {
         'achievements': achievements.map((a) => a.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente nylige achievements: $e');
+      return resp.serverError('Kunne ikke hente nylige achievements');
     }
   }
 
@@ -224,7 +224,7 @@ class AchievementAwardsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
@@ -241,7 +241,7 @@ class AchievementAwardsHandler {
 
       return resp.ok(counts);
     } catch (e) {
-      return resp.serverError('Kunne ikke hente achievement-statistikk: $e');
+      return resp.serverError('Kunne ikke hente achievement-statistikk');
     }
   }
 }

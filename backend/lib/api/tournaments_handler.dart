@@ -67,7 +67,7 @@ class TournamentsHandler {
   Future<Response> _createTournament(Request request, String miniActivityId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await _requireTeamForMiniActivity(miniActivityId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
@@ -92,14 +92,14 @@ class TournamentsHandler {
 
       return resp.ok(tournament.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _getTournamentForMiniActivity(Request request, String miniActivityId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await _requireTeamForMiniActivity(miniActivityId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
@@ -111,14 +111,14 @@ class TournamentsHandler {
 
       return resp.ok(tournament.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _getTournamentById(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await _requireTeamForTournament(tournamentId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
@@ -130,14 +130,14 @@ class TournamentsHandler {
 
       return resp.ok(tournament.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _updateTournament(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await _requireTeamForTournament(tournamentId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
@@ -155,14 +155,14 @@ class TournamentsHandler {
 
       return resp.ok(tournament.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _deleteTournament(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await _requireTeamForTournament(tournamentId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
@@ -170,7 +170,7 @@ class TournamentsHandler {
       await _tournamentService.deleteTournament(tournamentId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -179,7 +179,7 @@ class TournamentsHandler {
   Future<Response> _generateBracket(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await _requireTeamForTournament(tournamentId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
@@ -198,7 +198,7 @@ class TournamentsHandler {
 
       return resp.ok(matches.map((m) => m.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

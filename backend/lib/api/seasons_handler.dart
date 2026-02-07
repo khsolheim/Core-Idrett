@@ -47,7 +47,7 @@ class SeasonsHandler {
         'seasons': seasons.map((s) => s.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente sesonger: $e');
+      return resp.serverError('Kunne ikke hente sesonger');
     }
   }
 
@@ -72,7 +72,7 @@ class SeasonsHandler {
 
       return resp.ok(season.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente aktiv sesong: $e');
+      return resp.serverError('Kunne ikke hente aktiv sesong');
     }
   }
 
@@ -96,7 +96,7 @@ class SeasonsHandler {
 
       return resp.ok(season.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente sesong: $e');
+      return resp.serverError('Kunne ikke hente sesong');
     }
   }
 
@@ -138,7 +138,7 @@ class SeasonsHandler {
 
       return resp.ok(season.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke opprette sesong: $e');
+      return resp.serverError('Kunne ikke opprette sesong');
     }
   }
 
@@ -183,7 +183,7 @@ class SeasonsHandler {
 
       return resp.ok(season.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke oppdatere sesong: $e');
+      return resp.serverError('Kunne ikke oppdatere sesong');
     }
   }
 
@@ -214,7 +214,7 @@ class SeasonsHandler {
 
       return resp.ok(season?.toJson() ?? {});
     } catch (e) {
-      return resp.serverError('Kunne ikke aktivere sesong: $e');
+      return resp.serverError('Kunne ikke aktivere sesong');
     }
   }
 
@@ -249,7 +249,7 @@ class SeasonsHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette sesong: $e');
+      return resp.serverError('Kunne ikke slette sesong');
     }
   }
 
@@ -288,7 +288,7 @@ class SeasonsHandler {
 
       return resp.ok(season.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke starte ny sesong: $e');
+      return resp.serverError('Kunne ikke starte ny sesong');
     }
   }
 }

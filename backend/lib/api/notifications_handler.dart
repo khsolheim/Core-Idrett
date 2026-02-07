@@ -52,7 +52,7 @@ class NotificationsHandler {
 
       return resp.ok(deviceToken.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -73,7 +73,7 @@ class NotificationsHandler {
       await _notificationService.removeToken(userId, token);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -93,7 +93,7 @@ class NotificationsHandler {
 
       return resp.ok(prefs.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -119,7 +119,7 @@ class NotificationsHandler {
 
       return resp.ok(prefs.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

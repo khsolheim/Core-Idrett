@@ -85,7 +85,7 @@ class _HandicapSheetState extends ConsumerState<HandicapSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Feil: $e')),
+          const SnackBar(content: Text('Kunne ikke lagre handicap. Prøv igjen.')),
         );
       }
     } finally {
@@ -133,7 +133,7 @@ class _HandicapSheetState extends ConsumerState<HandicapSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Feil: $e')),
+          const SnackBar(content: Text('Kunne ikke fjerne handicap. Prøv igjen.')),
         );
       }
     } finally {

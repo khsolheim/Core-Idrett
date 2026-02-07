@@ -70,7 +70,7 @@ class _StopwatchSetupSheetState extends ConsumerState<StopwatchSetupSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Feil: $e')),
+          const SnackBar(content: Text('Kunne ikke opprette stoppeklokke. Prøv igjen.')),
         );
       }
     } finally {

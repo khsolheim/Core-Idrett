@@ -67,7 +67,7 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'leaderboard');
     } catch (e) {
-      return resp.serverError('Failed to export leaderboard: $e');
+      return resp.serverError('Failed to export leaderboard');
     }
   }
 
@@ -117,7 +117,7 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'attendance');
     } catch (e) {
-      return resp.serverError('Failed to export attendance: $e');
+      return resp.serverError('Failed to export attendance');
     }
   }
 
@@ -169,7 +169,7 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'fines');
     } catch (e) {
-      return resp.serverError('Failed to export fines: $e');
+      return resp.serverError('Failed to export fines');
     }
   }
 
@@ -207,7 +207,7 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'members');
     } catch (e) {
-      return resp.serverError('Failed to export members: $e');
+      return resp.serverError('Failed to export members');
     }
   }
 
@@ -254,7 +254,7 @@ class ExportsHandler {
 
       return _formatResponse(data, format, 'activities');
     } catch (e) {
-      return resp.serverError('Failed to export activities: $e');
+      return resp.serverError('Failed to export activities');
     }
   }
 
@@ -281,7 +281,7 @@ class ExportsHandler {
         'exports': history.map((e) => e.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Failed to get export history: $e');
+      return resp.serverError('Failed to get export history');
     }
   }
 

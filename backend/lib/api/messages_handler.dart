@@ -71,7 +71,7 @@ class MessagesHandler {
 
       return resp.ok({'messages': messages});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -103,7 +103,7 @@ class MessagesHandler {
 
       return resp.ok(message);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -133,7 +133,7 @@ class MessagesHandler {
 
       return resp.ok(message);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -166,7 +166,7 @@ class MessagesHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -185,7 +185,7 @@ class MessagesHandler {
       await _messageService.markAsRead(userId, teamId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -204,7 +204,7 @@ class MessagesHandler {
       final count = await _messageService.getUnreadCount(userId, teamId);
       return resp.ok({'unread_count': count});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -230,7 +230,7 @@ class MessagesHandler {
       final conversations = await _messageService.getAllConversations(userId, teamId);
       return resp.ok({'conversations': conversations});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -246,7 +246,7 @@ class MessagesHandler {
       final conversations = await _messageService.getConversations(userId);
       return resp.ok({'conversations': conversations});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -272,7 +272,7 @@ class MessagesHandler {
 
       return resp.ok({'messages': messages});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -299,7 +299,7 @@ class MessagesHandler {
 
       return resp.ok(message);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -313,7 +313,7 @@ class MessagesHandler {
       await _directMessageService.markDirectAsRead(userId, recipientId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -327,7 +327,7 @@ class MessagesHandler {
       final count = await _directMessageService.getDirectUnreadCount(userId, recipientId);
       return resp.ok({'unread_count': count});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

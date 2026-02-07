@@ -42,7 +42,7 @@ class TournamentMatchesHandler {
   Future<Response> _getMatches(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await _requireTeamForTournament(tournamentId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
@@ -54,14 +54,14 @@ class TournamentMatchesHandler {
       );
       return resp.ok(matches.map((m) => m.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _getMatchById(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final match = await _tournamentService.getMatchById(matchId);
       if (match == null) {
@@ -70,14 +70,14 @@ class TournamentMatchesHandler {
 
       return resp.ok(match.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _updateMatch(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final data = await parseBody(request);
 
@@ -95,26 +95,26 @@ class TournamentMatchesHandler {
 
       return resp.ok(match.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _startMatch(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final match = await _tournamentService.startMatch(matchId);
       return resp.ok(match.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _completeMatch(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final data = await parseBody(request);
 
@@ -126,14 +126,14 @@ class TournamentMatchesHandler {
       final match = await _tournamentService.completeMatch(matchId, winnerId);
       return resp.ok(match.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _declareWalkover(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final data = await parseBody(request);
 
@@ -152,26 +152,26 @@ class TournamentMatchesHandler {
 
       return resp.ok(match.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _getMatchGames(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final games = await _tournamentService.getGamesForMatch(matchId);
       return resp.ok(games.map((g) => g.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _recordGame(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final data = await parseBody(request);
 
@@ -192,14 +192,14 @@ class TournamentMatchesHandler {
 
       return resp.ok(game.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
   Future<Response> _updateGame(Request request, String gameId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final data = await parseBody(request);
 
@@ -215,7 +215,7 @@ class TournamentMatchesHandler {
 
       return resp.ok(game.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

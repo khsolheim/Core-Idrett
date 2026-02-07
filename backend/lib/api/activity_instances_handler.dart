@@ -49,7 +49,7 @@ class ActivityInstancesHandler {
 
       return resp.ok(instance);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -87,7 +87,7 @@ class ActivityInstancesHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -123,7 +123,7 @@ class ActivityInstancesHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -193,7 +193,7 @@ class ActivityInstancesHandler {
       if (e.toString().contains('Cannot')) {
         return resp.badRequest(e.toString());
       }
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -242,7 +242,7 @@ class ActivityInstancesHandler {
       if (e.toString().contains('Cannot delete past')) {
         return resp.badRequest('Kan ikke slette aktiviteter i fortiden');
       }
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -286,7 +286,7 @@ class ActivityInstancesHandler {
       if (errorMsg.contains('No main leaderboard')) {
         return resp.badRequest('Ingen hovedleaderboard funnet for laget');
       }
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

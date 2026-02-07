@@ -63,7 +63,7 @@ class DocumentsHandler {
         'documents': documents.map((d) => d.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Failed to get documents: $e');
+      return resp.serverError('Failed to get documents');
     }
   }
 
@@ -106,7 +106,7 @@ class DocumentsHandler {
 
       return resp.ok(document.toJson());
     } catch (e) {
-      return resp.serverError('Failed to create document: $e');
+      return resp.serverError('Failed to create document');
     }
   }
 
@@ -134,7 +134,7 @@ class DocumentsHandler {
 
       return resp.ok({'categories': result});
     } catch (e) {
-      return resp.serverError('Failed to get categories: $e');
+      return resp.serverError('Failed to get categories');
     }
   }
 
@@ -159,7 +159,7 @@ class DocumentsHandler {
 
       return resp.ok(document.toJson());
     } catch (e) {
-      return resp.serverError('Failed to get document: $e');
+      return resp.serverError('Failed to get document');
     }
   }
 
@@ -192,7 +192,7 @@ class DocumentsHandler {
 
       return resp.ok(document.toJson());
     } catch (e) {
-      return resp.serverError('Failed to update document: $e');
+      return resp.serverError('Failed to update document');
     }
   }
 
@@ -217,7 +217,7 @@ class DocumentsHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Failed to delete document: $e');
+      return resp.serverError('Failed to delete document');
     }
   }
 
@@ -268,7 +268,7 @@ class DocumentsHandler {
         return resp.badRequest('Content-Type must be application/json with base64-encoded file_content');
       }
     } catch (e) {
-      return resp.serverError('Failed to upload document: $e');
+      return resp.serverError('Failed to upload document');
     }
   }
 
@@ -295,7 +295,7 @@ class DocumentsHandler {
 
       return resp.ok({'url': url});
     } catch (e) {
-      return resp.serverError('Failed to get download URL: $e');
+      return resp.serverError('Failed to get download URL');
     }
   }
 }

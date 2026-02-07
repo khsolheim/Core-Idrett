@@ -72,7 +72,7 @@ class PointsAdjustmentsHandler {
 
       return resp.ok(adjustment.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke opprette justering: $e');
+      return resp.serverError('Kunne ikke opprette justering');
     }
   }
 
@@ -102,7 +102,7 @@ class PointsAdjustmentsHandler {
         'adjustments': adjustments.map((a) => a.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente justeringer: $e');
+      return resp.serverError('Kunne ikke hente justeringer');
     }
   }
 
@@ -127,7 +127,7 @@ class PointsAdjustmentsHandler {
         'adjustments': adjustments.map((a) => a.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente justeringer: $e');
+      return resp.serverError('Kunne ikke hente justeringer');
     }
   }
 }

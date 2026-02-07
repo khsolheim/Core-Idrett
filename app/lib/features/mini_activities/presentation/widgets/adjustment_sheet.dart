@@ -85,7 +85,7 @@ class _AdjustmentSheetState extends ConsumerState<AdjustmentSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Feil: $e')),
+          const SnackBar(content: Text('Kunne ikke lagre justering. Prøv igjen.')),
         );
       }
     } finally {

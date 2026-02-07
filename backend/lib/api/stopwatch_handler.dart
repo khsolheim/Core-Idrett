@@ -69,7 +69,7 @@ class StopwatchHandler {
 
       return resp.ok(session.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -87,7 +87,7 @@ class StopwatchHandler {
 
       return resp.ok(session.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -105,7 +105,7 @@ class StopwatchHandler {
 
       return resp.ok(sessionWithTimes.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -119,7 +119,7 @@ class StopwatchHandler {
       await _stopwatchService.deleteSession(sessionId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -135,7 +135,7 @@ class StopwatchHandler {
       final sessions = await _stopwatchService.getSessionsForMiniActivity(miniActivityId);
       return resp.ok(sessions.map((s) => s.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -154,7 +154,7 @@ class StopwatchHandler {
       final sessions = await _stopwatchService.getSessionsForTeam(teamId);
       return resp.ok(sessions.map((s) => s.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -173,7 +173,7 @@ class StopwatchHandler {
       final sessions = await _stopwatchService.getActiveSessions(teamId);
       return resp.ok(sessions.map((s) => s.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -193,7 +193,7 @@ class StopwatchHandler {
 
       return resp.ok(session.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -211,7 +211,7 @@ class StopwatchHandler {
 
       return resp.ok(session.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -229,7 +229,7 @@ class StopwatchHandler {
 
       return resp.ok(session.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -247,7 +247,7 @@ class StopwatchHandler {
 
       return resp.ok(session.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -261,7 +261,7 @@ class StopwatchHandler {
       await _stopwatchService.cancelSession(sessionId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

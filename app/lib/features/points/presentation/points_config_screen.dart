@@ -114,7 +114,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Kunne ikke lagre: $e'),
+            content: const Text('Kunne ikke lagre innstillinger. Prøv igjen.'),
             backgroundColor: Colors.red,
           ),
         );

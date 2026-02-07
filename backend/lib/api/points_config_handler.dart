@@ -64,7 +64,7 @@ class PointsConfigHandler {
 
       return resp.ok(config.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente poengkonfigurasjon: $e');
+      return resp.serverError('Kunne ikke hente poengkonfigurasjon');
     }
   }
 
@@ -145,7 +145,7 @@ class PointsConfigHandler {
 
       return resp.ok(config.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke opprette/oppdatere konfigurasjon: $e');
+      return resp.serverError('Kunne ikke opprette/oppdatere konfigurasjon');
     }
   }
 
@@ -198,7 +198,7 @@ class PointsConfigHandler {
 
       return resp.ok(config.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke oppdatere konfigurasjon: $e');
+      return resp.serverError('Kunne ikke oppdatere konfigurasjon');
     }
   }
 
@@ -227,7 +227,7 @@ class PointsConfigHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette konfigurasjon: $e');
+      return resp.serverError('Kunne ikke slette konfigurasjon');
     }
   }
 
@@ -256,7 +256,7 @@ class PointsConfigHandler {
 
       return resp.ok(stats);
     } catch (e) {
-      return resp.serverError('Kunne ikke hente oppmøtepoeng: $e');
+      return resp.serverError('Kunne ikke hente oppmøtepoeng');
     }
   }
 
@@ -281,7 +281,7 @@ class PointsConfigHandler {
         'points': points.map((p) => p.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente oppmøtepoeng: $e');
+      return resp.serverError('Kunne ikke hente oppmøtepoeng');
     }
   }
 
@@ -320,7 +320,7 @@ class PointsConfigHandler {
 
       return resp.ok(points.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke tildele poeng: $e');
+      return resp.serverError('Kunne ikke tildele poeng');
     }
   }
 
@@ -355,7 +355,7 @@ class PointsConfigHandler {
 
       return resp.ok({'success': true, 'opt_out': optOut});
     } catch (e) {
-      return resp.serverError('Kunne ikke endre opt-out status: $e');
+      return resp.serverError('Kunne ikke endre opt-out status');
     }
   }
 
@@ -376,7 +376,7 @@ class PointsConfigHandler {
 
       return resp.ok({'opt_out': optOut});
     } catch (e) {
-      return resp.serverError('Kunne ikke hente opt-out status: $e');
+      return resp.serverError('Kunne ikke hente opt-out status');
     }
   }
 }

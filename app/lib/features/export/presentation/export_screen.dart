@@ -182,7 +182,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
     if (error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Feil: $error'),
+          content: const Text('Eksport feilet. Prøv igjen.'),
           backgroundColor: Colors.red,
         ),
       );

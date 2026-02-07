@@ -68,7 +68,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok(stats.map((s) => s.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -98,7 +98,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok(stats.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -128,7 +128,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok(aggregate.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -158,7 +158,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok(stats.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -181,7 +181,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok(stats.map((s) => s.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -204,7 +204,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok(history.map((h) => h.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -234,7 +234,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok(leaderboard);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -266,7 +266,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok(sources.map((s) => s.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -280,7 +280,7 @@ class MiniActivityStatisticsHandler {
       final sources = await _statsService.getPointSourcesForEntry(entryId);
       return resp.ok(sources.map((s) => s.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -316,7 +316,7 @@ class MiniActivityStatisticsHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

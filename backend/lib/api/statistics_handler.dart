@@ -34,7 +34,7 @@ class StatisticsHandler {
   Future<Response> _getLeaderboard(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
@@ -48,14 +48,14 @@ class StatisticsHandler {
         'leaderboard': leaderboard.map((e) => e.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente leaderboard: $e');
+      return resp.serverError('Kunne ikke hente leaderboard');
     }
   }
 
   Future<Response> _getTeamAttendance(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
@@ -76,14 +76,14 @@ class StatisticsHandler {
         'attendance': attendance.map((e) => e.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente oppmote: $e');
+      return resp.serverError('Kunne ikke hente oppmote');
     }
   }
 
   Future<Response> _getPlayerStatistics(Request request, String teamId, String userId) async {
     try {
       final requestUserId = getUserId(request);
-      if (requestUserId == null) return resp.forbidden('Ikke autorisert');
+      if (requestUserId == null) return resp.unauthorized();
 
       final team = await requireTeamMember(_teamService, teamId, requestUserId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
@@ -96,14 +96,14 @@ class StatisticsHandler {
 
       return resp.ok(stats.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente spillerstatistikk: $e');
+      return resp.serverError('Kunne ikke hente spillerstatistikk');
     }
   }
 
   Future<Response> _getMatchStats(Request request, String instanceId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.forbidden('Ikke autorisert');
+      if (userId == null) return resp.unauthorized();
 
       final stats = await _matchStatsService.getMatchStats(instanceId);
 
@@ -111,14 +111,14 @@ class StatisticsHandler {
         'match_stats': stats.map((e) => e.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente kampstatistikk: $e');
+      return resp.serverError('Kunne ikke hente kampstatistikk');
     }
   }
 
   Future<Response> _recordMatchStats(Request request, String instanceId) async {
     try {
       final requestUserId = getUserId(request);
-      if (requestUserId == null) return resp.forbidden('Ikke autorisert');
+      if (requestUserId == null) return resp.unauthorized();
 
       final body = await parseBody(request);
       final userId = body['user_id'] as String?;
@@ -143,7 +143,7 @@ class StatisticsHandler {
 
       return resp.ok(stats.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke registrere kampstatistikk: $e');
+      return resp.serverError('Kunne ikke registrere kampstatistikk');
     }
   }
 }

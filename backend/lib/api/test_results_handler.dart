@@ -60,7 +60,7 @@ class TestResultsHandler {
         'results': results.map((r) => r.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente resultater: $e');
+      return resp.serverError('Kunne ikke hente resultater');
     }
   }
 
@@ -92,7 +92,7 @@ class TestResultsHandler {
         'ranking': ranking,
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente ranking: $e');
+      return resp.serverError('Kunne ikke hente ranking');
     }
   }
 
@@ -139,7 +139,7 @@ class TestResultsHandler {
 
       return resp.ok(result.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke registrere resultat: $e');
+      return resp.serverError('Kunne ikke registrere resultat');
     }
   }
 
@@ -181,7 +181,7 @@ class TestResultsHandler {
         'results': recorded.map((r) => r.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke registrere resultater: $e');
+      return resp.serverError('Kunne ikke registrere resultater');
     }
   }
 
@@ -215,7 +215,7 @@ class TestResultsHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette resultat: $e');
+      return resp.serverError('Kunne ikke slette resultat');
     }
   }
 
@@ -245,7 +245,7 @@ class TestResultsHandler {
         'results': results.map((r) => r.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente brukerresultater: $e');
+      return resp.serverError('Kunne ikke hente brukerresultater');
     }
   }
 
@@ -278,7 +278,7 @@ class TestResultsHandler {
 
       return resp.ok(result.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente personlig rekord: $e');
+      return resp.serverError('Kunne ikke hente personlig rekord');
     }
   }
 
@@ -315,7 +315,7 @@ class TestResultsHandler {
         'progress': results.map((r) => r.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente progresjon: $e');
+      return resp.serverError('Kunne ikke hente progresjon');
     }
   }
 }

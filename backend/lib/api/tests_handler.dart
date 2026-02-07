@@ -48,7 +48,7 @@ class TestsHandler {
         'templates': templates.map((t) => t.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente testmaler: $e');
+      return resp.serverError('Kunne ikke hente testmaler');
     }
   }
 
@@ -71,7 +71,7 @@ class TestsHandler {
 
       return resp.ok(template.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente testmal: $e');
+      return resp.serverError('Kunne ikke hente testmal');
     }
   }
 
@@ -113,7 +113,7 @@ class TestsHandler {
 
       return resp.ok(template.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke opprette testmal: $e');
+      return resp.serverError('Kunne ikke opprette testmal');
     }
   }
 
@@ -155,7 +155,7 @@ class TestsHandler {
 
       return resp.ok(template.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke oppdatere testmal: $e');
+      return resp.serverError('Kunne ikke oppdatere testmal');
     }
   }
 
@@ -184,7 +184,7 @@ class TestsHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette testmal: $e');
+      return resp.serverError('Kunne ikke slette testmal');
     }
   }
 }

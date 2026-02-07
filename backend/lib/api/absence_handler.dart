@@ -80,7 +80,7 @@ class AbsenceHandler {
         'absences': absences.map((a) => a.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente fravær: $e');
+      return resp.serverError('Kunne ikke hente fravær');
     }
   }
 
@@ -106,7 +106,7 @@ class AbsenceHandler {
         'absences': absences.map((a) => a.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente ventende fravær: $e');
+      return resp.serverError('Kunne ikke hente ventende fravær');
     }
   }
 
@@ -134,7 +134,7 @@ class AbsenceHandler {
 
       return resp.ok(absence.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke registrere fravær: $e');
+      return resp.serverError('Kunne ikke registrere fravær');
     }
   }
 
@@ -153,7 +153,7 @@ class AbsenceHandler {
 
       return resp.ok(absence.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente fravær: $e');
+      return resp.serverError('Kunne ikke hente fravær');
     }
   }
 
@@ -189,7 +189,7 @@ class AbsenceHandler {
 
       return resp.ok(absence.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke godkjenne fravær: $e');
+      return resp.serverError('Kunne ikke godkjenne fravær');
     }
   }
 
@@ -228,7 +228,7 @@ class AbsenceHandler {
 
       return resp.ok(absence.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke avvise fravær: $e');
+      return resp.serverError('Kunne ikke avvise fravær');
     }
   }
 
@@ -260,7 +260,7 @@ class AbsenceHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette fravær: $e');
+      return resp.serverError('Kunne ikke slette fravær');
     }
   }
 
@@ -283,7 +283,7 @@ class AbsenceHandler {
 
       return resp.ok(absence.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente fravær: $e');
+      return resp.serverError('Kunne ikke hente fravær');
     }
   }
 
@@ -308,7 +308,7 @@ class AbsenceHandler {
 
       return resp.ok({'count': count});
     } catch (e) {
-      return resp.serverError('Kunne ikke telle gyldige fravær: $e');
+      return resp.serverError('Kunne ikke telle gyldige fravær');
     }
   }
 
@@ -333,7 +333,7 @@ class AbsenceHandler {
 
       return resp.ok({'count': count});
     } catch (e) {
-      return resp.serverError('Kunne ikke telle gyldige fravær: $e');
+      return resp.serverError('Kunne ikke telle gyldige fravær');
     }
   }
 
@@ -352,7 +352,7 @@ class AbsenceHandler {
 
       return resp.ok({'has_valid_absence': hasValid});
     } catch (e) {
-      return resp.serverError('Kunne ikke sjekke gyldig fravær: $e');
+      return resp.serverError('Kunne ikke sjekke gyldig fravær');
     }
   }
 
@@ -376,7 +376,7 @@ class AbsenceHandler {
 
       return resp.ok(summary);
     } catch (e) {
-      return resp.serverError('Kunne ikke hente fraværssammendrag: $e');
+      return resp.serverError('Kunne ikke hente fraværssammendrag');
     }
   }
 }

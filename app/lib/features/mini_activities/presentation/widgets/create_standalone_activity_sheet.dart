@@ -63,7 +63,7 @@ class _CreateStandaloneActivitySheetState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Feil: $e')),
+          const SnackBar(content: Text('Kunne ikke opprette aktivitet. Prøv igjen.')),
         );
       }
     } finally {

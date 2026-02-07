@@ -50,7 +50,7 @@ class AchievementsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
@@ -79,7 +79,7 @@ class AchievementsHandler {
         'definitions': definitions.map((d) => d.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente achievements: $e');
+      return resp.serverError('Kunne ikke hente achievements');
     }
   }
 
@@ -87,7 +87,7 @@ class AchievementsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
@@ -137,7 +137,7 @@ class AchievementsHandler {
 
       return resp.ok(definition.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke opprette achievement: $e');
+      return resp.serverError('Kunne ikke opprette achievement');
     }
   }
 
@@ -146,7 +146,7 @@ class AchievementsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final definition =
@@ -158,7 +158,7 @@ class AchievementsHandler {
 
       return resp.ok(definition.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke hente achievement: $e');
+      return resp.serverError('Kunne ikke hente achievement');
     }
   }
 
@@ -167,7 +167,7 @@ class AchievementsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final teamId =
@@ -221,7 +221,7 @@ class AchievementsHandler {
 
       return resp.ok(definition.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke oppdatere achievement: $e');
+      return resp.serverError('Kunne ikke oppdatere achievement');
     }
   }
 
@@ -230,7 +230,7 @@ class AchievementsHandler {
     try {
       final userId = getUserId(request);
       if (userId == null) {
-        return resp.forbidden('Ikke autorisert');
+        return resp.unauthorized();
       }
 
       final teamId =
@@ -253,7 +253,7 @@ class AchievementsHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette achievement: $e');
+      return resp.serverError('Kunne ikke slette achievement');
     }
   }
 }

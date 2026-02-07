@@ -58,7 +58,7 @@ class MiniActivityScoringHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -85,7 +85,7 @@ class MiniActivityScoringHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -101,7 +101,7 @@ class MiniActivityScoringHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -117,7 +117,7 @@ class MiniActivityScoringHandler {
       final adjustments = await _resultService.getAdjustments(miniActivityId);
       return resp.ok(adjustments.map((a) => a.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -146,7 +146,7 @@ class MiniActivityScoringHandler {
 
       return resp.ok(adjustment.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -185,7 +185,7 @@ class MiniActivityScoringHandler {
       final leaderboard = await _statsService.getMiniActivityLeaderboard(teamId: teamId);
       return resp.ok(leaderboard);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

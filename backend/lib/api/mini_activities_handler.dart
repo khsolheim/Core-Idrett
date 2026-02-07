@@ -90,7 +90,7 @@ class MiniActivitiesHandler {
       final templates = await _templateService.getTemplatesForTeam(teamId);
       return resp.ok(templates.map((t) => t.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -132,7 +132,7 @@ class MiniActivitiesHandler {
 
       return resp.ok(template.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -156,7 +156,7 @@ class MiniActivitiesHandler {
       await _templateService.deleteTemplate(templateId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -198,7 +198,7 @@ class MiniActivitiesHandler {
 
       return resp.ok(template.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -226,7 +226,7 @@ class MiniActivitiesHandler {
       final updatedTemplate = templates.firstWhere((t) => t.id == templateId);
       return resp.ok(updatedTemplate.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -242,7 +242,7 @@ class MiniActivitiesHandler {
       final miniActivities = await _miniActivityService.getMiniActivitiesForInstance(instanceId);
       return resp.ok(miniActivities);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -271,7 +271,7 @@ class MiniActivitiesHandler {
 
       return resp.ok(miniActivity.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -289,7 +289,7 @@ class MiniActivitiesHandler {
 
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -317,7 +317,7 @@ class MiniActivitiesHandler {
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -331,7 +331,7 @@ class MiniActivitiesHandler {
       await _miniActivityService.deleteMiniActivity(miniActivityId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -356,7 +356,7 @@ class MiniActivitiesHandler {
       );
       return resp.ok(miniActivities);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -400,7 +400,7 @@ class MiniActivitiesHandler {
 
       return resp.ok(miniActivity.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -416,7 +416,7 @@ class MiniActivitiesHandler {
       await _miniActivityService.archiveMiniActivity(miniActivityId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -436,7 +436,7 @@ class MiniActivitiesHandler {
 
       return resp.ok(newMiniActivity.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -466,7 +466,7 @@ class MiniActivitiesHandler {
 
       return resp.ok(history);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

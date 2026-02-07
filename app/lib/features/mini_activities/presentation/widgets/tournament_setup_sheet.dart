@@ -87,7 +87,7 @@ class _TournamentSetupSheetState extends ConsumerState<TournamentSetupSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Feil: $e')),
+          const SnackBar(content: Text('Kunne ikke lagre turnering. Prøv igjen.')),
         );
       }
     } finally {

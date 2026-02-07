@@ -58,7 +58,7 @@ class StopwatchTimesHandler {
 
       return resp.ok(time.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -90,7 +90,7 @@ class StopwatchTimesHandler {
 
       return resp.ok(time.toJson());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -104,7 +104,7 @@ class StopwatchTimesHandler {
       final times = await _stopwatchService.getTimesForSession(sessionId);
       return resp.ok(times.map((t) => t.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -121,7 +121,7 @@ class StopwatchTimesHandler {
       );
       return resp.ok(times.map((t) => t.toJson()).toList());
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -142,7 +142,7 @@ class StopwatchTimesHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -156,7 +156,7 @@ class StopwatchTimesHandler {
       await _stopwatchService.deleteTime(timeId);
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -181,7 +181,7 @@ class StopwatchTimesHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 
@@ -195,7 +195,7 @@ class StopwatchTimesHandler {
       final rankings = await _stopwatchService.getSessionRankings(sessionId);
       return resp.ok(rankings);
     } catch (e) {
-      return resp.serverError('En feil oppstod: $e');
+      return resp.serverError('En feil oppstod');
     }
   }
 }

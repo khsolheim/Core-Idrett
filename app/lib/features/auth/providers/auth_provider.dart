@@ -84,6 +84,7 @@ class AuthNotifier extends Notifier<AsyncValue<User?>> {
       state = AsyncValue.data(user);
       return user;
     } catch (e) {
+      // Return null to signal failure - caller handles error display
       return null;
     }
   }

@@ -46,7 +46,7 @@ class AbsenceCategoriesHandler {
         'categories': categories.map((c) => c.toJson()).toList(),
       });
     } catch (e) {
-      return resp.serverError('Kunne ikke hente fraværskategorier: $e');
+      return resp.serverError('Kunne ikke hente fraværskategorier');
     }
   }
 
@@ -84,7 +84,7 @@ class AbsenceCategoriesHandler {
 
       return resp.ok(category.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke opprette fraværskategori: $e');
+      return resp.serverError('Kunne ikke opprette fraværskategori');
     }
   }
 
@@ -128,7 +128,7 @@ class AbsenceCategoriesHandler {
 
       return resp.ok(category.toJson());
     } catch (e) {
-      return resp.serverError('Kunne ikke oppdatere fraværskategori: $e');
+      return resp.serverError('Kunne ikke oppdatere fraværskategori');
     }
   }
 
@@ -157,7 +157,7 @@ class AbsenceCategoriesHandler {
 
       return resp.ok({'success': true});
     } catch (e) {
-      return resp.serverError('Kunne ikke slette fraværskategori: $e');
+      return resp.serverError('Kunne ikke slette fraværskategori');
     }
   }
 }
