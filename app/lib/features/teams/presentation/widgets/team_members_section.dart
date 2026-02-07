@@ -85,7 +85,10 @@ class _CollapsibleMembersSectionState extends ConsumerState<CollapsibleMembersSe
                         Icons.chevron_right,
                         color: theme.colorScheme.outline,
                       ),
-                onTap: () => context.push('/teams/${widget.teamId}/player/${member.userId}'),
+                onTap: () => context.pushNamed(
+                  'player-profile',
+                  pathParameters: {'teamId': widget.teamId, 'userId': member.userId},
+                ),
               )),
           if (!_expanded && widget.members.length > 3)
             TextButton(

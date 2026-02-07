@@ -107,13 +107,13 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
               // Already on home
               break;
             case 1:
-              context.push('/teams/${widget.teamId}/activities');
+              context.pushNamed('activities', pathParameters: {'teamId': widget.teamId});
               break;
             case 2:
-              context.push('/teams/${widget.teamId}/leaderboard');
+              context.pushNamed('leaderboard', pathParameters: {'teamId': widget.teamId});
               break;
             case 3:
-              context.push('/teams/${widget.teamId}/fines');
+              context.pushNamed('fines', pathParameters: {'teamId': widget.teamId});
               break;
           }
         },
@@ -188,7 +188,7 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                 title: const Text('Oppmote'),
                 onTap: () {
                   Navigator.pop(context);
-                  context.push('/teams/${widget.teamId}/attendance');
+                  context.pushNamed('attendance', pathParameters: {'teamId': widget.teamId});
                 },
               ),
               ListTile(
@@ -197,7 +197,7 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                 subtitle: const Text('Se badges og milepaeler'),
                 onTap: () {
                   Navigator.pop(context);
-                  context.push('/teams/${widget.teamId}/achievements');
+                  context.pushNamed('achievements', pathParameters: {'teamId': widget.teamId});
                 },
               ),
               if (team.userIsAdmin) ...[
@@ -220,7 +220,7 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                   subtitle: const Text('Maler for raske konkurranser'),
                   onTap: () {
                     Navigator.pop(context);
-                    context.push('/teams/${widget.teamId}/templates');
+                    context.pushNamed('templates', pathParameters: {'teamId': widget.teamId});
                   },
                 ),
                 ListTile(
@@ -229,7 +229,7 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                   subtitle: const Text('Konfigurer poengsystem'),
                   onTap: () {
                     Navigator.pop(context);
-                    context.push('/teams/${widget.teamId}/points-config');
+                    context.pushNamed('points-config', pathParameters: {'teamId': widget.teamId});
                   },
                 ),
                 ListTile(
@@ -238,7 +238,7 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                   subtitle: const Text('Godkjenn fravaer'),
                   onTap: () {
                     Navigator.pop(context);
-                    context.push('/teams/${widget.teamId}/absence-management');
+                    context.pushNamed('absence-management', pathParameters: {'teamId': widget.teamId});
                   },
                 ),
                 const Divider(),
@@ -247,7 +247,7 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                   title: const Text('Rediger lag'),
                   onTap: () {
                     Navigator.pop(context);
-                    context.push('/teams/${widget.teamId}/edit');
+                    context.pushNamed('edit-team', pathParameters: {'teamId': widget.teamId});
                   },
                 ),
               ],

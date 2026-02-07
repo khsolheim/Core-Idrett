@@ -11,7 +11,7 @@ Each phase is designed for one session (~8-15 files), independent of other phase
 ## Fase 14: Backend Auth & Error Response Consistency
 **Priority: HIGH (Security)**
 **Files: ~15 handler files**
-**Status: TODO**
+**Status: DONE** (commit ae455c4)
 
 ### Problem
 1. 60+ places use `resp.forbidden('Ikke autorisert')` when `userId == null` — should be `resp.unauthorized()` (HTTP 401, not 403)
@@ -165,7 +165,7 @@ cd backend && dart analyze && dart test
 ## Fase 18: Frontend Error Handling
 **Priority: HIGH (User experience)**
 **Files: ~8-10 files**
-**Status: TODO**
+**Status: DONE** (commit ae455c4)
 
 ### Problem
 1. Chat provider silently swallows errors (4 catch blocks return false/nothing)

@@ -174,7 +174,7 @@ class ActivityInstancesHandler {
           description: data['description'] as String?,
           startTime: data['start_time'] as String?,
           endTime: data['end_time'] as String?,
-          date: data['date'] != null ? DateTime.parse(data['date'] as String) : null,
+          date: data['date'] != null ? DateTime.tryParse(data['date'] as String) : null,
         );
       } else {
         result = await _activityInstanceService.editFutureInstances(

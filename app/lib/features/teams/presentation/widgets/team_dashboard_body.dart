@@ -83,19 +83,19 @@ class DashboardBody extends ConsumerWidget {
               QuickActionButton(
                 icon: Icons.calendar_today,
                 label: 'Aktiviteter',
-                onTap: () => context.push('/teams/$teamId/activities'),
+                onTap: () => context.pushNamed('activities', pathParameters: {'teamId': teamId}),
               ),
               const SizedBox(width: 12),
               QuickActionButton(
                 icon: Icons.leaderboard,
                 label: 'Statistikk',
-                onTap: () => context.push('/teams/$teamId/leaderboard'),
+                onTap: () => context.pushNamed('leaderboard', pathParameters: {'teamId': teamId}),
               ),
               const SizedBox(width: 12),
               QuickActionButton(
                 icon: Icons.account_balance_wallet,
                 label: 'Botekasse',
-                onTap: () => context.push('/teams/$teamId/fines'),
+                onTap: () => context.pushNamed('fines', pathParameters: {'teamId': teamId}),
               ),
             ],
           ),

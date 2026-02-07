@@ -52,7 +52,7 @@ class TeamsScreen extends ConsumerWidget {
                 final team = teams[index];
                 return _TeamCard(
                   team: team,
-                  onTap: () => context.push('/teams/${team.id}'),
+                  onTap: () => context.pushNamed('team-detail', pathParameters: {'teamId': team.id}),
                 );
               },
             );
@@ -103,7 +103,7 @@ class TeamsScreen extends ConsumerWidget {
               title: const Text('Innstillinger'),
               onTap: () {
                 Navigator.pop(context);
-                context.push('/settings');
+                context.pushNamed('settings');
               },
             ),
             ListTile(

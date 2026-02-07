@@ -57,7 +57,7 @@ void showLogoutConfirmation(BuildContext context, WidgetRef ref) {
             Navigator.pop(context);
             await ref.read(authStateProvider.notifier).logout();
             if (context.mounted) {
-              context.go('/login');
+              context.goNamed('login');
             }
           },
           style: FilledButton.styleFrom(
@@ -242,7 +242,7 @@ void showFinalDeleteConfirmation(BuildContext context, WidgetRef ref) {
                 await ref.read(authRepositoryProvider).deleteAccount();
                 await ref.read(authStateProvider.notifier).logout();
                 if (context.mounted) {
-                  context.go('/login');
+                  context.goNamed('login');
                 }
               } catch (e) {
                 if (context.mounted) {

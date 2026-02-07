@@ -20,7 +20,7 @@ class ProfileScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => context.push('/profile/edit'),
+            onPressed: () => context.pushNamed('edit-profile'),
           ),
         ],
       ),
@@ -163,7 +163,7 @@ class ProfileScreen extends ConsumerWidget {
                                   title: Text(team.name),
                                   subtitle: Text(team.sport ?? 'Ingen idrett'),
                                   trailing: _buildRoleBadges(team, context),
-                                  onTap: () => context.go('/teams/${team.id}'),
+                                  onTap: () => context.goNamed('team-detail', pathParameters: {'teamId': team.id}),
                                 );
                               }).toList(),
                             );
@@ -182,7 +182,7 @@ class ProfileScreen extends ConsumerWidget {
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.settings),
                     label: const Text('Innstillinger'),
-                    onPressed: () => context.push('/settings'),
+                    onPressed: () => context.pushNamed('settings'),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -256,7 +256,7 @@ class ProfileScreen extends ConsumerWidget {
     if (confirm == true) {
       await ref.read(authStateProvider.notifier).logout();
       if (context.mounted) {
-        context.go('/login');
+        context.goNamed('login');
       }
     }
   }

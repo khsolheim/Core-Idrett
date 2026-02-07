@@ -303,10 +303,27 @@ class PointsConfigHandler {
       }
 
       final body = await parseBody(request);
-      final targetUserId = body['user_id'] as String;
-      final activityType = body['activity_type'] as String;
-      final basePoints = body['base_points'] as int;
-      final weightedPoints = (body['weighted_points'] as num).toDouble();
+
+      final targetUserId = body['user_id'] as String?;
+      if (targetUserId == null) {
+        return resp.badRequest('user_id er påkrevd');
+      }
+
+      final activityType = body['activity_type'] as String?;
+      if (activityType == null) {
+        return resp.badRequest('activity_type er påkrevd');
+      }
+
+      final basePoints = body['base_points'] as int?;
+      if (basePoints == null) {
+        return resp.badRequest('base_points er påkrevd');
+      }
+
+      final weightedPointsRaw = body['weighted_points'] as num?;
+      if (weightedPointsRaw == null) {
+        return resp.badRequest('weighted_points er påkrevd');
+      }
+      final weightedPoints = weightedPointsRaw.toDouble();
 
       final points = await _pointsConfigService.awardAttendancePoints(
         teamId: teamId,

@@ -54,7 +54,10 @@ class TestsScreen extends ConsumerWidget {
                       return _TestTemplateCard(
                         template: template,
                         isAdmin: isAdmin,
-                        onTap: () => context.push('/teams/$teamId/tests/${template.id}'),
+                        onTap: () => context.pushNamed(
+                          'test-detail',
+                          pathParameters: {'teamId': teamId, 'templateId': template.id},
+                        ),
                         onEdit: isAdmin
                             ? () => _showEditTemplateDialog(context, ref, template)
                             : null,

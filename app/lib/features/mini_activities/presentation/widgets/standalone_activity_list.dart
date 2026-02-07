@@ -227,7 +227,12 @@ class StandaloneActivityCard extends StatelessWidget {
   }
 
   void _openActivity(BuildContext context) {
-    context.push('/teams/${activity.teamId}/mini-activities/${activity.id}');
+    final teamId = activity.teamId;
+    if (teamId == null) return;
+    context.pushNamed(
+      'standalone-mini-activity-detail',
+      pathParameters: {'teamId': teamId, 'miniActivityId': activity.id},
+    );
   }
 }
 

@@ -515,7 +515,7 @@ class MiniActivityStatisticsService {
     }
 
     // Process head-to-head for 1v1 or team matchups
-    if (results.length == 2) {
+    if (results.length >= 2) {
       final result1 = results[0];
       final result2 = results[1];
 

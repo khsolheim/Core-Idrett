@@ -83,6 +83,19 @@ class ActivitiesHandler {
         return resp.badRequest('Mangler påkrevde felt (title, type, first_date)');
       }
 
+      final firstDateParsed = DateTime.tryParse(firstDate);
+      if (firstDateParsed == null) {
+        return resp.badRequest('Ugyldig datoformat for first_date');
+      }
+
+      DateTime? recurrenceEndDate;
+      if (data['recurrence_end_date'] != null) {
+        recurrenceEndDate = DateTime.tryParse(data['recurrence_end_date'] as String);
+        if (recurrenceEndDate == null) {
+          return resp.badRequest('Ugyldig datoformat for recurrence_end_date');
+        }
+      }
+
       final activity = await _activityService.createActivity(
         teamId: teamId,
         title: title,
@@ -90,13 +103,11 @@ class ActivitiesHandler {
         location: data['location'] as String?,
         description: data['description'] as String?,
         recurrenceType: data['recurrence_type'] as String? ?? 'once',
-        recurrenceEndDate: data['recurrence_end_date'] != null
-            ? DateTime.parse(data['recurrence_end_date'] as String)
-            : null,
+        recurrenceEndDate: recurrenceEndDate,
         responseType: data['response_type'] as String? ?? 'yes_no',
         responseDeadlineHours: data['response_deadline_hours'] as int?,
         createdBy: userId,
-        firstDate: DateTime.parse(firstDate),
+        firstDate: firstDateParsed,
         startTime: data['start_time'] as String?,
         endTime: data['end_time'] as String?,
       );
@@ -146,8 +157,15 @@ class ActivitiesHandler {
         return resp.badRequest('Mangler from og to parametere');
       }
 
-      final from = DateTime.parse(fromParam);
-      final to = DateTime.parse(toParam);
+      final from = DateTime.tryParse(fromParam);
+      if (from == null) {
+        return resp.badRequest('Ugyldig datoformat for from');
+      }
+
+      final to = DateTime.tryParse(toParam);
+      if (to == null) {
+        return resp.badRequest('Ugyldig datoformat for to');
+      }
 
       final instances = await _activityService.getInstancesByDateRange(
         teamId,

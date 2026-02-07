@@ -23,7 +23,7 @@ class FinesScreen extends ConsumerWidget {
         title: const Text('Bøtekasse'),
         actions: [
           IconButton(
-            onPressed: () => context.push('/teams/$teamId/fines/rules'),
+            onPressed: () => context.pushNamed('fine-rules', pathParameters: {'teamId': teamId}),
             icon: const Icon(Icons.settings),
             tooltip: 'Regler',
           ),
@@ -95,7 +95,7 @@ class FinesScreen extends ConsumerWidget {
                 title: 'Mine bøter',
                 subtitle: 'Se dine egne bøter',
                 color: Colors.blue,
-                onTap: () => context.push('/teams/$teamId/fines/mine'),
+                onTap: () => context.pushNamed('my-fines', pathParameters: {'teamId': teamId}),
               ),
 
               // Check if user is admin or fine_boss
@@ -115,14 +115,14 @@ class FinesScreen extends ConsumerWidget {
                           title: 'Bøtesjef',
                           subtitle: 'Godkjenn bøter og behandle klager',
                           color: Colors.orange,
-                          onTap: () => context.push('/teams/$teamId/fines/boss'),
+                          onTap: () => context.pushNamed('fine-boss', pathParameters: {'teamId': teamId}),
                         ),
                         _ActionCard(
                           icon: Icons.account_balance,
                           title: 'Regnskap',
                           subtitle: 'Se totaloversikt',
                           color: Colors.green,
-                          onTap: () => context.push('/teams/$teamId/fines/accounting'),
+                          onTap: () => context.pushNamed('team-accounting', pathParameters: {'teamId': teamId}),
                         ),
                       ],
                     );
@@ -136,7 +136,7 @@ class FinesScreen extends ConsumerWidget {
                 title: 'Bøteregler',
                 subtitle: 'Se alle regler',
                 color: Colors.purple,
-                onTap: () => context.push('/teams/$teamId/fines/rules'),
+                onTap: () => context.pushNamed('fine-rules', pathParameters: {'teamId': teamId}),
               ),
             ],
           ),

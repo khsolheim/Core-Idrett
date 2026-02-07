@@ -300,8 +300,9 @@ class _ActivityInstanceCard extends ConsumerWidget {
 
       // Navigate to edit screen
       if (context.mounted) {
-        context.push(
-          '/teams/$teamId/activities/${instance.id}/edit',
+        context.pushNamed(
+          'edit-instance',
+          pathParameters: {'teamId': teamId, 'instanceId': instance.id},
           extra: {'scope': scope},
         );
       }

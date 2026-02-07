@@ -76,7 +76,10 @@ class NextActivityWidget extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push('/teams/$teamId/activities/${activity!.id}'),
+        onTap: () => context.pushNamed(
+          'activity-detail',
+          pathParameters: {'teamId': teamId, 'instanceId': activity!.id},
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

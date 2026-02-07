@@ -75,10 +75,20 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
+      final name = body['name'] as String?;
+      if (name == null || name.isEmpty) {
+        return resp.badRequest('name er påkrevd');
+      }
+
+      final amountRaw = body['amount'] as num?;
+      if (amountRaw == null) {
+        return resp.badRequest('amount er påkrevd');
+      }
+
       final rule = await _fineService.createFineRule(
         teamId: teamId,
-        name: body['name'],
-        amount: (body['amount'] as num).toDouble(),
+        name: name,
+        amount: amountRaw.toDouble(),
         description: body['description'],
       );
 
@@ -168,12 +178,22 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
+      final offenderId = body['offender_id'] as String?;
+      if (offenderId == null) {
+        return resp.badRequest('offender_id er påkrevd');
+      }
+
+      final amountRaw = body['amount'] as num?;
+      if (amountRaw == null) {
+        return resp.badRequest('amount er påkrevd');
+      }
+
       final fine = await _fineService.createFine(
         teamId: teamId,
-        offenderId: body['offender_id'],
+        offenderId: offenderId,
         reporterId: userId,
         ruleId: body['rule_id'],
-        amount: (body['amount'] as num).toDouble(),
+        amount: amountRaw.toDouble(),
         description: body['description'],
         evidenceUrl: body['evidence_url'],
         isGameDay: body['is_game_day'] == true,
@@ -307,9 +327,14 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
+      final amountRaw = body['amount'] as num?;
+      if (amountRaw == null) {
+        return resp.badRequest('amount er påkrevd');
+      }
+
       final payment = await _fineService.recordPayment(
         fineId: fineId,
-        amount: (body['amount'] as num).toDouble(),
+        amount: amountRaw.toDouble(),
         registeredBy: userId,
       );
 

@@ -39,7 +39,7 @@ class LeaderboardWidget extends StatelessWidget {
                   ],
                 ),
                 TextButton(
-                  onPressed: () => context.push('/teams/$teamId/leaderboard'),
+                  onPressed: () => context.pushNamed('leaderboard', pathParameters: {'teamId': teamId}),
                   child: const Text('Se alle'),
                 ),
               ],
@@ -181,7 +181,7 @@ class MessagesWidget extends StatelessWidget {
 
     return Card(
       child: InkWell(
-        onTap: () => context.push('/teams/$teamId/chat'),
+        onTap: () => context.pushNamed('chat', pathParameters: {'teamId': teamId}),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -270,7 +270,7 @@ class FinesWidget extends StatelessWidget {
 
     return Card(
       child: InkWell(
-        onTap: () => context.push('/teams/$teamId/fines'),
+        onTap: () => context.pushNamed('fines', pathParameters: {'teamId': teamId}),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -356,28 +356,36 @@ class QuickLinksWidget extends StatelessWidget {
         QuickLinkChip(
           icon: Icons.calendar_month,
           label: 'Kalender',
-          onTap: () => context.push('/teams/$teamId/calendar'),
+          onTap: () => context.pushNamed('calendar', pathParameters: {'teamId': teamId}),
         ),
         QuickLinkChip(
           icon: Icons.folder,
           label: 'Dokumenter',
-          onTap: () => context.push('/teams/$teamId/documents'),
+          onTap: () => context.pushNamed('documents', pathParameters: {'teamId': teamId}),
         ),
         QuickLinkChip(
           icon: Icons.emoji_events,
           label: 'Achievements',
-          onTap: () => context.push('/teams/$teamId/achievements'),
+          onTap: () => context.pushNamed('achievements', pathParameters: {'teamId': teamId}),
         ),
         QuickLinkChip(
           icon: Icons.speed,
           label: 'Tester',
-          onTap: () => context.push('/teams/$teamId/tests${isAdmin ? "?admin=true" : ""}'),
+          onTap: () => context.pushNamed(
+            'tests',
+            pathParameters: {'teamId': teamId},
+            queryParameters: isAdmin ? {'admin': 'true'} : {},
+          ),
         ),
         if (isAdmin)
           QuickLinkChip(
             icon: Icons.download,
             label: 'Eksport',
-            onTap: () => context.push('/teams/$teamId/export?admin=true'),
+            onTap: () => context.pushNamed(
+              'export',
+              pathParameters: {'teamId': teamId},
+              queryParameters: {'admin': 'true'},
+            ),
           ),
       ],
     );

@@ -63,7 +63,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
             IconButton(
               icon: const Icon(Icons.tune),
               tooltip: 'Poenginnstillinger',
-              onPressed: () => context.push('/teams/${widget.teamId}/points-config'),
+              onPressed: () => context.pushNamed('points-config', pathParameters: {'teamId': widget.teamId}),
             ),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
@@ -208,7 +208,10 @@ class _RankedLeaderboardCard extends StatelessWidget {
             )
           : null,
       child: InkWell(
-        onTap: () => context.push('/teams/$teamId/player/${entry.userId}'),
+        onTap: () => context.pushNamed(
+          'player-profile',
+          pathParameters: {'teamId': teamId, 'userId': entry.userId},
+        ),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),

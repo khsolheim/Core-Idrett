@@ -32,7 +32,7 @@ class TeamErrorHandler {
     ErrorDisplayService.showError(error);
 
     if (context.mounted) {
-      context.go('/teams');
+      context.goNamed('teams');
     }
 
     return true;
@@ -46,7 +46,7 @@ class TeamErrorHandler {
     ErrorDisplayService.showWarning(error.message);
 
     // Navigate to team list
-    context.go('/teams');
+    context.goNamed('teams');
 
     return true;
   }
@@ -65,7 +65,7 @@ class TeamErrorHandler {
     if (!context.mounted) return false;
 
     // Navigate to team creation
-    context.go('/teams/create');
+    context.goNamed('create-team');
 
     return true;
   }

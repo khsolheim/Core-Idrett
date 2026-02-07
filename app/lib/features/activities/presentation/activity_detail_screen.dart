@@ -127,8 +127,9 @@ class ActivityDetailScreen extends ConsumerWidget {
 
       // Navigate to edit screen
       if (context.mounted) {
-        context.push(
-          '/teams/$teamId/activities/$instanceId/edit',
+        context.pushNamed(
+          'edit-instance',
+          pathParameters: {'teamId': teamId, 'instanceId': instanceId},
           extra: {'scope': scope},
         );
       }

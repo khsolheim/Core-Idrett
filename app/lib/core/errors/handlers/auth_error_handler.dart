@@ -72,7 +72,7 @@ class AuthErrorHandler {
     if (!context.mounted) return true;
 
     // Navigate to login and clear the navigation stack
-    context.go('/login');
+    context.goNamed('login');
 
     return true;
   }
