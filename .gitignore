@@ -30,5 +30,16 @@ backend/build/
 # Logs
 *.log
 
+# Signing keys
+**/key.properties
+**/*.keystore
+**/*.jks
+**/*.p8
+**/*.p12
+
+# Firebase config
+**/GoogleService-Info.plist
+**/google-services.json
+
 # Dependencies
 **/node_modules/
