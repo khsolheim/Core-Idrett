@@ -1,12 +1,14 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/stopwatch.dart';
+import 'user_service.dart';
 
 class StopwatchService {
   final Database _db;
+  final UserService _userService;
   final _uuid = const Uuid();
 
-  StopwatchService(this._db);
+  StopwatchService(this._db, this._userService);
 
   // ============ SESSION CRUD ============
 
@@ -337,16 +339,7 @@ class StopwatchService {
     final userIds = times.map((t) => t['user_id'] as String).toSet().toList();
     if (userIds.isEmpty) return [];
 
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     // Build rankings
     final rankings = <Map<String, dynamic>>[];

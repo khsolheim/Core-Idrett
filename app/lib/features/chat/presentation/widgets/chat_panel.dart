@@ -277,7 +277,7 @@ class ChatPanelState extends ConsumerState<ChatPanel> {
                     final message = messages[index];
                     final isOwn = message.userId == currentUser?.id;
                     final showDate = index == messages.length - 1 ||
-                        !_isSameDay(
+                        !isSameDay(
                           message.createdAt,
                           messages[index + 1].createdAt,
                         );
@@ -306,124 +306,37 @@ class ChatPanelState extends ConsumerState<ChatPanel> {
           ),
           // Reply/Edit indicator
           if (_replyingTo != null || _editingMessage != null)
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: theme.colorScheme.surfaceContainerHighest,
-              child: Row(
-                children: [
-                  Icon(
-                    _editingMessage != null ? Icons.edit : Icons.reply,
-                    size: 20,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _editingMessage != null
-                          ? 'Redigerer melding'
-                          : 'Svarer ${_replyingTo!.userName ?? 'ukjent'}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
-                    onPressed: _cancelReplyOrEdit,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
+            ReplyEditIndicator(
+              replyingTo: _replyingTo,
+              editingMessage: _editingMessage,
+              onCancel: _cancelReplyOrEdit,
             ),
           // Message input
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: InputDecoration(
-                        hintText: 'Skriv en melding...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                      maxLines: 4,
-                      minLines: 1,
-                      textCapitalization: TextCapitalization.sentences,
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    icon: const Icon(Icons.send),
-                    onPressed: _sendMessage,
-                  ),
-                ],
-              ),
-            ),
+          MessageInputBar(
+            controller: _messageController,
+            onSend: _sendMessage,
           ),
         ],
       ),
     );
   }
 
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
-
   void _showDeleteConfirmation(Message message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Slett melding'),
-        content: const Text(
-            'Er du sikker pa at du vil slette denne meldingen?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Avbryt'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              if (widget.conversation.isTeamChat) {
-                ref
-                    .read(chatNotifierProvider(widget.teamId).notifier)
-                    .deleteMessage(message.id);
-              } else {
-                ref
-                    .read(directMessageNotifierProvider(
-                            widget.conversation.recipientId!)
-                        .notifier)
-                    .deleteMessage(message.id);
-              }
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Slett'),
-          ),
-        ],
-      ),
+    showDeleteMessageDialog(
+      context,
+      onConfirm: () {
+        if (widget.conversation.isTeamChat) {
+          ref
+              .read(chatNotifierProvider(widget.teamId).notifier)
+              .deleteMessage(message.id);
+        } else {
+          ref
+              .read(directMessageNotifierProvider(
+                      widget.conversation.recipientId!)
+                  .notifier)
+              .deleteMessage(message.id);
+        }
+      },
     );
   }
 }

@@ -1,12 +1,14 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/activity.dart';
+import 'user_service.dart';
 
 class ActivityService {
   final Database _db;
+  final UserService _userService;
   final _uuid = const Uuid();
 
-  ActivityService(this._db);
+  ActivityService(this._db, this._userService);
 
   Future<Activity> createActivity({
     required String teamId,
@@ -332,19 +334,7 @@ class ActivityService {
 
     // Get user info for responders
     final userIds = responses.map((r) => r['user_id'] as String).toList();
-    final users = userIds.isNotEmpty
-        ? await _db.client.select(
-            'users',
-            select: 'id,name,avatar_url',
-            filters: {'id': 'in.(${userIds.join(',')})'},
-          )
-        : <Map<String, dynamic>>[];
-
-    // Create user lookup
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     // Build response list with user info
     final responseList = responses.map((r) {

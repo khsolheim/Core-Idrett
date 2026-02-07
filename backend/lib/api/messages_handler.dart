@@ -1,6 +1,8 @@
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/message_service.dart';
+import '../services/team_chat_service.dart';
+import '../services/direct_message_service.dart';
 import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
@@ -8,9 +10,16 @@ import 'helpers/response_helpers.dart' as resp;
 
 class MessagesHandler {
   final MessageService _messageService;
+  final TeamChatService _teamChatService;
+  final DirectMessageService _directMessageService;
   final TeamService _teamService;
 
-  MessagesHandler(this._messageService, this._teamService);
+  MessagesHandler(
+    this._messageService,
+    this._teamChatService,
+    this._directMessageService,
+    this._teamService,
+  );
 
   Router get router {
     final router = Router();
@@ -53,7 +62,7 @@ class MessagesHandler {
       final after = request.url.queryParameters['after'];
       final limit = limitParam != null ? int.tryParse(limitParam) ?? 50 : 50;
 
-      final messages = await _messageService.getMessages(
+      final messages = await _teamChatService.getMessages(
         teamId,
         limit: limit,
         before: before,
@@ -85,7 +94,7 @@ class MessagesHandler {
         return resp.badRequest('Meldingen kan ikke være tom');
       }
 
-      final message = await _messageService.sendMessage(
+      final message = await _teamChatService.sendMessage(
         teamId: teamId,
         userId: userId,
         content: content.trim(),
@@ -112,7 +121,7 @@ class MessagesHandler {
         return resp.badRequest('Meldingen kan ikke være tom');
       }
 
-      final message = await _messageService.editMessage(
+      final message = await _teamChatService.editMessage(
         messageId: messageId,
         userId: userId,
         content: content.trim(),
@@ -145,7 +154,7 @@ class MessagesHandler {
         }
       }
 
-      final success = await _messageService.deleteMessage(
+      final success = await _teamChatService.deleteMessage(
         messageId: messageId,
         userId: userId,
         isAdmin: adminStatus,
@@ -253,7 +262,7 @@ class MessagesHandler {
       final after = request.url.queryParameters['after'];
       final limit = limitParam != null ? int.tryParse(limitParam) ?? 50 : 50;
 
-      final messages = await _messageService.getDirectMessages(
+      final messages = await _directMessageService.getDirectMessages(
         userId,
         recipientId,
         limit: limit,
@@ -281,7 +290,7 @@ class MessagesHandler {
         return resp.badRequest('Meldingen kan ikke vare tom');
       }
 
-      final message = await _messageService.sendDirectMessage(
+      final message = await _directMessageService.sendDirectMessage(
         userId: userId,
         recipientId: recipientId,
         content: content.trim(),
@@ -301,7 +310,7 @@ class MessagesHandler {
         return resp.unauthorized();
       }
 
-      await _messageService.markDirectAsRead(userId, recipientId);
+      await _directMessageService.markDirectAsRead(userId, recipientId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError('En feil oppstod: $e');
@@ -315,7 +324,7 @@ class MessagesHandler {
         return resp.unauthorized();
       }
 
-      final count = await _messageService.getDirectUnreadCount(userId, recipientId);
+      final count = await _directMessageService.getDirectUnreadCount(userId, recipientId);
       return resp.ok({'unread_count': count});
     } catch (e) {
       return resp.serverError('En feil oppstod: $e');

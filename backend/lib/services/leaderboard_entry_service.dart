@@ -2,12 +2,14 @@ import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/season.dart';
 import '../models/mini_activity_statistics.dart';
+import 'user_service.dart';
 
 class LeaderboardEntryService {
   final Database _db;
+  final UserService _userService;
   final _uuid = const Uuid();
 
-  LeaderboardEntryService(this._db);
+  LeaderboardEntryService(this._db, this._userService);
 
   // ============ LEADERBOARD ENTRIES ============
 
@@ -29,16 +31,7 @@ class LeaderboardEntryService {
 
     // Get user info
     final userIds = entries.map((e) => e['user_id'] as String).toSet().toList();
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     // Build entries with rank
     final result = <LeaderboardEntry>[];

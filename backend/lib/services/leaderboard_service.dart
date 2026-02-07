@@ -3,13 +3,15 @@ import '../db/database.dart';
 import '../models/season.dart';
 import '../models/mini_activity_statistics.dart';
 import 'leaderboard_entry_service.dart';
+import 'team_service.dart';
 
 class LeaderboardService {
   final Database _db;
   final LeaderboardEntryService entryService;
+  final TeamService _teamService;
   final _uuid = const Uuid();
 
-  LeaderboardService(this._db, this.entryService);
+  LeaderboardService(this._db, this.entryService, this._teamService);
 
   // ============ FORWARDING METHODS (delegate to entryService) ============
 
@@ -575,14 +577,9 @@ class LeaderboardService {
       seasonId: seasonId,
     );
 
-    final members = await _db.client.select(
-      'team_members',
-      select: 'user_id',
-      filters: {'team_id': 'eq.$teamId'},
-    );
+    final memberUserIds = await _teamService.getTeamMemberUserIds(teamId);
 
-    for (final member in members) {
-      final userId = member['user_id'] as String;
+    for (final userId in memberUserIds) {
       final weightedTotal = await calculateWeightedTotal(
         userId,
         teamId,

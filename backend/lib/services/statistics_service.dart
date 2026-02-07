@@ -1,293 +1,28 @@
-import 'dart:math' as math;
 import '../db/database.dart';
 import '../models/statistics.dart';
+import 'player_rating_service.dart';
+import 'user_service.dart';
+import 'team_service.dart';
 
 class StatisticsService {
   final Database _db;
+  final UserService _userService;
+  final TeamService _teamService;
+  final PlayerRatingService _playerRatingService;
 
-  StatisticsService(this._db);
-
-  // Match Stats
-  Future<MatchStats?> recordMatchStats({
-    required String instanceId,
-    required String userId,
-    int goals = 0,
-    int assists = 0,
-    int minutesPlayed = 0,
-    int yellowCards = 0,
-    int redCards = 0,
-  }) async {
-    // Check for existing stats
-    final existing = await _db.client.select(
-      'match_stats',
-      filters: {
-        'instance_id': 'eq.$instanceId',
-        'user_id': 'eq.$userId',
-      },
-    );
-
-    List<Map<String, dynamic>> result;
-    if (existing.isNotEmpty) {
-      // Update existing
-      result = await _db.client.update(
-        'match_stats',
-        {
-          'goals': goals,
-          'assists': assists,
-          'minutes_played': minutesPlayed,
-          'yellow_cards': yellowCards,
-          'red_cards': redCards,
-        },
-        filters: {
-          'instance_id': 'eq.$instanceId',
-          'user_id': 'eq.$userId',
-        },
-      );
-    } else {
-      // Insert new
-      result = await _db.client.insert('match_stats', {
-        'instance_id': instanceId,
-        'user_id': userId,
-        'goals': goals,
-        'assists': assists,
-        'minutes_played': minutesPlayed,
-        'yellow_cards': yellowCards,
-        'red_cards': redCards,
-      });
-    }
-
-    if (result.isEmpty) return null;
-
-    // Update season stats
-    await _updateSeasonStats(userId, instanceId, goals, assists);
-
-    return MatchStats.fromJson(result.first);
-  }
-
-  Future<List<MatchStats>> getMatchStats(String instanceId) async {
-    // Get match stats
-    final stats = await _db.client.select(
-      'match_stats',
-      filters: {'instance_id': 'eq.$instanceId'},
-      order: 'goals.desc,assists.desc',
-    );
-
-    if (stats.isEmpty) return [];
-
-    // Get user info
-    final userIds = stats.map((s) => s['user_id'] as String).toList();
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
-
-    return stats.map((s) {
-      final user = userMap[s['user_id']] ?? {};
-      return MatchStats.fromJson({
-        ...s,
-        'user_name': user['name'],
-        'user_avatar_url': user['avatar_url'],
-      });
-    }).toList();
-  }
-
-  // Player Ratings
-  Future<PlayerRating?> getPlayerRating(String userId, String teamId) async {
-    final result = await _db.client.select(
-      'player_ratings',
-      filters: {
-        'user_id': 'eq.$userId',
-        'team_id': 'eq.$teamId',
-      },
-    );
-
-    if (result.isEmpty) return null;
-
-    // Get user info
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'eq.$userId'},
-    );
-
-    final user = users.isNotEmpty ? users.first : <String, dynamic>{};
-
-    return PlayerRating.fromJson({
-      ...result.first,
-      'user_name': user['name'],
-      'user_avatar_url': user['avatar_url'],
-    });
-  }
-
-  Future<PlayerRating> getOrCreatePlayerRating(String userId, String teamId) async {
-    var rating = await getPlayerRating(userId, teamId);
-    if (rating != null) return rating;
-
-    // Create new rating
-    final result = await _db.client.insert('player_ratings', {
-      'user_id': userId,
-      'team_id': teamId,
-    });
-
-    // Get user info
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'eq.$userId'},
-    );
-
-    final user = users.isNotEmpty ? users.first : <String, dynamic>{};
-
-    return PlayerRating.fromJson({
-      ...result.first,
-      'user_name': user['name'],
-      'user_avatar_url': user['avatar_url'],
-    });
-  }
-
-  Future<void> updateRatingsAfterMatch({
-    required String teamId,
-    required List<String> winnerIds,
-    required List<String> loserIds,
-    bool isDraw = false,
-  }) async {
-    const kFactor = 32.0;
-
-    // Batch fetch all player ratings for participants
-    final allPlayerIds = {...winnerIds, ...loserIds}.toList();
-    final existingRatings = allPlayerIds.isNotEmpty
-        ? await _db.client.select(
-            'player_ratings',
-            filters: {
-              'user_id': 'in.(${allPlayerIds.join(',')})',
-              'team_id': 'eq.$teamId',
-            },
-          )
-        : <Map<String, dynamic>>[];
-
-    final ratingsMap = <String, Map<String, dynamic>>{};
-    for (final r in existingRatings) {
-      ratingsMap[r['user_id'] as String] = r;
-    }
-
-    // Ensure all players have ratings (create missing ones)
-    for (final playerId in allPlayerIds) {
-      if (!ratingsMap.containsKey(playerId)) {
-        final rating = await getOrCreatePlayerRating(playerId, teamId);
-        ratingsMap[playerId] = {
-          'user_id': playerId,
-          'team_id': teamId,
-          'rating': rating.rating,
-          'wins': rating.wins,
-          'losses': rating.losses,
-          'draws': rating.draws,
-        };
-      }
-    }
-
-    if (isDraw) {
-      // Update draws for all participants
-      for (final playerId in allPlayerIds) {
-        final current = ratingsMap[playerId]!;
-        await _db.client.update(
-          'player_ratings',
-          {'draws': (current['draws'] as int? ?? 0) + 1},
-          filters: {
-            'user_id': 'eq.$playerId',
-            'team_id': 'eq.$teamId',
-          },
-        );
-      }
-      return;
-    }
-
-    // Calculate average ratings from batch-fetched data
-    double winnerAvg = 0;
-    for (final playerId in winnerIds) {
-      winnerAvg += (ratingsMap[playerId]!['rating'] as num? ?? 1000).toDouble();
-    }
-    winnerAvg /= winnerIds.length;
-
-    double loserAvg = 0;
-    for (final playerId in loserIds) {
-      loserAvg += (ratingsMap[playerId]!['rating'] as num? ?? 1000).toDouble();
-    }
-    loserAvg /= loserIds.length;
-
-    // Calculate expected scores
-    final expectedWinner = 1 / (1 + math.pow(10, (loserAvg - winnerAvg) / 400));
-    final expectedLoser = 1 - expectedWinner;
-
-    // Calculate rating changes
-    final winnerChange = (kFactor * (1 - expectedWinner)).round();
-    final loserChange = (kFactor * (0 - expectedLoser)).round();
-
-    // Update winners
-    for (final playerId in winnerIds) {
-      final current = ratingsMap[playerId]!;
-      await _db.client.update(
-        'player_ratings',
-        {
-          'rating': (current['rating'] as num? ?? 1000) + winnerChange,
-          'wins': (current['wins'] as int? ?? 0) + 1,
-        },
-        filters: {
-          'user_id': 'eq.$playerId',
-          'team_id': 'eq.$teamId',
-        },
-      );
-    }
-
-    // Update losers
-    for (final playerId in loserIds) {
-      final current = ratingsMap[playerId]!;
-      final newRating = math.max(100, (current['rating'] as num? ?? 1000) + loserChange);
-      await _db.client.update(
-        'player_ratings',
-        {
-          'rating': newRating,
-          'losses': (current['losses'] as int? ?? 0) + 1,
-        },
-        filters: {
-          'user_id': 'eq.$playerId',
-          'team_id': 'eq.$teamId',
-        },
-      );
-    }
-  }
+  StatisticsService(this._db, this._userService, this._teamService, this._playerRatingService);
 
   // Leaderboard
   Future<List<LeaderboardEntry>> getLeaderboard(String teamId, {int? seasonYear}) async {
     final year = seasonYear ?? DateTime.now().year;
 
     // Get team members
-    final members = await _db.client.select(
-      'team_members',
-      select: 'user_id',
-      filters: {'team_id': 'eq.$teamId'},
-    );
+    final userIds = await _teamService.getTeamMemberUserIds(teamId);
 
-    if (members.isEmpty) return [];
-
-    final userIds = members.map((m) => m['user_id'] as String).toList();
+    if (userIds.isEmpty) return [];
 
     // Get users
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     // Get season stats
     final seasonStats = await _db.client.select(
@@ -388,7 +123,7 @@ class StatisticsService {
     final user = users.first;
 
     // Get rating
-    final rating = await getPlayerRating(userId, teamId);
+    final rating = await _playerRatingService.getPlayerRating(userId, teamId);
 
     // Get current season stats
     final seasonYear = DateTime.now().year;
@@ -481,27 +216,12 @@ class StatisticsService {
     final to = (toDate ?? DateTime.now()).toIso8601String().split('T').first;
 
     // Get team members
-    final members = await _db.client.select(
-      'team_members',
-      select: 'user_id',
-      filters: {'team_id': 'eq.$teamId'},
-    );
+    final userIds = await _teamService.getTeamMemberUserIds(teamId);
 
-    if (members.isEmpty) return [];
-
-    final userIds = members.map((m) => m['user_id'] as String).toList();
+    if (userIds.isEmpty) return [];
 
     // Get users
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     // Get team's activities
     final activities = await _db.client.select(
@@ -584,64 +304,6 @@ class StatisticsService {
     results.sort((a, b) => b.percentage.compareTo(a.percentage));
 
     return results;
-  }
-
-  // Helper: Update season stats after match
-  Future<void> _updateSeasonStats(String userId, String instanceId, int goals, int assists) async {
-    // Get instance
-    final instances = await _db.client.select(
-      'activity_instances',
-      select: 'activity_id',
-      filters: {'id': 'eq.$instanceId'},
-    );
-
-    if (instances.isEmpty) return;
-
-    // Get activity to find team_id
-    final activities = await _db.client.select(
-      'activities',
-      select: 'team_id',
-      filters: {'id': 'eq.${instances.first['activity_id']}'},
-    );
-
-    if (activities.isEmpty) return;
-
-    final teamId = activities.first['team_id'] as String;
-    final year = DateTime.now().year;
-
-    // Check for existing season stats
-    final existing = await _db.client.select(
-      'season_stats',
-      filters: {
-        'user_id': 'eq.$userId',
-        'team_id': 'eq.$teamId',
-        'season_year': 'eq.$year',
-      },
-    );
-
-    if (existing.isNotEmpty) {
-      final current = existing.first;
-      await _db.client.update(
-        'season_stats',
-        {
-          'total_goals': (current['total_goals'] as int? ?? 0) + goals,
-          'total_assists': (current['total_assists'] as int? ?? 0) + assists,
-        },
-        filters: {
-          'user_id': 'eq.$userId',
-          'team_id': 'eq.$teamId',
-          'season_year': 'eq.$year',
-        },
-      );
-    } else {
-      await _db.client.insert('season_stats', {
-        'user_id': userId,
-        'team_id': teamId,
-        'season_year': year,
-        'total_goals': goals,
-        'total_assists': assists,
-      });
-    }
   }
 
   // Helper: Add points to player's season stats

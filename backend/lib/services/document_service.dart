@@ -1,12 +1,14 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/document.dart';
+import 'user_service.dart';
 
 class DocumentService {
   final Database _db;
+  final UserService _userService;
   final _uuid = const Uuid();
 
-  DocumentService(this._db);
+  DocumentService(this._db, this._userService);
 
   /// Get all documents for a team
   Future<List<Document>> getDocuments(
@@ -35,16 +37,7 @@ class DocumentService {
     // Get uploader details
     if (result.isNotEmpty) {
       final uploaderIds = result.map((d) => d['uploaded_by'] as String).toSet().toList();
-      final users = await _db.client.select(
-        'users',
-        select: 'id,name,avatar_url',
-        filters: {'id': 'in.(${uploaderIds.join(',')})'},
-      );
-
-      final userMap = <String, Map<String, dynamic>>{};
-      for (final u in users) {
-        userMap[u['id'] as String] = u;
-      }
+      final userMap = await _userService.getUserMap(uploaderIds);
 
       return result.map((row) {
         final user = userMap[row['uploaded_by']] ?? {};

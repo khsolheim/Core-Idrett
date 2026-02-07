@@ -2,12 +2,14 @@ import 'dart:math';
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/team.dart';
+import 'user_service.dart';
 
 class TeamService {
   final Database _db;
+  final UserService _userService;
   final _uuid = const Uuid();
 
-  TeamService(this._db);
+  TeamService(this._db, this._userService);
 
   /// Get membership for a user in a specific team
   Future<Map<String, dynamic>?> getMembership(String teamId, String userId) async {
@@ -382,6 +384,21 @@ class TeamService {
     return List.generate(8, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
+  /// Get user IDs for members of a team.
+  /// When [activeOnly] is true, only active members are returned.
+  Future<List<String>> getTeamMemberUserIds(String teamId, {bool activeOnly = false}) async {
+    final filters = <String, String>{'team_id': 'eq.$teamId'};
+    if (activeOnly) {
+      filters['is_active'] = 'eq.true';
+    }
+    final members = await _db.client.select(
+      'team_members',
+      select: 'user_id',
+      filters: filters,
+    );
+    return members.map((m) => m['user_id'] as String).toList();
+  }
+
   // ============ Dashboard ============
 
   Future<Map<String, dynamic>> getDashboardData(String teamId, String userId) async {
@@ -440,16 +457,7 @@ class TeamService {
       if (entries.isNotEmpty) {
         // Get user details
         final userIds = entries.map((e) => e['user_id'] as String).toList();
-        final users = await _db.client.select(
-          'users',
-          select: 'id,name,avatar_url',
-          filters: {'id': 'in.(${userIds.join(',')})'},
-        );
-
-        final userMap = <String, Map<String, dynamic>>{};
-        for (final u in users) {
-          userMap[u['id'] as String] = u;
-        }
+        final userMap = await _userService.getUserMap(userIds);
 
         int rank = 1;
         for (final entry in entries) {

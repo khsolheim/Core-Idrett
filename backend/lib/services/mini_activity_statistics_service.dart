@@ -1,12 +1,14 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/mini_activity_statistics.dart';
+import 'user_service.dart';
 
 class MiniActivityStatisticsService {
   final Database _db;
+  final UserService _userService;
   final _uuid = const Uuid();
 
-  MiniActivityStatisticsService(this._db);
+  MiniActivityStatisticsService(this._db, this._userService);
 
   // ============ PLAYER STATS ============
 
@@ -449,16 +451,7 @@ class MiniActivityStatisticsService {
 
     // Get user info
     final userIds = stats.map((s) => s.userId).toList();
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     return stats.take(limit).map((s) {
       final user = userMap[s.userId] ?? {};

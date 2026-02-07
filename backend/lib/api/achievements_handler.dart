@@ -1,7 +1,9 @@
 import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
+import '../services/achievement_definition_service.dart';
 import '../services/achievement_service.dart';
+import '../services/achievement_progress_service.dart';
 import '../services/team_service.dart';
 import '../models/achievement.dart';
 import 'achievement_awards_handler.dart';
@@ -9,10 +11,17 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class AchievementsHandler {
+  final AchievementDefinitionService _definitionService;
   final AchievementService _achievementService;
+  final AchievementProgressService _progressService;
   final TeamService _teamService;
 
-  AchievementsHandler(this._achievementService, this._teamService);
+  AchievementsHandler(
+    this._definitionService,
+    this._achievementService,
+    this._progressService,
+    this._teamService,
+  );
 
   Router get router {
     final router = Router();
@@ -27,6 +36,7 @@ class AchievementsHandler {
     // Mount user & team achievement routes
     final awardsHandler = AchievementAwardsHandler(
       _achievementService,
+      _progressService,
       _teamService,
     );
     router.mount('/', awardsHandler.router.call);
@@ -58,7 +68,7 @@ class AchievementsHandler {
         category = AchievementCategory.fromString(categoryStr);
       }
 
-      final definitions = await _achievementService.getDefinitions(
+      final definitions = await _definitionService.getDefinitions(
         teamId,
         includeGlobal: includeGlobal,
         activeOnly: activeOnly,
@@ -108,7 +118,7 @@ class AchievementsHandler {
         tier = AchievementTier.fromString(body['tier'] as String);
       }
 
-      final definition = await _achievementService.createDefinition(
+      final definition = await _definitionService.createDefinition(
         teamId: teamId,
         code: code,
         name: name,
@@ -140,7 +150,7 @@ class AchievementsHandler {
       }
 
       final definition =
-          await _achievementService.getDefinitionById(definitionId);
+          await _definitionService.getDefinitionById(definitionId);
 
       if (definition == null) {
         return resp.notFound('Achievement ikke funnet');
@@ -161,7 +171,7 @@ class AchievementsHandler {
       }
 
       final teamId =
-          await _achievementService.getTeamIdForDefinition(definitionId);
+          await _definitionService.getTeamIdForDefinition(definitionId);
 
       if (teamId == null) {
         return resp.forbidden('Kan ikke endre globale achievements');
@@ -189,7 +199,7 @@ class AchievementsHandler {
             body['criteria'] as Map<String, dynamic>);
       }
 
-      final definition = await _achievementService.updateDefinition(
+      final definition = await _definitionService.updateDefinition(
         definitionId: definitionId,
         name: body['name'] as String?,
         description: body['description'] as String?,
@@ -224,7 +234,7 @@ class AchievementsHandler {
       }
 
       final teamId =
-          await _achievementService.getTeamIdForDefinition(definitionId);
+          await _definitionService.getTeamIdForDefinition(definitionId);
 
       if (teamId == null) {
         return resp.forbidden('Kan ikke slette globale achievements');
@@ -239,7 +249,7 @@ class AchievementsHandler {
         return resp.forbidden('Kun admin kan slette achievements');
       }
 
-      await _achievementService.deleteDefinition(definitionId);
+      await _definitionService.deleteDefinition(definitionId);
 
       return resp.ok({'success': true});
     } catch (e) {

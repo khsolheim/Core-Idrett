@@ -1,12 +1,14 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/test.dart';
+import 'user_service.dart';
 
 class TestService {
   final Database _db;
+  final UserService _userService;
   final _uuid = const Uuid();
 
-  TestService(this._db);
+  TestService(this._db, this._userService);
 
   // ============ TEST TEMPLATES ============
 
@@ -141,16 +143,7 @@ class TestService {
 
     // Get user info
     final userIds = results.map((r) => r['user_id'] as String).toSet().toList();
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     // Get template info
     final template = await getTemplateById(templateId);
@@ -264,16 +257,7 @@ class TestService {
 
     // Get user info
     final userIds = sorted.map((r) => r['user_id'] as String).toList();
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     // Build ranking
     final ranking = <Map<String, dynamic>>[];

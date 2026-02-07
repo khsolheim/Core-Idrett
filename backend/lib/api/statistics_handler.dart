@@ -2,15 +2,17 @@ import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/statistics_service.dart';
+import '../services/match_stats_service.dart';
 import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class StatisticsHandler {
   final StatisticsService _statisticsService;
+  final MatchStatsService _matchStatsService;
   final TeamService _teamService;
 
-  StatisticsHandler(this._statisticsService, this._teamService);
+  StatisticsHandler(this._statisticsService, this._matchStatsService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -103,7 +105,7 @@ class StatisticsHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.forbidden('Ikke autorisert');
 
-      final stats = await _statisticsService.getMatchStats(instanceId);
+      final stats = await _matchStatsService.getMatchStats(instanceId);
 
       return resp.ok({
         'match_stats': stats.map((e) => e.toJson()).toList(),
@@ -125,7 +127,7 @@ class StatisticsHandler {
         return resp.badRequest('user_id er pakrevd');
       }
 
-      final stats = await _statisticsService.recordMatchStats(
+      final stats = await _matchStatsService.recordMatchStats(
         instanceId: instanceId,
         userId: userId,
         goals: body['goals'] ?? 0,

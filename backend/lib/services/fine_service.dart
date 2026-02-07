@@ -1,12 +1,16 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/fine.dart';
+import 'team_service.dart';
+import 'user_service.dart';
 
 class FineService {
   final Database _db;
+  final UserService _userService;
+  final TeamService _teamService;
   final _uuid = const Uuid();
 
-  FineService(this._db);
+  FineService(this._db, this._userService, this._teamService);
 
   // Fine Rules
   Future<List<FineRule>> getFineRules(String teamId, {bool? activeOnly}) async {
@@ -111,18 +115,7 @@ class FineService {
 
     // Get users
     final allUserIds = {...offenderIds, ...reporterIds}.toList();
-    final users = allUserIds.isNotEmpty
-        ? await _db.client.select(
-            'users',
-            select: 'id,name,avatar_url',
-            filters: {'id': 'in.(${allUserIds.join(',')})'},
-          )
-        : <Map<String, dynamic>>[];
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(allUserIds);
 
     // Get rules
     final rules = ruleIds.isNotEmpty
@@ -181,15 +174,7 @@ class FineService {
       fine['offender_id'] as String,
       if (fine['reporter_id'] != null) fine['reporter_id'] as String,
     ];
-    final userResults = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in userResults) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
     final offender = userMap[fine['offender_id']] ?? {};
     final reporter = fine['reporter_id'] != null
         ? userMap[fine['reporter_id']] ?? {}
@@ -547,27 +532,12 @@ class FineService {
 
   Future<List<UserFinesSummary>> getUserSummaries(String teamId) async {
     // Get team members
-    final members = await _db.client.select(
-      'team_members',
-      select: 'user_id',
-      filters: {'team_id': 'eq.$teamId'},
-    );
+    final userIds = await _teamService.getTeamMemberUserIds(teamId);
 
-    if (members.isEmpty) return [];
-
-    final userIds = members.map((m) => m['user_id'] as String).toList();
+    if (userIds.isEmpty) return [];
 
     // Get users
-    final users = await _db.client.select(
-      'users',
-      select: 'id,name,avatar_url',
-      filters: {'id': 'in.(${userIds.join(',')})'},
-    );
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(userIds);
 
     // Get fines for team
     final fines = await _db.client.select(

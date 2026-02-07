@@ -2,15 +2,21 @@ import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/achievement_service.dart';
+import '../services/achievement_progress_service.dart';
 import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class AchievementAwardsHandler {
   final AchievementService _achievementService;
+  final AchievementProgressService _progressService;
   final TeamService _teamService;
 
-  AchievementAwardsHandler(this._achievementService, this._teamService);
+  AchievementAwardsHandler(
+    this._achievementService,
+    this._progressService,
+    this._teamService,
+  );
 
   Router get router {
     final router = Router();
@@ -65,7 +71,7 @@ class AchievementAwardsHandler {
       final teamId = request.url.queryParameters['team_id'];
       final seasonId = request.url.queryParameters['season_id'];
 
-      final progress = await _achievementService.getUserProgress(
+      final progress = await _progressService.getUserProgress(
         targetUserId,
         teamId: teamId,
         seasonId: seasonId,
@@ -166,7 +172,7 @@ class AchievementAwardsHandler {
 
       final seasonId = request.url.queryParameters['season_id'];
 
-      final awarded = await _achievementService.checkAndAwardAchievements(
+      final awarded = await _progressService.checkAndAwardAchievements(
         targetUserId,
         teamId,
         seasonId: seasonId,

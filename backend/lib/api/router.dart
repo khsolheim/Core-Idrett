@@ -10,6 +10,7 @@ import '../services/mini_activity_template_service.dart';
 import '../services/mini_activity_division_service.dart';
 import '../services/mini_activity_result_service.dart';
 import '../services/statistics_service.dart';
+import '../services/match_stats_service.dart';
 import '../services/fine_service.dart';
 import '../services/season_service.dart';
 import '../services/leaderboard_service.dart';
@@ -18,6 +19,8 @@ import '../services/team_member_service.dart';
 import '../services/test_service.dart';
 import '../services/notification_service.dart';
 import '../services/message_service.dart';
+import '../services/team_chat_service.dart';
+import '../services/direct_message_service.dart';
 import '../services/document_service.dart';
 import '../services/export_service.dart';
 import '../services/tournament_service.dart';
@@ -27,6 +30,10 @@ import '../services/mini_activity_statistics_service.dart';
 import '../services/points_config_service.dart';
 import '../services/absence_service.dart';
 import '../services/achievement_service.dart';
+import '../services/achievement_definition_service.dart';
+import '../services/achievement_progress_service.dart';
+import '../services/user_service.dart';
+import '../services/player_rating_service.dart';
 import 'middleware/auth_middleware.dart';
 import 'auth_handler.dart';
 import 'teams_handler.dart';
@@ -50,31 +57,42 @@ import 'achievements_handler.dart';
 
 Router createRouter(Database db) {
   final authService = AuthService(db);
-  final teamService = TeamService(db);
+  final userService = UserService(db);
+  final teamService = TeamService(db, userService);
   final teamMemberService = TeamMemberService(db);
   final seasonService = SeasonService(db);
-  final leaderboardEntryService = LeaderboardEntryService(db);
-  final leaderboardService = LeaderboardService(db, leaderboardEntryService);
-  final activityService = ActivityService(db);
+  final leaderboardEntryService = LeaderboardEntryService(db, userService);
+  final leaderboardService = LeaderboardService(db, leaderboardEntryService, teamService);
+  final activityService = ActivityService(db, userService);
   final activityInstanceService = ActivityInstanceService(db, leaderboardService, seasonService);
-  final miniActivityService = MiniActivityService(db);
+  final miniActivityService = MiniActivityService(db, userService);
   final miniActivityTemplateService = MiniActivityTemplateService(db);
   final miniActivityDivisionService = MiniActivityDivisionService(db);
   final miniActivityResultService = MiniActivityResultService(db, leaderboardService, seasonService);
-  final statisticsService = StatisticsService(db);
-  final fineService = FineService(db);
-  final testService = TestService(db);
+  final playerRatingService = PlayerRatingService(db);
+  final matchStatsService = MatchStatsService(db, userService);
+  final statisticsService = StatisticsService(db, userService, teamService, playerRatingService);
+  final fineService = FineService(db, userService, teamService);
+  final testService = TestService(db, userService);
   final notificationService = NotificationService(db);
-  final messageService = MessageService(db);
-  final documentService = DocumentService(db);
+  final teamChatService = TeamChatService(db, userService);
+  final directMessageService = DirectMessageService(db, userService);
+  final messageService = MessageService(db, userService);
+  final documentService = DocumentService(db, userService);
   final exportService = ExportService(db);
   final tournamentGroupService = TournamentGroupService(db);
   final tournamentService = TournamentService(db, tournamentGroupService);
-  final stopwatchService = StopwatchService(db);
-  final miniActivityStatisticsService = MiniActivityStatisticsService(db);
+  final stopwatchService = StopwatchService(db, userService);
+  final miniActivityStatisticsService = MiniActivityStatisticsService(db, userService);
   final pointsConfigService = PointsConfigService(db);
   final absenceService = AbsenceService(db);
-  final achievementService = AchievementService(db);
+  final achievementDefinitionService = AchievementDefinitionService(db);
+  final achievementService = AchievementService(db, achievementDefinitionService);
+  final achievementProgressService = AchievementProgressService(
+    db,
+    achievementDefinitionService,
+    achievementService,
+  );
 
   // Auth middleware for protected routes
   final auth = requireAuth(authService);
@@ -114,7 +132,7 @@ Router createRouter(Database db) {
   );
   router.mount('/mini-activity-stats', const Pipeline().addMiddleware(auth).addHandler(miniActivityStatsHandler.router.call).call);
 
-  final statisticsHandler = StatisticsHandler(statisticsService, teamService);
+  final statisticsHandler = StatisticsHandler(statisticsService, matchStatsService, teamService);
   router.mount('/statistics', const Pipeline().addMiddleware(auth).addHandler(statisticsHandler.router.call).call);
 
   final finesHandler = FinesHandler(fineService, teamService);
@@ -132,7 +150,12 @@ Router createRouter(Database db) {
   final absenceHandler = AbsenceHandler(absenceService, teamService);
   router.mount('/absence', const Pipeline().addMiddleware(auth).addHandler(absenceHandler.router.call).call);
 
-  final achievementsHandler = AchievementsHandler(achievementService, teamService);
+  final achievementsHandler = AchievementsHandler(
+    achievementDefinitionService,
+    achievementService,
+    achievementProgressService,
+    teamService,
+  );
   router.mount('/achievements', const Pipeline().addMiddleware(auth).addHandler(achievementsHandler.router.call).call);
 
   final testsHandler = TestsHandler(testService, teamService);
@@ -141,7 +164,7 @@ Router createRouter(Database db) {
   final notificationsHandler = NotificationsHandler(notificationService);
   router.mount('/notifications', const Pipeline().addMiddleware(auth).addHandler(notificationsHandler.router.call).call);
 
-  final messagesHandler = MessagesHandler(messageService, teamService);
+  final messagesHandler = MessagesHandler(messageService, teamChatService, directMessageService, teamService);
   router.mount('/messages', const Pipeline().addMiddleware(auth).addHandler(messagesHandler.router.call).call);
 
   final documentsHandler = DocumentsHandler(documentService, teamService);

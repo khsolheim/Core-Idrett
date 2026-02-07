@@ -1,12 +1,14 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/mini_activity.dart';
+import 'user_service.dart';
 
 class MiniActivityService {
   final Database _db;
+  final UserService _userService;
   final _uuid = const Uuid();
 
-  MiniActivityService(this._db);
+  MiniActivityService(this._db, this._userService);
 
   // ============ MINI-ACTIVITIES ============
 
@@ -372,18 +374,7 @@ class MiniActivityService {
       ...individualParticipantsResult.map((p) => p['user_id'] as String),
     }.toList();
 
-    final users = allUserIds.isNotEmpty
-        ? await _db.client.select(
-            'users',
-            select: 'id,name,avatar_url',
-            filters: {'id': 'in.(${allUserIds.join(',')})'},
-          )
-        : <Map<String, dynamic>>[];
-
-    final userMap = <String, Map<String, dynamic>>{};
-    for (final u in users) {
-      userMap[u['id'] as String] = u;
-    }
+    final userMap = await _userService.getUserMap(allUserIds);
 
     // Build teams with participants
     final teams = teamsResult.map((t) {
