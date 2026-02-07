@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/achievement.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/achievement_provider.dart';
 import 'create_edit_achievement_sheet.dart';
@@ -21,7 +23,6 @@ class AchievementAdminScreen extends ConsumerWidget {
       activeOnly: false,
       category: null,
     )));
-    final theme = Theme.of(context);
 
     final isAdmin = teamAsync.value?.userIsAdmin ?? false;
 
@@ -43,32 +44,19 @@ class AchievementAdminScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Ny achievement'),
       ),
-      body: definitionsAsync.when(
+      body: definitionsAsync.when2(
+        onRetry: () => ref.invalidate(achievementDefinitionsProvider((
+          teamId: teamId,
+          includeGlobal: false,
+          activeOnly: false,
+          category: null,
+        ))),
         data: (definitions) {
           if (definitions.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.emoji_events_outlined,
-                    size: 64,
-                    color: theme.colorScheme.outline,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Ingen egendefinerte achievements',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Trykk + for å opprette en ny',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
-                ],
-              ),
+            return const EmptyStateWidget(
+              icon: Icons.emoji_events_outlined,
+              title: 'Ingen egendefinerte achievements',
+              subtitle: 'Trykk + for å opprette en ny',
             );
           }
 
@@ -135,27 +123,6 @@ class AchievementAdminScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              const SizedBox(height: 16),
-              Text('Kunne ikke laste achievements: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(achievementDefinitionsProvider((
-                  teamId: teamId,
-                  includeGlobal: false,
-                  activeOnly: false,
-                  category: null,
-                ))),
-                child: const Text('Prøv igjen'),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

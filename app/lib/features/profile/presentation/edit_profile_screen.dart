@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -59,9 +60,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           ),
         ],
       ),
-      body: authState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Feil: $e')),
+      body: authState.when2(
+        onRetry: () => ref.invalidate(authStateProvider),
         data: (user) {
           if (user == null) {
             return const Center(child: Text('Ikke innlogget'));

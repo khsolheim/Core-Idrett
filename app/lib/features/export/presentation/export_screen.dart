@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/export_log.dart';
 import '../providers/export_provider.dart';
 
@@ -65,7 +66,8 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
           ),
           const SizedBox(height: 16),
 
-          historyAsync.when(
+          historyAsync.when2(
+            onRetry: () => ref.invalidate(exportHistoryProvider(widget.teamId)),
             data: (history) {
               if (history.isEmpty) {
                 return Card(
@@ -96,13 +98,6 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                 ),
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('Kunne ikke laste historikk: $error'),
-              ),
-            ),
           ),
         ],
       ),

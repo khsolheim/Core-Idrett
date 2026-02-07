@@ -39,7 +39,9 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
       body: Column(
         children: [
           // Category filter chips
-          categoriesAsync.when(
+          categoriesAsync.when2(
+            onRetry: () => ref.invalidate(documentCategoriesProvider(widget.teamId)),
+            loading: () => const SizedBox.shrink(),
             data: (categories) {
               if (categories.isEmpty) return const SizedBox.shrink();
               return Container(
@@ -66,8 +68,6 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                 ),
               );
             },
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
           ),
           // Document list
           Expanded(

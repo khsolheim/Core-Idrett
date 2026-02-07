@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/statistics.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/test_provider.dart';
@@ -405,7 +406,9 @@ class _RecordResultSheetState extends ConsumerState<_RecordResultSheet> {
           const SizedBox(height: 16),
 
           // Member selector
-          membersAsync.when(
+          membersAsync.when2(
+            onRetry: () => ref.invalidate(teamMembersProvider(widget.teamId)),
+            loading: () => const LinearProgressIndicator(),
             data: (members) => DropdownButtonFormField<String>(
               initialValue: _selectedUserId,
               decoration: const InputDecoration(
@@ -422,8 +425,6 @@ class _RecordResultSheetState extends ConsumerState<_RecordResultSheet> {
                 });
               },
             ),
-            loading: () => const LinearProgressIndicator(),
-            error: (e, _) => Text('Kunne ikke laste medlemmer: $e'),
           ),
           const SizedBox(height: 16),
 

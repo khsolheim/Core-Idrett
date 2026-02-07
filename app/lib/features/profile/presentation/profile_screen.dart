@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../teams/providers/team_provider.dart';
 
@@ -23,9 +24,8 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: authState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Feil: $e')),
+      body: authState.when2(
+        onRetry: () => ref.invalidate(authStateProvider),
         data: (user) {
           if (user == null) {
             return const Center(child: Text('Ikke innlogget'));
@@ -121,9 +121,10 @@ class ProfileScreen extends ConsumerWidget {
                                   ),
                             ),
                             const Spacer(),
-                            teamsAsync.when(
+                            teamsAsync.when2(
+                              onRetry: () => ref.invalidate(teamsProvider),
                               loading: () => const SizedBox.shrink(),
-                              error: (_, _) => const SizedBox.shrink(),
+                              error: (_, retry) => const SizedBox.shrink(),
                               data: (teams) => Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -145,11 +146,8 @@ class ProfileScreen extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        teamsAsync.when(
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                          error: (e, _) => Text('Feil: $e'),
+                        teamsAsync.when2(
+                          onRetry: () => ref.invalidate(teamsProvider),
                           data: (teams) {
                             if (teams.isEmpty) {
                               return const Text('Du er ikke medlem av noen lag enna');

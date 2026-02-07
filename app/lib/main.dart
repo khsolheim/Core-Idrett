@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme.dart';
 import 'core/router.dart';
 import 'core/services/error_display_service.dart';
@@ -10,7 +11,12 @@ import 'features/settings/providers/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('nb_NO', null);
+
+  // Pre-cache SharedPreferences so subsequent calls (auth token, settings) resolve instantly
+  await Future.wait([
+    initializeDateFormatting('nb_NO', null),
+    SharedPreferences.getInstance(),
+  ]);
 
   // Initialize Supabase for realtime features (non-blocking)
   try {
