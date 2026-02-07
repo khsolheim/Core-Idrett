@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/extensions/async_value_extensions.dart';
+import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../../../data/models/tournament.dart';
 import '../../providers/tournament_provider.dart';
 import '../widgets/tournament_bracket.dart';
@@ -22,19 +24,14 @@ class TournamentScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tournamentAsync = ref.watch(tournamentProvider(tournamentId));
 
-    return tournamentAsync.when(
-      data: (tournament) => _TournamentContent(
-        tournament: tournament,
-        miniActivityId: miniActivityId,
-      ),
+    return tournamentAsync.when2(
+      onRetry: () => ref.invalidate(tournamentProvider(tournamentId)),
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(title: const Text('Turnering')),
-        body: Center(
-          child: Text('Feil: $error'),
-        ),
+      data: (tournament) => _TournamentContent(
+        tournament: tournament,
+        miniActivityId: miniActivityId,
       ),
     );
   }
@@ -147,19 +144,17 @@ class _BracketTab extends ConsumerWidget {
     final roundsAsync = ref.watch(tournamentRoundsProvider(tournament.id));
     final matchesAsync = ref.watch(tournamentMatchesProvider(tournament.id));
 
-    return roundsAsync.when(
-      data: (rounds) => matchesAsync.when(
+    return roundsAsync.when2(
+      onRetry: () => ref.invalidate(tournamentRoundsProvider(tournament.id)),
+      data: (rounds) => matchesAsync.when2(
+        onRetry: () => ref.invalidate(tournamentMatchesProvider(tournament.id)),
         data: (matches) => TournamentBracket(
           tournament: tournament,
           rounds: rounds,
           matches: matches,
           onMatchTap: (match) => _showMatchResult(context, match),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Feil: $e')),
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Feil: $e')),
     );
   }
 
@@ -183,27 +178,13 @@ class _MatchesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final matchesAsync = ref.watch(tournamentMatchesProvider(tournament.id));
 
-    return matchesAsync.when(
+    return matchesAsync.when2(
+      onRetry: () => ref.invalidate(tournamentMatchesProvider(tournament.id)),
       data: (matches) {
         if (matches.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.sports_outlined,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Ingen kamper ennå',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                ),
-              ],
-            ),
+          return const EmptyStateWidget(
+            icon: Icons.sports_outlined,
+            title: 'Ingen kamper ennå',
           );
         }
 
@@ -253,8 +234,6 @@ class _MatchesTab extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Feil: $e')),
     );
   }
 
@@ -278,27 +257,13 @@ class _GroupsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groupsAsync = ref.watch(tournamentGroupsProvider(tournament.id));
 
-    return groupsAsync.when(
+    return groupsAsync.when2(
+      onRetry: () => ref.invalidate(tournamentGroupsProvider(tournament.id)),
       data: (groups) {
         if (groups.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.group_work_outlined,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Ingen grupper ennå',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                ),
-              ],
-            ),
+          return const EmptyStateWidget(
+            icon: Icons.group_work_outlined,
+            title: 'Ingen grupper ennå',
           );
         }
 
@@ -317,8 +282,6 @@ class _GroupsTab extends ConsumerWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Feil: $e')),
     );
   }
 }

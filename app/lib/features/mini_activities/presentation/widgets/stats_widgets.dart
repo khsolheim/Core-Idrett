@@ -16,10 +16,8 @@ class PlayerStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     if (isCompact) {
-      return _CompactStatsCard(stats: stats, onTap: onTap);
+      return CompactStatsCard(stats: stats, onTap: onTap);
     }
 
     return Card(
@@ -53,15 +51,15 @@ class PlayerStatsCard extends StatelessWidget {
                       children: [
                         Text(
                           stats.userName ?? 'Ukjent',
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         if (stats.seasonName != null)
                           Text(
                             stats.seasonName!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.outline,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.outline,
                             ),
                           ),
                       ],
@@ -72,15 +70,15 @@ class PlayerStatsCard extends StatelessWidget {
                     children: [
                       Text(
                         '${stats.totalPoints}',
-                        style: theme.textTheme.headlineMedium?.copyWith(
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       Text(
                         'poeng',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.outline,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
                         ),
                       ),
                     ],
@@ -95,19 +93,19 @@ class PlayerStatsCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _StatItem(
+                    child: StatsItem(
                       label: 'Kamper',
                       value: '${stats.totalParticipations}',
                     ),
                   ),
                   Expanded(
-                    child: _StatItem(
+                    child: StatsItem(
                       label: 'Rekord',
                       value: stats.record,
                     ),
                   ),
                   Expanded(
-                    child: _StatItem(
+                    child: StatsItem(
                       label: 'Seiersprosent',
                       value: stats.formattedWinRate,
                     ),
@@ -123,15 +121,15 @@ class PlayerStatsCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _PodiumBadge(
+                    PodiumBadge(
                       position: 1,
                       count: stats.firstPlaceCount,
                     ),
-                    _PodiumBadge(
+                    PodiumBadge(
                       position: 2,
                       count: stats.secondPlaceCount,
                     ),
-                    _PodiumBadge(
+                    PodiumBadge(
                       position: 3,
                       count: stats.thirdPlaceCount,
                     ),
@@ -146,11 +144,13 @@ class PlayerStatsCard extends StatelessWidget {
   }
 }
 
-class _CompactStatsCard extends StatelessWidget {
+/// Compact version of the player stats card
+class CompactStatsCard extends StatelessWidget {
   final MiniActivityPlayerStats stats;
   final VoidCallback? onTap;
 
-  const _CompactStatsCard({
+  const CompactStatsCard({
+    super.key,
     required this.stats,
     this.onTap,
   });
@@ -213,11 +213,13 @@ class _CompactStatsCard extends StatelessWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
+/// Single stat label/value display
+class StatsItem extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatItem({
+  const StatsItem({
+    super.key,
     required this.label,
     required this.value,
   });
@@ -246,11 +248,13 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _PodiumBadge extends StatelessWidget {
+/// Badge showing podium position and count
+class PodiumBadge extends StatelessWidget {
   final int position;
   final int count;
 
-  const _PodiumBadge({
+  const PodiumBadge({
+    super.key,
     required this.position,
     required this.count,
   });
@@ -260,9 +264,9 @@ class _PodiumBadge extends StatelessWidget {
     if (count == 0) return const SizedBox.shrink();
 
     final emoji = switch (position) {
-      1 => '🥇',
-      2 => '🥈',
-      3 => '🥉',
+      1 => '\u{1F947}',
+      2 => '\u{1F948}',
+      3 => '\u{1F949}',
       _ => '',
     };
 
@@ -331,7 +335,7 @@ class HeadToHeadCard extends StatelessWidget {
                   ],
                 ),
               ),
-              _HeadToHeadScore(
+              HeadToHeadScore(
                 myWins: myWins,
                 draws: stats.draws,
                 theirWins: theirWins,
@@ -344,12 +348,14 @@ class HeadToHeadCard extends StatelessWidget {
   }
 }
 
-class _HeadToHeadScore extends StatelessWidget {
+/// Score display for head-to-head matchups
+class HeadToHeadScore extends StatelessWidget {
   final int myWins;
   final int draws;
   final int theirWins;
 
-  const _HeadToHeadScore({
+  const HeadToHeadScore({
+    super.key,
     required this.myWins,
     required this.draws,
     required this.theirWins,
@@ -417,179 +423,6 @@ class _HeadToHeadScore extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Leaderboard list widget
-class MiniActivityLeaderboard extends StatelessWidget {
-  final List<MiniActivityPlayerStats> stats;
-  final String? currentUserId;
-  final Function(MiniActivityPlayerStats)? onPlayerTap;
-
-  const MiniActivityLeaderboard({
-    super.key,
-    required this.stats,
-    this.currentUserId,
-    this.onPlayerTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (stats.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.leaderboard_outlined,
-                size: 48,
-                color: Theme.of(context).colorScheme.outline,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Ingen statistikk ennå',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: stats.length,
-      itemBuilder: (context, index) {
-        final stat = stats[index];
-        final isCurrentUser = stat.userId == currentUserId;
-
-        return LeaderboardRow(
-          stats: stat,
-          position: index + 1,
-          isCurrentUser: isCurrentUser,
-          onTap: onPlayerTap != null ? () => onPlayerTap!(stat) : null,
-        );
-      },
-    );
-  }
-}
-
-/// Single row in leaderboard
-class LeaderboardRow extends StatelessWidget {
-  final MiniActivityPlayerStats stats;
-  final int position;
-  final bool isCurrentUser;
-  final VoidCallback? onTap;
-
-  const LeaderboardRow({
-    super.key,
-    required this.stats,
-    required this.position,
-    this.isCurrentUser = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isCurrentUser ? theme.colorScheme.primaryContainer.withAlpha(77) : null,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 32,
-                child: _PositionDisplay(position: position),
-              ),
-              const SizedBox(width: 12),
-              CircleAvatar(
-                radius: 18,
-                backgroundImage: stats.userProfileImageUrl != null
-                    ? NetworkImage(stats.userProfileImageUrl!)
-                    : null,
-                child: stats.userProfileImageUrl == null
-                    ? Text(
-                        stats.userName?.substring(0, 1).toUpperCase() ?? '?',
-                        style: const TextStyle(fontSize: 14),
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      stats.userName ?? 'Ukjent',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                    Text(
-                      stats.record,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                '${stats.totalPoints}',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PositionDisplay extends StatelessWidget {
-  final int position;
-
-  const _PositionDisplay({required this.position});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    if (position <= 3) {
-      final emoji = switch (position) {
-        1 => '🥇',
-        2 => '🥈',
-        3 => '🥉',
-        _ => '',
-      };
-      return Text(emoji, style: const TextStyle(fontSize: 20));
-    }
-
-    return Text(
-      '$position',
-      style: theme.textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: theme.colorScheme.outline,
-      ),
-      textAlign: TextAlign.center,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/stopwatch.dart';
 import '../../providers/stopwatch_provider.dart';
 import '../widgets/stopwatch_display.dart';
@@ -18,19 +19,14 @@ class StopwatchScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionAsync = ref.watch(stopwatchSessionWithTimesProvider(sessionId));
 
-    return sessionAsync.when(
-      data: (sessionWithTimes) => _StopwatchContent(
-        session: sessionWithTimes.session,
-        times: sessionWithTimes.times,
-      ),
+    return sessionAsync.when2(
+      onRetry: () => ref.invalidate(stopwatchSessionWithTimesProvider(sessionId)),
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(title: const Text('Stoppeklokke')),
-        body: Center(
-          child: Text('Feil: $error'),
-        ),
+      data: (sessionWithTimes) => _StopwatchContent(
+        session: sessionWithTimes.session,
+        times: sessionWithTimes.times,
       ),
     );
   }

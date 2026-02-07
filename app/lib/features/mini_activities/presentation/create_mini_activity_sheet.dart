@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/mini_activity.dart';
 import '../providers/mini_activity_provider.dart';
 
@@ -72,7 +73,10 @@ class _CreateMiniActivitySheetState extends ConsumerState<CreateMiniActivityShee
           const SizedBox(height: 24),
 
           // Templates
-          templatesAsync.when(
+          templatesAsync.when2(
+            onRetry: () => ref.invalidate(teamTemplatesProvider(widget.teamId)),
+            loading: () => const LinearProgressIndicator(),
+            error: (_, _) => const SizedBox.shrink(),
             data: (templates) {
               if (templates.isEmpty) return const SizedBox.shrink();
 
@@ -117,8 +121,6 @@ class _CreateMiniActivitySheetState extends ConsumerState<CreateMiniActivityShee
                 ],
               );
             },
-            loading: () => const LinearProgressIndicator(),
-            error: (_, _) => const SizedBox.shrink(),
           ),
 
           // Custom name input

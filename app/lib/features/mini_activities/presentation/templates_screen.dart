@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/extensions/async_value_extensions.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../data/models/mini_activity.dart';
 import '../providers/mini_activity_provider.dart';
 
@@ -16,32 +18,14 @@ class TemplatesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Mini-aktivitet maler'),
       ),
-      body: templatesAsync.when(
+      body: templatesAsync.when2(
+        onRetry: () => ref.invalidate(teamTemplatesProvider(teamId)),
         data: (templates) {
           if (templates.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.library_add,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Ingen maler ennå',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Opprett maler for raske mini-aktiviteter',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                  ),
-                ],
-              ),
+            return const EmptyStateWidget(
+              icon: Icons.library_add,
+              title: 'Ingen maler ennå',
+              subtitle: 'Opprett maler for raske mini-aktiviteter',
             );
           }
 
@@ -62,22 +46,6 @@ class TemplatesScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              const SizedBox(height: 16),
-              Text('Kunne ikke laste maler: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(teamTemplatesProvider(teamId)),
-                child: const Text('Prøv igjen'),
-              ),
-            ],
-          ),
-        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateTemplateDialog(context, ref),

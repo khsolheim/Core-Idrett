@@ -1,6 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/api_response_parser.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/models/mini_activity.dart';
 
@@ -13,35 +12,11 @@ class MiniActivityRepository {
 
   MiniActivityRepository(this._apiClient);
 
-  /// Helper to parse response data that might be String or Map
-  Map<String, dynamic> _parseJsonResponse(dynamic data) {
-    if (data is String) {
-      return Map<String, dynamic>.from(const JsonDecoder().convert(data) as Map);
-    } else if (data is Map<String, dynamic>) {
-      return data;
-    } else if (data is Map) {
-      return Map<String, dynamic>.from(data);
-    } else {
-      throw Exception('Unexpected response type: ${data.runtimeType}');
-    }
-  }
-
-  /// Helper to parse list response that might be String or List
-  List<dynamic> _parseListResponse(dynamic data) {
-    if (data is String) {
-      return const JsonDecoder().convert(data) as List;
-    } else if (data is List) {
-      return data;
-    } else {
-      throw Exception('Unexpected response type: ${data.runtimeType}');
-    }
-  }
-
   // ============ TEMPLATES ============
 
   Future<List<ActivityTemplate>> getTemplatesForTeam(String teamId) async {
     final response = await _apiClient.get('/mini-activities/templates/team/$teamId');
-    final data = _parseListResponse(response.data);
+    final data = parseListResponse(response.data);
     return data.map((json) => ActivityTemplate.fromJson(json as Map<String, dynamic>)).toList();
   }
 
@@ -72,7 +47,7 @@ class MiniActivityRepository {
       'loss_points': lossPoints,
       'leaderboard_id': ?leaderboardId,
     });
-    return ActivityTemplate.fromJson(_parseJsonResponse(response.data));
+    return ActivityTemplate.fromJson(parseJsonResponse(response.data));
   }
 
   Future<ActivityTemplate> updateTemplate({
@@ -100,12 +75,12 @@ class MiniActivityRepository {
       'loss_points': ?lossPoints,
       'leaderboard_id': ?leaderboardId,
     });
-    return ActivityTemplate.fromJson(_parseJsonResponse(response.data));
+    return ActivityTemplate.fromJson(parseJsonResponse(response.data));
   }
 
   Future<ActivityTemplate> getTemplate(String templateId) async {
     final response = await _apiClient.get('/mini-activities/templates/$templateId');
-    return ActivityTemplate.fromJson(_parseJsonResponse(response.data));
+    return ActivityTemplate.fromJson(parseJsonResponse(response.data));
   }
 
   Future<void> deleteTemplate(String templateId) async {
@@ -114,14 +89,14 @@ class MiniActivityRepository {
 
   Future<ActivityTemplate> toggleTemplateFavorite(String templateId) async {
     final response = await _apiClient.post('/mini-activities/templates/$templateId/favorite');
-    return ActivityTemplate.fromJson(_parseJsonResponse(response.data));
+    return ActivityTemplate.fromJson(parseJsonResponse(response.data));
   }
 
   // ============ MINI-ACTIVITIES ============
 
   Future<List<MiniActivity>> getMiniActivitiesForInstance(String instanceId) async {
     final response = await _apiClient.get('/mini-activities/instance/$instanceId');
-    final data = _parseListResponse(response.data);
+    final data = parseListResponse(response.data);
     return data.map((json) => MiniActivity.fromJson(json as Map<String, dynamic>)).toList();
   }
 
@@ -129,7 +104,7 @@ class MiniActivityRepository {
     final response = await _apiClient.get('/mini-activities/standalone/team/$teamId', queryParameters: {
       'include_archived': includeArchived.toString(),
     });
-    final data = _parseListResponse(response.data);
+    final data = parseListResponse(response.data);
     return data.map((json) => MiniActivity.fromJson(json as Map<String, dynamic>)).toList();
   }
 
@@ -160,7 +135,7 @@ class MiniActivityRepository {
       'leaderboard_id': ?leaderboardId,
       'handicap_enabled': handicapEnabled,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> createStandaloneMiniActivity({
@@ -190,12 +165,12 @@ class MiniActivityRepository {
       'leaderboard_id': ?leaderboardId,
       'handicap_enabled': handicapEnabled,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> getMiniActivityDetail(String miniActivityId) async {
     final response = await _apiClient.get('/mini-activities/$miniActivityId');
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> updateMiniActivity({
@@ -221,7 +196,7 @@ class MiniActivityRepository {
       'leaderboard_id': ?leaderboardId,
       'handicap_enabled': ?handicapEnabled,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<void> deleteMiniActivity(String miniActivityId) async {
@@ -230,19 +205,19 @@ class MiniActivityRepository {
 
   Future<MiniActivity> archiveMiniActivity(String miniActivityId) async {
     final response = await _apiClient.post('/mini-activities/$miniActivityId/archive');
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> unarchiveMiniActivity(String miniActivityId) async {
     final response = await _apiClient.post('/mini-activities/$miniActivityId/unarchive');
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> duplicateMiniActivity(String miniActivityId, {String? newName}) async {
     final response = await _apiClient.post('/mini-activities/$miniActivityId/duplicate', data: {
       'name': ?newName,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   // ============ TEAM DIVISION ============
@@ -260,12 +235,12 @@ class MiniActivityRepository {
       'participant_user_ids': participantUserIds,
       'team_id': teamId,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> resetTeamDivision(String miniActivityId) async {
     final response = await _apiClient.post('/mini-activities/$miniActivityId/reset-division');
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> addLateParticipant({
@@ -277,7 +252,7 @@ class MiniActivityRepository {
       'user_id': userId,
       'mini_team_id': miniTeamId,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> updateTeamName({
@@ -288,7 +263,7 @@ class MiniActivityRepository {
     final response = await _apiClient.patch('/mini-activities/$miniActivityId/teams/$miniTeamId', data: {
       'name': name,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   // ============ SCORES ============
@@ -304,14 +279,14 @@ class MiniActivityRepository {
       'participant_points': participantPoints ?? {},
       'add_to_leaderboard': addToLeaderboard,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   // ============ ADJUSTMENTS (BONUS/PENALTY) ============
 
   Future<List<MiniActivityAdjustment>> getAdjustments(String miniActivityId) async {
     final response = await _apiClient.get('/mini-activities/$miniActivityId/adjustments');
-    final data = _parseListResponse(response.data);
+    final data = parseListResponse(response.data);
     return data.map((json) => MiniActivityAdjustment.fromJson(json as Map<String, dynamic>)).toList();
   }
 
@@ -328,7 +303,7 @@ class MiniActivityRepository {
       'points': points,
       'reason': ?reason,
     });
-    return MiniActivityAdjustment.fromJson(_parseJsonResponse(response.data));
+    return MiniActivityAdjustment.fromJson(parseJsonResponse(response.data));
   }
 
   Future<void> deleteAdjustment(String adjustmentId) async {
@@ -339,7 +314,7 @@ class MiniActivityRepository {
 
   Future<List<MiniActivityHandicap>> getHandicaps(String miniActivityId) async {
     final response = await _apiClient.get('/mini-activities/$miniActivityId/handicaps');
-    final data = _parseListResponse(response.data);
+    final data = parseListResponse(response.data);
     return data.map((json) => MiniActivityHandicap.fromJson(json as Map<String, dynamic>)).toList();
   }
 
@@ -352,7 +327,7 @@ class MiniActivityRepository {
       'user_id': userId,
       'handicap_value': handicapValue,
     });
-    return MiniActivityHandicap.fromJson(_parseJsonResponse(response.data));
+    return MiniActivityHandicap.fromJson(parseJsonResponse(response.data));
   }
 
   Future<void> removeHandicap({
@@ -371,7 +346,7 @@ class MiniActivityRepository {
     final response = await _apiClient.post('/mini-activities/$miniActivityId/teams', data: {
       'name': name,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> deleteTeam({
@@ -382,7 +357,7 @@ class MiniActivityRepository {
     final response = await _apiClient.delete('/mini-activities/$miniActivityId/teams/$miniTeamId', data: {
       'move_participants_to_team_id': ?moveParticipantsToTeamId,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> moveParticipant({
@@ -393,7 +368,7 @@ class MiniActivityRepository {
     final response = await _apiClient.put('/mini-activities/$miniActivityId/participants/$participantId/move', data: {
       'target_team_id': targetTeamId,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   // ============ NEW: RESULT MANAGEMENT ============
@@ -407,12 +382,12 @@ class MiniActivityRepository {
       'winner_team_id': winnerTeamId,
       'add_to_leaderboard': addToLeaderboard,
     });
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   Future<MiniActivity> clearResult(String miniActivityId) async {
     final response = await _apiClient.delete('/mini-activities/$miniActivityId/result');
-    return MiniActivity.fromJson(_parseJsonResponse(response.data));
+    return MiniActivity.fromJson(parseJsonResponse(response.data));
   }
 
   // ============ NEW: HISTORY ============
@@ -426,7 +401,7 @@ class MiniActivityRepository {
       'template_id': ?templateId,
       'limit': limit.toString(),
     });
-    final data = _parseListResponse(response.data);
+    final data = parseListResponse(response.data);
     return data.map((json) => MiniActivityHistoryEntry.fromJson(json as Map<String, dynamic>)).toList();
   }
 }

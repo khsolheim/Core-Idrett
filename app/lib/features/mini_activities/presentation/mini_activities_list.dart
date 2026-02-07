@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/mini_activity.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../providers/mini_activity_provider.dart';
 import 'create_mini_activity_sheet.dart';
 
@@ -38,31 +40,13 @@ class MiniActivitiesList extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 8),
-        miniActivitiesAsync.when(
+        miniActivitiesAsync.when2(
+          onRetry: () => ref.invalidate(instanceMiniActivitiesProvider(instanceId)),
           data: (miniActivities) {
             if (miniActivities.isEmpty) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.sports_esports,
-                          size: 48,
-                          color: theme.colorScheme.outline,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Ingen mini-aktiviteter',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              return const EmptyStateWidget(
+                icon: Icons.sports_esports,
+                title: 'Ingen mini-aktiviteter',
               );
             }
 
@@ -76,31 +60,6 @@ class MiniActivitiesList extends ConsumerWidget {
               }).toList(),
             );
           },
-          loading: () => const Card(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          ),
-          error: (error, _) => Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: Column(
-                  children: [
-                    const Icon(Icons.error_outline, size: 48),
-                    const SizedBox(height: 8),
-                    Text('Feil: $error'),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => ref.invalidate(instanceMiniActivitiesProvider(instanceId)),
-                      child: const Text('Prøv igjen'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
         ),
       ],
     );
