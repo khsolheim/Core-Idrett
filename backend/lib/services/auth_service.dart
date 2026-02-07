@@ -11,7 +11,11 @@ class AuthService {
   late final String _jwtSecret;
 
   AuthService(this._db) {
-    _jwtSecret = Platform.environment['JWT_SECRET'] ?? 'dev-secret-change-in-production';
+    final secret = Platform.environment['JWT_SECRET'];
+    if (secret == null || secret.isEmpty) {
+      throw StateError('JWT_SECRET environment variable is required');
+    }
+    _jwtSecret = secret;
   }
 
   Future<({User user, String token})> register({
