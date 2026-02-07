@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/activity.dart';
 import '../providers/activity_provider.dart';
 
@@ -95,7 +96,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         ],
       ),
-      body: instancesAsync.when(
+      body: instancesAsync.when2(
+        onRetry: () => ref.invalidate(calendarInstancesProvider((
+          teamId: widget.teamId,
+          from: from,
+          to: to,
+        ))),
         data: (instances) {
           final selectedDayEvents = _selectedDay != null
               ? _getEventsForDay(_selectedDay!, instances)
@@ -265,28 +271,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              const SizedBox(height: 16),
-              Text('Kunne ikke laste kalender: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () {
-                  ref.invalidate(calendarInstancesProvider((
-                    teamId: widget.teamId,
-                    from: from,
-                    to: to,
-                  )));
-                },
-                child: const Text('Prøv igjen'),
-              ),
-            ],
-          ),
-        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.pushNamed(

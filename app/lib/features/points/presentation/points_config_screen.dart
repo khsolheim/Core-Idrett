@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/points_config.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/points_provider.dart';
+import 'widgets/points_config_fields.dart';
 
 class PointsConfigScreen extends ConsumerStatefulWidget {
   final String teamId;
@@ -182,7 +184,8 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
             ),
         ],
       ),
-      body: configAsync.when(
+      body: configAsync.when2(
+        onRetry: () => ref.invalidate(teamPointsConfigProvider(widget.teamId)),
         data: (config) {
           // Load config values only once when data first arrives
           // Using addPostFrameCallback to avoid setState during build
@@ -202,25 +205,25 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               // Points per activity type
-              _SectionHeader(title: 'Poeng per aktivitet'),
+              SectionHeader(title: 'Poeng per aktivitet'),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _NumberField(
+                      NumberField(
                         controller: _trainingPointsController,
                         label: 'Trening',
                         icon: Icons.fitness_center,
                       ),
                       const SizedBox(height: 12),
-                      _NumberField(
+                      NumberField(
                         controller: _matchPointsController,
                         label: 'Kamp',
                         icon: Icons.sports_soccer,
                       ),
                       const SizedBox(height: 12),
-                      _NumberField(
+                      NumberField(
                         controller: _socialPointsController,
                         label: 'Sosialt',
                         icon: Icons.celebration,
@@ -233,28 +236,28 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               const SizedBox(height: 24),
 
               // Weights
-              _SectionHeader(title: 'Vekting for hovedleaderboard'),
+              SectionHeader(title: 'Vekting for hovedleaderboard'),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _DecimalField(
+                      DecimalField(
                         controller: _trainingWeightController,
                         label: 'Trening-vekt',
                       ),
                       const SizedBox(height: 12),
-                      _DecimalField(
+                      DecimalField(
                         controller: _matchWeightController,
                         label: 'Kamp-vekt',
                       ),
                       const SizedBox(height: 12),
-                      _DecimalField(
+                      DecimalField(
                         controller: _socialWeightController,
                         label: 'Sosial-vekt',
                       ),
                       const SizedBox(height: 12),
-                      _DecimalField(
+                      DecimalField(
                         controller: _competitionWeightController,
                         label: 'Konkurranse-vekt',
                       ),
@@ -266,7 +269,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               const SizedBox(height: 24),
 
               // Mini-activity distribution
-              _SectionHeader(title: 'Mini-aktiviteter'),
+              SectionHeader(title: 'Mini-aktiviteter'),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -308,7 +311,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               const SizedBox(height: 24),
 
               // Visibility
-              _SectionHeader(title: 'Synlighet'),
+              SectionHeader(title: 'Synlighet'),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -350,7 +353,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               const SizedBox(height: 24),
 
               // New player start
-              _SectionHeader(title: 'Nye spillere'),
+              SectionHeader(title: 'Nye spillere'),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -392,7 +395,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               const SizedBox(height: 24),
 
               // Toggle settings
-              _SectionHeader(title: 'Automatisering'),
+              SectionHeader(title: 'Automatisering'),
               Card(
                 child: Column(
                   children: [
@@ -424,7 +427,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               const SizedBox(height: 24),
 
               // Absence settings
-              _SectionHeader(title: 'Fravær'),
+              SectionHeader(title: 'Fravær'),
               Card(
                 child: Column(
                   children: [
@@ -477,117 +480,7 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              const SizedBox(height: 16),
-              Text('Kunne ikke laste innstillinger: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () =>
-                    ref.invalidate(teamPointsConfigProvider(widget.teamId)),
-                child: const Text('Prøv igjen'),
-              ),
-            ],
-          ),
-        ),
       ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-}
-
-class _NumberField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-
-  const _NumberField({
-    required this.controller,
-    required this.label,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 20),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(label),
-        ),
-        SizedBox(
-          width: 80,
-          child: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              isDense: true,
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _DecimalField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-
-  const _DecimalField({
-    required this.controller,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(label),
-        ),
-        SizedBox(
-          width: 80,
-          child: TextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              isDense: true,
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

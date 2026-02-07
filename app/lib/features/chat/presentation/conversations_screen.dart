@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/conversation.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../teams/providers/team_provider.dart';
@@ -33,7 +34,8 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
           ),
         ],
       ),
-      body: conversationsAsync.when(
+      body: conversationsAsync.when2(
+        onRetry: () => ref.invalidate(conversationsProvider),
         data: (conversations) {
           if (conversations.isEmpty) {
             return Center(
@@ -86,22 +88,6 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              const SizedBox(height: 16),
-              Text('Kunne ikke laste samtaler: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(conversationsProvider),
-                child: const Text('Prov igjen'),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -262,7 +248,8 @@ class _NewConversationSheet extends ConsumerWidget {
             ),
             const Divider(height: 1),
             Expanded(
-              child: membersAsync.when(
+              child: membersAsync.when2(
+                onRetry: () => ref.invalidate(teamMembersProvider(teamId)),
                 data: (members) {
                   // Filter out current user
                   final otherMembers = members
@@ -308,10 +295,6 @@ class _NewConversationSheet extends ConsumerWidget {
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(
-                  child: Text('Kunne ikke laste lagmedlemmer: $error'),
-                ),
               ),
             ),
           ],

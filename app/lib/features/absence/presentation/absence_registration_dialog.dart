@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/absence.dart';
 import '../providers/absence_provider.dart';
@@ -71,7 +72,9 @@ class _AbsenceRegistrationDialogState
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 8),
-            categoriesAsync.when(
+            categoriesAsync.when2(
+              onRetry: () => ref.invalidate(absenceCategoriesProvider(widget.teamId)),
+              loading: () => const LinearProgressIndicator(),
               data: (categories) {
                 if (categories.isEmpty) {
                   return Text(
@@ -113,11 +116,6 @@ class _AbsenceRegistrationDialogState
                       setState(() => _selectedCategory = value),
                 );
               },
-              loading: () => const LinearProgressIndicator(),
-              error: (error, stackTrace) => Text(
-                'Kunne ikke laste kategorier',
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
             ),
             const SizedBox(height: 16),
 

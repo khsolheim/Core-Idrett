@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/activity.dart';
 import '../providers/activity_provider.dart';
 
@@ -207,7 +208,8 @@ class _EditInstanceScreenState extends ConsumerState<EditInstanceScreen> {
       appBar: AppBar(
         title: const Text('Rediger aktivitet'),
       ),
-      body: instanceAsync.when(
+      body: instanceAsync.when2(
+        onRetry: () => ref.invalidate(instanceDetailProvider(widget.instanceId)),
         data: (instance) {
           _initializeFromInstance(instance);
 
@@ -471,22 +473,6 @@ class _EditInstanceScreenState extends ConsumerState<EditInstanceScreen> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              const SizedBox(height: 16),
-              Text('Kunne ikke laste aktivitet: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(instanceDetailProvider(widget.instanceId)),
-                child: const Text('Prøv igjen'),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

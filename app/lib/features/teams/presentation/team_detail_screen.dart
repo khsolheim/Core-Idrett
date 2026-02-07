@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/team.dart';
 import '../providers/team_provider.dart';
 import 'widgets/team_dashboard_body.dart';
@@ -24,9 +25,8 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
     final membersAsync = ref.watch(teamMembersProvider(widget.teamId));
 
     return Scaffold(
-      body: teamAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Feil: $e')),
+      body: teamAsync.when2(
+        onRetry: () => ref.invalidate(teamDetailProvider(widget.teamId)),
         data: (team) {
           if (team == null) {
             return const Center(child: Text('Lag ikke funnet'));

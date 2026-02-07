@@ -1,27 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/extensions/async_value_extensions.dart';
-import '../../../data/models/message.dart';
-import '../../auth/providers/auth_provider.dart';
-import '../../teams/providers/team_provider.dart';
-import '../providers/direct_message_provider.dart';
-import 'widgets/message_widgets.dart';
+import '../../../../core/extensions/async_value_extensions.dart';
+import '../../../../data/models/conversation.dart';
+import '../../../../data/models/message.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../providers/unified_chat_provider.dart';
+import '../../providers/chat_provider.dart';
+import '../../providers/direct_message_provider.dart';
+import 'message_widgets.dart';
 
-class DirectMessageScreen extends ConsumerStatefulWidget {
+/// Empty state when no conversation is selected (wide layout only)
+class EmptyChatPanel extends StatelessWidget {
+  const EmptyChatPanel({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 64,
+            color: theme.colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Velg en samtale',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Velg en samtale fra listen til venstre',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Chat panel that shows messages for the selected conversation
+class ChatPanel extends ConsumerStatefulWidget {
   final String teamId;
-  final String recipientId;
+  final ChatConversation conversation;
+  final bool showBackButton;
 
-  const DirectMessageScreen({
+  const ChatPanel({
     super.key,
     required this.teamId,
-    required this.recipientId,
+    required this.conversation,
+    this.showBackButton = false,
   });
 
   @override
-  ConsumerState<DirectMessageScreen> createState() => _DirectMessageScreenState();
+  ConsumerState<ChatPanel> createState() => ChatPanelState();
 }
 
-class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
+class ChatPanelState extends ConsumerState<ChatPanel> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   Message? _replyingTo;
@@ -30,10 +70,31 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
   @override
   void initState() {
     super.initState();
-    // Mark messages as read when entering chat
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(directMessageNotifierProvider(widget.recipientId).notifier).markAsRead();
+      _markAsRead();
     });
+  }
+
+  @override
+  void didUpdateWidget(ChatPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.conversation.id != widget.conversation.id) {
+      _cancelReplyOrEdit();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _markAsRead();
+      });
+    }
+  }
+
+  void _markAsRead() {
+    if (widget.conversation.isTeamChat) {
+      ref.read(chatNotifierProvider(widget.teamId).notifier).markAsRead();
+    } else {
+      ref
+          .read(directMessageNotifierProvider(widget.conversation.recipientId!)
+              .notifier)
+          .markAsRead();
+    }
   }
 
   @override
@@ -47,25 +108,42 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
-    if (_editingMessage != null) {
-      ref.read(directMessageNotifierProvider(widget.recipientId).notifier).editMessage(
-            _editingMessage!.id,
-            content,
-          );
-      setState(() {
-        _editingMessage = null;
-      });
+    if (widget.conversation.isTeamChat) {
+      if (_editingMessage != null) {
+        ref.read(chatNotifierProvider(widget.teamId).notifier).editMessage(
+              _editingMessage!.id,
+              content,
+            );
+      } else {
+        ref.read(chatNotifierProvider(widget.teamId).notifier).sendMessage(
+              content,
+              replyToId: _replyingTo?.id,
+            );
+      }
     } else {
-      ref.read(directMessageNotifierProvider(widget.recipientId).notifier).sendMessage(
-            content,
-            replyToId: _replyingTo?.id,
-          );
-      setState(() {
-        _replyingTo = null;
-      });
+      if (_editingMessage != null) {
+        ref
+            .read(directMessageNotifierProvider(
+                    widget.conversation.recipientId!)
+                .notifier)
+            .editMessage(_editingMessage!.id, content);
+      } else {
+        ref
+            .read(directMessageNotifierProvider(
+                    widget.conversation.recipientId!)
+                .notifier)
+            .sendMessage(content, replyToId: _replyingTo?.id);
+      }
     }
 
+    setState(() {
+      _replyingTo = null;
+      _editingMessage = null;
+    });
     _messageController.clear();
+
+    // Refresh conversations to update last message
+    ref.invalidate(allConversationsProvider(widget.teamId));
   }
 
   void _startReply(Message message) {
@@ -93,29 +171,59 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(directMessageNotifierProvider(widget.recipientId));
-    final currentUser = ref.watch(authStateProvider).value;
-    final membersAsync = ref.watch(teamMembersProvider(widget.teamId));
     final theme = Theme.of(context);
+    final currentUser = ref.watch(authStateProvider).value;
 
-    // Get recipient name from team members
-    final recipientName = membersAsync.when(
-      data: (members) {
-        final recipient = members.where((m) => m.userId == widget.recipientId).firstOrNull;
-        return recipient?.userName ?? 'Ukjent';
-      },
-      loading: () => 'Laster...',
-      error: (error, stackTrace) => 'Ukjent',
-    );
+    final AsyncValue<List<Message>> messagesState;
+    if (widget.conversation.isTeamChat) {
+      messagesState = ref.watch(chatNotifierProvider(widget.teamId));
+    } else {
+      messagesState = ref.watch(
+          directMessageNotifierProvider(widget.conversation.recipientId!));
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipientName),
+        leading: widget.showBackButton
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  ref.read(selectedConversationProvider.notifier).clear();
+                },
+              )
+            : null,
+        title: Row(
+          children: [
+            if (widget.conversation.isTeamChat)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Icon(Icons.groups,
+                    size: 20, color: theme.colorScheme.primary),
+              ),
+            Expanded(
+              child: Text(
+                widget.conversation.name,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () =>
-                ref.read(directMessageNotifierProvider(widget.recipientId).notifier).refresh(),
+            onPressed: () {
+              if (widget.conversation.isTeamChat) {
+                ref
+                    .read(chatNotifierProvider(widget.teamId).notifier)
+                    .refresh();
+              } else {
+                ref
+                    .read(directMessageNotifierProvider(
+                            widget.conversation.recipientId!)
+                        .notifier)
+                    .refresh();
+              }
+            },
             tooltip: 'Oppdater',
           ),
         ],
@@ -123,8 +231,15 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
       body: Column(
         children: [
           Expanded(
-            child: chatState.when2(
-              onRetry: () => ref.invalidate(directMessageNotifierProvider(widget.recipientId)),
+            child: messagesState.when2(
+              onRetry: () {
+                if (widget.conversation.isTeamChat) {
+                  ref.invalidate(chatNotifierProvider(widget.teamId));
+                } else {
+                  ref.invalidate(directMessageNotifierProvider(
+                      widget.conversation.recipientId!));
+                }
+              },
               data: (messages) {
                 if (messages.isEmpty) {
                   return Center(
@@ -143,7 +258,7 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Send en melding for a starte samtalen!',
+                          'Vær den forste til a skrive!',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.outline,
                           ),
@@ -169,7 +284,8 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
 
                     return Column(
                       children: [
-                        if (showDate) DateDivider(date: message.createdAt),
+                        if (showDate)
+                          DateDivider(date: message.createdAt),
                         MessageBubble(
                           message: message,
                           isOwn: isOwn,
@@ -191,7 +307,8 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
           // Reply/Edit indicator
           if (_replyingTo != null || _editingMessage != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               color: theme.colorScheme.surfaceContainerHighest,
               child: Row(
                 children: [
@@ -280,7 +397,8 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Slett melding'),
-        content: const Text('Er du sikker pa at du vil slette denne meldingen?'),
+        content: const Text(
+            'Er du sikker pa at du vil slette denne meldingen?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -289,9 +407,17 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
-              ref
-                  .read(directMessageNotifierProvider(widget.recipientId).notifier)
-                  .deleteMessage(message.id);
+              if (widget.conversation.isTeamChat) {
+                ref
+                    .read(chatNotifierProvider(widget.teamId).notifier)
+                    .deleteMessage(message.id);
+              } else {
+                ref
+                    .read(directMessageNotifierProvider(
+                            widget.conversation.recipientId!)
+                        .notifier)
+                    .deleteMessage(message.id);
+              }
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Slett'),

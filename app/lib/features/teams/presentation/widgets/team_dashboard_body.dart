@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/team.dart';
 import '../../providers/team_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import 'dashboard_widgets.dart';
+import 'dashboard_info_widgets.dart';
 import 'team_members_section.dart';
 
 class QuickActionButton extends StatelessWidget {
@@ -100,17 +102,12 @@ class DashboardBody extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // Dashboard widgets
-          dashboardAsync.when(
+          dashboardAsync.when2(
+            onRetry: () => ref.invalidate(dashboardProvider(teamId)),
             loading: () => const Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: CircularProgressIndicator(),
-              ),
-            ),
-            error: (e, _) => Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('Kunne ikke laste dashboard: $e'),
               ),
             ),
             data: (dashboard) => Column(
@@ -160,9 +157,8 @@ class DashboardBody extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Members section
-          membersAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Feil: $e')),
+          membersAsync.when2(
+            onRetry: () => ref.invalidate(teamMembersProvider(teamId)),
             data: (members) => CollapsibleMembersSection(
               members: members,
               teamId: teamId,

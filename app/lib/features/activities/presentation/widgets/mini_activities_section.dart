@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/mini_activity.dart';
 import '../../../mini_activities/providers/mini_activity_provider.dart';
 import '../../../mini_activities/presentation/create_mini_activity_sheet.dart';
@@ -24,7 +25,8 @@ class MiniActivitiesSection extends ConsumerWidget {
     final miniActivitiesAsync = ref.watch(instanceMiniActivitiesProvider(instanceId));
     final theme = Theme.of(context);
 
-    return miniActivitiesAsync.when(
+    return miniActivitiesAsync.when2(
+      onRetry: () => ref.invalidate(instanceMiniActivitiesProvider(instanceId)),
       data: (miniActivities) {
         // Hide section if no mini-activities and user cannot create
         if (miniActivities.isEmpty && !canCreate) {
@@ -118,7 +120,7 @@ class MiniActivitiesSection extends ConsumerWidget {
           ),
         ),
       ),
-      error: (error, _) {
+      error: (error, retry) {
         // Don't show error section if user can't create - just hide it
         if (!canCreate) return const SizedBox.shrink();
 
@@ -137,7 +139,7 @@ class MiniActivitiesSection extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () => ref.invalidate(instanceMiniActivitiesProvider(instanceId)),
+                  onPressed: retry,
                   child: const Text('Prøv igjen'),
                 ),
               ],
