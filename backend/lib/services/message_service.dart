@@ -587,12 +587,40 @@ class MessageService {
           userMap[u['id'] as String] = u;
         }
 
+        // Batch fetch unread counts: get all message_reads for this user's DMs
+        final allReads = await _db.client.select(
+          'message_reads',
+          filters: {
+            'user_id': 'eq.$userId',
+            'recipient_id': 'not.is.null',
+          },
+        );
+        final readMap = <String, DateTime>{};
+        for (final r in allReads) {
+          final rid = r['recipient_id'] as String;
+          readMap[rid] = DateTime.parse(r['last_read_at'] as String);
+        }
+
+        // Count unread per partner from the direct messages we already have
+        final unreadCounts = <String, int>{};
+        for (final msg in directMessages) {
+          final senderId = msg['user_id'] as String;
+          final recipientId = msg['recipient_id'] as String;
+          // Only count messages FROM partner TO us
+          if (recipientId == userId) {
+            final lastRead = readMap[senderId] ?? DateTime(1970);
+            final msgTime = DateTime.parse(msg['created_at'] as String);
+            if (msgTime.isAfter(lastRead) && msg['is_deleted'] != true) {
+              unreadCounts[senderId] = (unreadCounts[senderId] ?? 0) + 1;
+            }
+          }
+        }
+
         // Build conversation entries
         for (final entry in conversationMap.entries) {
           final partnerId = entry.key;
           final lastMessage = entry.value;
           final partner = userMap[partnerId] ?? {};
-          final unreadCount = await getDirectUnreadCount(userId, partnerId);
 
           conversations.add({
             'type': 'direct',
@@ -604,7 +632,7 @@ class MessageService {
                 ? '[Slettet melding]'
                 : lastMessage['content'],
             'last_message_at': lastMessage['created_at'],
-            'unread_count': unreadCount,
+            'unread_count': unreadCounts[partnerId] ?? 0,
           });
         }
       }
@@ -668,13 +696,40 @@ class MessageService {
       userMap[u['id'] as String] = u;
     }
 
-    // Get unread counts for each conversation
+    // Batch fetch unread counts: get all message_reads for this user's DMs
+    final allReads = await _db.client.select(
+      'message_reads',
+      filters: {
+        'user_id': 'eq.$userId',
+        'recipient_id': 'not.is.null',
+      },
+    );
+    final readMap = <String, DateTime>{};
+    for (final r in allReads) {
+      final rid = r['recipient_id'] as String;
+      readMap[rid] = DateTime.parse(r['last_read_at'] as String);
+    }
+
+    // Count unread per partner from the direct messages we already have
+    final unreadCounts = <String, int>{};
+    for (final msg in directMessages) {
+      final senderId = msg['user_id'] as String;
+      final recipientId = msg['recipient_id'] as String;
+      if (recipientId == userId) {
+        final lastRead = readMap[senderId] ?? DateTime(1970);
+        final msgTime = DateTime.parse(msg['created_at'] as String);
+        if (msgTime.isAfter(lastRead) && msg['is_deleted'] != true) {
+          unreadCounts[senderId] = (unreadCounts[senderId] ?? 0) + 1;
+        }
+      }
+    }
+
+    // Build conversation entries
     final conversations = <Map<String, dynamic>>[];
     for (final entry in conversationMap.entries) {
       final partnerId = entry.key;
       final lastMessage = entry.value;
       final partner = userMap[partnerId] ?? {};
-      final unreadCount = await getDirectUnreadCount(userId, partnerId);
 
       conversations.add({
         'oder_id': '${userId}_$partnerId',
@@ -685,7 +740,7 @@ class MessageService {
             ? '[Slettet melding]'
             : lastMessage['content'],
         'last_message_at': lastMessage['created_at'],
-        'unread_count': unreadCount,
+        'unread_count': unreadCounts[partnerId] ?? 0,
       });
     }
 

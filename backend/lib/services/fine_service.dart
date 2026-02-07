@@ -176,24 +176,24 @@ class FineService {
     if (fines.isEmpty) return null;
     final fine = fines.first;
 
-    // Get offender
-    final offenders = await _db.client.select(
+    // Batch fetch users (offender + reporter in one query)
+    final userIds = <String>[
+      fine['offender_id'] as String,
+      if (fine['reporter_id'] != null) fine['reporter_id'] as String,
+    ];
+    final userResults = await _db.client.select(
       'users',
       select: 'id,name,avatar_url',
-      filters: {'id': 'eq.${fine['offender_id']}'},
+      filters: {'id': 'in.(${userIds.join(',')})'},
     );
-    final offender = offenders.isNotEmpty ? offenders.first : <String, dynamic>{};
-
-    // Get reporter
-    Map<String, dynamic> reporter = {};
-    if (fine['reporter_id'] != null) {
-      final reporters = await _db.client.select(
-        'users',
-        select: 'id,name,avatar_url',
-        filters: {'id': 'eq.${fine['reporter_id']}'},
-      );
-      reporter = reporters.isNotEmpty ? reporters.first : {};
+    final userMap = <String, Map<String, dynamic>>{};
+    for (final u in userResults) {
+      userMap[u['id'] as String] = u;
     }
+    final offender = userMap[fine['offender_id']] ?? {};
+    final reporter = fine['reporter_id'] != null
+        ? userMap[fine['reporter_id']] ?? {}
+        : <String, dynamic>{};
 
     // Get rule
     Map<String, dynamic> rule = {};

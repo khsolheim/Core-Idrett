@@ -447,14 +447,25 @@ class AchievementService {
     // Get user's current stats
     final stats = await _getUserStats(userId, teamId, seasonId: seasonId);
 
+    // Batch fetch all existing user achievements to avoid N+1
+    final existingFilters = <String, String>{
+      'user_id': 'eq.$userId',
+    };
+    if (seasonId != null) existingFilters['season_id'] = 'eq.$seasonId';
+
+    final allExisting = await _db.client.select(
+      'user_achievements',
+      filters: existingFilters,
+    );
+    final existingMap = <String, UserAchievement>{};
+    for (final e in allExisting) {
+      final ua = UserAchievement.fromJson(e);
+      existingMap[ua.achievementId] = ua;
+    }
+
     for (final definition in definitions) {
       // Check if already earned (and not repeatable)
-      final existing = await getUserAchievementForDefinition(
-        userId,
-        definition.id,
-        teamId: teamId,
-        seasonId: seasonId,
-      );
+      final existing = existingMap[definition.id];
 
       if (existing != null && !definition.isRepeatable) continue;
 
