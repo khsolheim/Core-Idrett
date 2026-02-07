@@ -70,29 +70,3 @@ class Message {
         if (replyTo != null) 'reply_to': replyTo!.toJson(),
       };
 }
-
-class MessageRead {
-  final String id;
-  final String userId;
-  final String? teamId;
-  final String? recipientId;
-  final DateTime lastReadAt;
-
-  MessageRead({
-    required this.id,
-    required this.userId,
-    this.teamId,
-    this.recipientId,
-    required this.lastReadAt,
-  });
-
-  factory MessageRead.fromJson(Map<String, dynamic> row) {
-    return MessageRead(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      teamId: row['team_id'] as String?,
-      recipientId: row['recipient_id'] as String?,
-      lastReadAt: DateTime.parse(row['last_read_at'] as String),
-    );
-  }
-}

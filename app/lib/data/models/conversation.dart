@@ -50,14 +50,4 @@ class ChatConversation {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'type': type == ConversationType.team ? 'team' : 'direct',
-        'team_id': teamId,
-        'recipient_id': recipientId,
-        'name': name,
-        'avatar_url': avatarUrl,
-        'last_message': lastMessage,
-        'last_message_at': lastMessageAt?.toIso8601String(),
-        'unread_count': unreadCount,
-      };
 }
