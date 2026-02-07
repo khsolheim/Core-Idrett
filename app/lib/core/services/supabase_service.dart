@@ -17,15 +17,16 @@ class SupabaseService {
   static Future<void> initialize() async {
     if (_initialized) return;
 
+    final url = AppConfig.supabaseUrl;
     final anonKey = AppConfig.supabaseAnonKey;
-    if (anonKey.isEmpty) {
-      // Skip initialization if no key is provided
+    if (url.isEmpty || anonKey.isEmpty) {
+      // Skip initialization if config is missing
       // This allows the app to work without realtime features
       return;
     }
 
     await Supabase.initialize(
-      url: AppConfig.supabaseUrl,
+      url: url,
       anonKey: anonKey,
     );
     _client = Supabase.instance.client;
