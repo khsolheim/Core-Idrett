@@ -1,14 +1,16 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/team_service.dart';
+import '../services/team_member_service.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class TeamSettingsHandler {
   final TeamService _teamService;
+  final TeamMemberService _memberService;
 
-  TeamSettingsHandler(this._teamService);
+  TeamSettingsHandler(this._teamService, this._memberService);
 
   Router get router {
     final router = Router();
@@ -40,7 +42,7 @@ class TeamSettingsHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final trainerTypes = await _teamService.getTrainerTypes(teamId);
+      final trainerTypes = await _memberService.getTrainerTypes(teamId);
       return resp.ok(trainerTypes.map((t) => t.toJson()).toList());
     } catch (e) {
       return resp.serverError();
@@ -59,15 +61,14 @@ class TeamSettingsHandler {
         return resp.forbidden('Kun administratorer kan opprette trenertyper');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
       final name = data['name'] as String?;
 
       if (name == null || name.isEmpty) {
         return resp.badRequest('Navn er påkrevd');
       }
 
-      final trainerType = await _teamService.createTrainerType(
+      final trainerType = await _memberService.createTrainerType(
         teamId: teamId,
         name: name,
       );
@@ -90,7 +91,7 @@ class TeamSettingsHandler {
         return resp.forbidden('Kun administratorer kan slette trenertyper');
       }
 
-      await _teamService.deleteTrainerType(trainerTypeId);
+      await _memberService.deleteTrainerType(trainerTypeId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError();
@@ -130,8 +131,7 @@ class TeamSettingsHandler {
         return resp.forbidden('Kun administratorer kan endre innstillinger');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final settings = await _teamService.updateTeamSettings(
         teamId: teamId,

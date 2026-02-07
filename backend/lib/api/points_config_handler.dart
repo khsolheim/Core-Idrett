@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/points_config_service.dart' show PointsConfigService, AdjustmentType;
@@ -81,7 +81,7 @@ class PointsConfigHandler {
         return resp.forbidden('Kun admin kan endre poengkonfigurasjon');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       // Check if config exists
       final existing = await _pointsConfigService.getConfig(
@@ -168,7 +168,7 @@ class PointsConfigHandler {
         return resp.forbidden('Kun admin kan endre poengkonfigurasjon');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       final config = await _pointsConfigService.updateConfig(
         configId: configId,
@@ -301,7 +301,7 @@ class PointsConfigHandler {
         return resp.forbidden('Kun admin kan tildele poeng');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final targetUserId = body['user_id'] as String;
       final activityType = body['activity_type'] as String;
       final basePoints = body['base_points'] as int;
@@ -335,7 +335,7 @@ class PointsConfigHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final targetUserId = body['user_id'] as String? ?? userId;
       final optOut = body['opt_out'] as bool? ?? false;
 
@@ -397,7 +397,7 @@ class PointsConfigHandler {
         return resp.forbidden('Kun admin kan justere poeng');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       final targetUserId = body['user_id'] as String?;
       final points = body['points'] as int?;

@@ -1,0 +1,272 @@
+import 'package:shelf/shelf.dart';
+import 'package:shelf_router/shelf_router.dart';
+import '../services/leaderboard_service.dart';
+import '../services/team_service.dart';
+import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
+import 'helpers/response_helpers.dart' as resp;
+
+class LeaderboardEntriesHandler {
+  final LeaderboardService _leaderboardService;
+  final TeamService _teamService;
+
+  LeaderboardEntriesHandler(this._leaderboardService, this._teamService);
+
+  Router get router {
+    final router = Router();
+
+    // Entries routes
+    router.get('/<leaderboardId>/entries', _getEntries);
+    router.get('/<leaderboardId>/entries/<userId>', _getUserEntry);
+    router.post('/<leaderboardId>/entries', _addPoints);
+    router.post('/<leaderboardId>/reset', _resetLeaderboard);
+
+    // Point config routes
+    router.get('/mini/<miniActivityId>/config', _getPointConfigs);
+    router.post('/mini/<miniActivityId>/config', _upsertPointConfig);
+    router.delete('/mini/<miniActivityId>/config/<leaderboardId>', _deletePointConfig);
+
+    return router;
+  }
+
+  Future<Response> _getEntries(Request request, String leaderboardId) async {
+    try {
+      final userId = getUserId(request);
+      if (userId == null) {
+        return resp.unauthorized();
+      }
+
+      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      if (teamId == null) {
+        return resp.notFound('Leaderboard ikke funnet');
+      }
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette leaderboardet');
+      }
+
+      final limitParam = request.url.queryParameters['limit'];
+      final offsetParam = request.url.queryParameters['offset'];
+
+      final entries = await _leaderboardService.getLeaderboardEntries(
+        leaderboardId,
+        limit: limitParam != null ? int.tryParse(limitParam) : null,
+        offset: offsetParam != null ? int.tryParse(offsetParam) ?? 0 : 0,
+      );
+
+      return resp.ok({
+        'entries': entries.map((e) => e.toJson()).toList(),
+      });
+    } catch (e) {
+      return resp.serverError('Kunne ikke hente entries: $e');
+    }
+  }
+
+  Future<Response> _getUserEntry(Request request, String leaderboardId, String targetUserId) async {
+    try {
+      final userId = getUserId(request);
+      if (userId == null) {
+        return resp.unauthorized();
+      }
+
+      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      if (teamId == null) {
+        return resp.notFound('Leaderboard ikke funnet');
+      }
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette leaderboardet');
+      }
+
+      final entry = await _leaderboardService.getUserEntry(leaderboardId, targetUserId);
+
+      if (entry == null) {
+        return resp.notFound('Bruker ikke funnet i leaderboard');
+      }
+
+      return resp.ok(entry.toJson());
+    } catch (e) {
+      return resp.serverError('Kunne ikke hente brukerentry: $e');
+    }
+  }
+
+  Future<Response> _addPoints(Request request, String leaderboardId) async {
+    try {
+      final userId = getUserId(request);
+      if (userId == null) {
+        return resp.unauthorized();
+      }
+
+      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      if (teamId == null) {
+        return resp.notFound('Leaderboard ikke funnet');
+      }
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan legge til poeng');
+      }
+
+      final body = await parseBody(request);
+
+      // Support single user or multiple users
+      if (body['user_id'] != null) {
+        final targetUserId = body['user_id'] as String;
+        final points = body['points'] as int? ?? 0;
+        final addToExisting = body['add_to_existing'] as bool? ?? true;
+
+        final entry = await _leaderboardService.upsertEntry(
+          leaderboardId: leaderboardId,
+          userId: targetUserId,
+          points: points,
+          addToExisting: addToExisting,
+        );
+
+        return resp.ok(entry.toJson());
+      } else if (body['user_points'] != null) {
+        final userPoints = Map<String, int>.from(body['user_points'] as Map);
+
+        await _leaderboardService.addPointsToUsers(
+          leaderboardId: leaderboardId,
+          userPoints: userPoints,
+        );
+
+        return resp.ok({'success': true});
+      } else {
+        return resp.badRequest('user_id eller user_points er pakrevd');
+      }
+    } catch (e) {
+      return resp.serverError('Kunne ikke legge til poeng: $e');
+    }
+  }
+
+  Future<Response> _resetLeaderboard(Request request, String leaderboardId) async {
+    try {
+      final userId = getUserId(request);
+      if (userId == null) {
+        return resp.unauthorized();
+      }
+
+      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      if (teamId == null) {
+        return resp.notFound('Leaderboard ikke funnet');
+      }
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan nullstille leaderboard');
+      }
+
+      await _leaderboardService.resetLeaderboard(leaderboardId);
+
+      return resp.ok({'success': true});
+    } catch (e) {
+      return resp.serverError('Kunne ikke nullstille leaderboard: $e');
+    }
+  }
+
+  Future<Response> _getPointConfigs(Request request, String miniActivityId) async {
+    try {
+      final userId = getUserId(request);
+      if (userId == null) {
+        return resp.unauthorized();
+      }
+
+      final configs = await _leaderboardService.getPointConfigsForMiniActivity(miniActivityId);
+
+      return resp.ok({
+        'configs': configs.map((c) => c.toJson()).toList(),
+      });
+    } catch (e) {
+      return resp.serverError('Kunne ikke hente poengkonfigurasjon: $e');
+    }
+  }
+
+  Future<Response> _upsertPointConfig(Request request, String miniActivityId) async {
+    try {
+      final userId = getUserId(request);
+      if (userId == null) {
+        return resp.unauthorized();
+      }
+
+      final body = await parseBody(request);
+      final leaderboardId = body['leaderboard_id'] as String?;
+
+      if (leaderboardId == null) {
+        return resp.badRequest('leaderboard_id er pakrevd');
+      }
+
+      // Verify admin access to leaderboard's team
+      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      if (teamId == null) {
+        return resp.notFound('Leaderboard ikke funnet');
+      }
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan konfigurere poeng');
+      }
+
+      final config = await _leaderboardService.upsertPointConfig(
+        miniActivityId: miniActivityId,
+        leaderboardId: leaderboardId,
+        distributionType: body['distribution_type'] as String? ?? 'winner_only',
+        pointsFirst: body['points_first'] as int? ?? 5,
+        pointsSecond: body['points_second'] as int? ?? 3,
+        pointsThird: body['points_third'] as int? ?? 1,
+        pointsParticipation: body['points_participation'] as int? ?? 0,
+      );
+
+      return resp.ok(config.toJson());
+    } catch (e) {
+      return resp.serverError('Kunne ikke oppdatere poengkonfigurasjon: $e');
+    }
+  }
+
+  Future<Response> _deletePointConfig(
+    Request request,
+    String miniActivityId,
+    String leaderboardId,
+  ) async {
+    try {
+      final userId = getUserId(request);
+      if (userId == null) {
+        return resp.unauthorized();
+      }
+
+      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      if (teamId == null) {
+        return resp.notFound('Leaderboard ikke funnet');
+      }
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan fjerne poengkonfigurasjon');
+      }
+
+      await _leaderboardService.deletePointConfig(miniActivityId, leaderboardId);
+
+      return resp.ok({'success': true});
+    } catch (e) {
+      return resp.serverError('Kunne ikke slette poengkonfigurasjon: $e');
+    }
+  }
+}

@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/auth_service.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class AuthHandler {
@@ -23,10 +23,16 @@ class AuthHandler {
     return router;
   }
 
+  /// Authenticate request via Bearer token and return the user, or null.
+  Future<dynamic> _authenticateRequest(Request request) async {
+    final token = getBearerToken(request);
+    if (token == null) return null;
+    return await _authService.getUserFromToken(token);
+  }
+
   Future<Response> _register(Request request) async {
     try {
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final email = data['email'] as String?;
       final password = data['password'] as String?;
@@ -55,8 +61,7 @@ class AuthHandler {
 
   Future<Response> _login(Request request) async {
     try {
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final email = data['email'] as String?;
       final password = data['password'] as String?;
@@ -83,8 +88,7 @@ class AuthHandler {
 
   Future<Response> _registerWithInvite(Request request, String code) async {
     try {
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final email = data['email'] as String?;
       final password = data['password'] as String?;
@@ -114,17 +118,8 @@ class AuthHandler {
 
   Future<Response> _getCurrentUser(Request request) async {
     try {
-      final authHeader = request.headers['authorization'];
-      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return resp.unauthorized();
-      }
-
-      final token = authHeader.substring(7);
-      final user = await _authService.getUserFromToken(token);
-
-      if (user == null) {
-        return resp.unauthorized('Ugyldig token');
-      }
+      final user = await _authenticateRequest(request);
+      if (user == null) return resp.unauthorized();
 
       return resp.ok(user.toJson());
     } catch (e) {
@@ -134,20 +129,10 @@ class AuthHandler {
 
   Future<Response> _updateProfile(Request request) async {
     try {
-      final authHeader = request.headers['authorization'];
-      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return resp.unauthorized();
-      }
+      final user = await _authenticateRequest(request);
+      if (user == null) return resp.unauthorized('Ugyldig token');
 
-      final token = authHeader.substring(7);
-      final user = await _authService.getUserFromToken(token);
-
-      if (user == null) {
-        return resp.unauthorized('Ugyldig token');
-      }
-
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final name = data['name'] as String?;
       final avatarUrl = data['avatar_url'] as String?;
@@ -174,20 +159,10 @@ class AuthHandler {
 
   Future<Response> _changePassword(Request request) async {
     try {
-      final authHeader = request.headers['authorization'];
-      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return resp.unauthorized();
-      }
+      final user = await _authenticateRequest(request);
+      if (user == null) return resp.unauthorized('Ugyldig token');
 
-      final token = authHeader.substring(7);
-      final user = await _authService.getUserFromToken(token);
-
-      if (user == null) {
-        return resp.unauthorized('Ugyldig token');
-      }
-
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final currentPassword = data['current_password'] as String?;
       final newPassword = data['new_password'] as String?;
@@ -212,17 +187,8 @@ class AuthHandler {
 
   Future<Response> _deleteAccount(Request request) async {
     try {
-      final authHeader = request.headers['authorization'];
-      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return resp.unauthorized();
-      }
-
-      final token = authHeader.substring(7);
-      final user = await _authService.getUserFromToken(token);
-
-      if (user == null) {
-        return resp.unauthorized('Ugyldig token');
-      }
+      final user = await _authenticateRequest(request);
+      if (user == null) return resp.unauthorized();
 
       await _authService.deleteAccount(user.id);
 
@@ -231,5 +197,4 @@ class AuthHandler {
       return resp.serverError();
     }
   }
-
 }

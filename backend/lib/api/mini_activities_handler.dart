@@ -1,21 +1,30 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/mini_activity_service.dart';
+import '../services/mini_activity_template_service.dart';
+import '../services/mini_activity_division_service.dart';
+import '../services/mini_activity_result_service.dart';
 import '../services/team_service.dart';
 import '../services/mini_activity_statistics_service.dart';
 import 'mini_activity_teams_handler.dart';
 import 'mini_activity_scoring_handler.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class MiniActivitiesHandler {
   final MiniActivityService _miniActivityService;
+  final MiniActivityTemplateService _templateService;
+  final MiniActivityDivisionService _divisionService;
+  final MiniActivityResultService _resultService;
   final TeamService _teamService;
   final MiniActivityStatisticsService? _statsService;
 
   MiniActivitiesHandler(
     this._miniActivityService,
+    this._templateService,
+    this._divisionService,
+    this._resultService,
     this._teamService, [
     this._statsService,
   ]);
@@ -47,11 +56,18 @@ class MiniActivitiesHandler {
     router.get('/history/team/<teamId>', _getHistory);
 
     // Mount team division & handicap routes
-    final teamsHandler = MiniActivityTeamsHandler(_miniActivityService);
+    final teamsHandler = MiniActivityTeamsHandler(
+      _miniActivityService,
+      _divisionService,
+    );
     router.mount('/', teamsHandler.router.call);
 
     // Mount scoring, results & adjustments routes
-    final scoringHandler = MiniActivityScoringHandler(_miniActivityService, _statsService);
+    final scoringHandler = MiniActivityScoringHandler(
+      _miniActivityService,
+      _resultService,
+      _statsService,
+    );
     router.mount('/', scoringHandler.router.call);
 
     return router;
@@ -71,7 +87,7 @@ class MiniActivitiesHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final templates = await _miniActivityService.getTemplatesForTeam(teamId);
+      final templates = await _templateService.getTemplatesForTeam(teamId);
       return resp.ok(templates.map((t) => t.toJson()).toList());
     } catch (e) {
       return resp.serverError('En feil oppstod: $e');
@@ -94,8 +110,7 @@ class MiniActivitiesHandler {
         return resp.forbidden('Kun administratorer kan opprette maler');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final name = data['name'] as String?;
       final type = data['type'] as String?;
@@ -108,7 +123,7 @@ class MiniActivitiesHandler {
         return resp.badRequest('Ugyldig type (må være individual eller team)');
       }
 
-      final template = await _miniActivityService.createTemplate(
+      final template = await _templateService.createTemplate(
         teamId: teamId,
         name: name,
         type: type,
@@ -128,7 +143,7 @@ class MiniActivitiesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _miniActivityService.getTeamIdForTemplate(templateId);
+      final teamId = await _templateService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
         return resp.notFound('Mal ikke funnet');
       }
@@ -138,7 +153,7 @@ class MiniActivitiesHandler {
         return resp.forbidden('Kun administratorer kan slette maler');
       }
 
-      await _miniActivityService.deleteTemplate(templateId);
+      await _templateService.deleteTemplate(templateId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError('En feil oppstod: $e');
@@ -152,7 +167,7 @@ class MiniActivitiesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _miniActivityService.getTeamIdForTemplate(templateId);
+      final teamId = await _templateService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
         return resp.notFound('Mal ikke funnet');
       }
@@ -162,10 +177,9 @@ class MiniActivitiesHandler {
         return resp.forbidden('Kun administratorer kan oppdatere maler');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
-      final template = await _miniActivityService.updateTemplate(
+      final template = await _templateService.updateTemplate(
         templateId: templateId,
         name: data['name'] as String?,
         description: data['description'] as String?,
@@ -195,7 +209,7 @@ class MiniActivitiesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _miniActivityService.getTeamIdForTemplate(templateId);
+      final teamId = await _templateService.getTeamIdForTemplate(templateId);
       if (teamId == null) {
         return resp.notFound('Mal ikke funnet');
       }
@@ -205,10 +219,10 @@ class MiniActivitiesHandler {
         return resp.forbidden('Ingen tilgang');
       }
 
-      await _miniActivityService.toggleTemplateFavorite(templateId);
+      await _templateService.toggleTemplateFavorite(templateId);
 
       // Fetch updated templates to return the updated one
-      final templates = await _miniActivityService.getTemplatesForTeam(teamId);
+      final templates = await _templateService.getTemplatesForTeam(teamId);
       final updatedTemplate = templates.firstWhere((t) => t.id == templateId);
       return resp.ok(updatedTemplate.toJson());
     } catch (e) {
@@ -239,8 +253,7 @@ class MiniActivitiesHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final name = data['name'] as String?;
       final type = data['type'] as String?;
@@ -287,8 +300,7 @@ class MiniActivitiesHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       await _miniActivityService.updateMiniActivity(
         miniActivityId: miniActivityId,
@@ -364,8 +376,7 @@ class MiniActivitiesHandler {
         return resp.forbidden('Kun administratorer kan opprette mini-aktiviteter');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final name = data['name'] as String?;
       final type = data['type'] as String?;
@@ -416,8 +427,7 @@ class MiniActivitiesHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final newMiniActivity = await _miniActivityService.duplicateMiniActivity(
         miniActivityId: miniActivityId,

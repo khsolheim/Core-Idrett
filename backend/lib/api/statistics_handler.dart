@@ -1,13 +1,16 @@
-import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/statistics_service.dart';
+import '../services/team_service.dart';
+import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class StatisticsHandler {
   final StatisticsService _statisticsService;
+  final TeamService _teamService;
 
-  StatisticsHandler(this._statisticsService);
+  StatisticsHandler(this._statisticsService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -28,6 +31,12 @@ class StatisticsHandler {
 
   Future<Response> _getLeaderboard(Request request, String teamId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
       final yearParam = request.url.queryParameters['year'];
       final year = yearParam != null ? int.tryParse(yearParam) : null;
 
@@ -43,6 +52,12 @@ class StatisticsHandler {
 
   Future<Response> _getTeamAttendance(Request request, String teamId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
       final fromParam = request.url.queryParameters['from'];
       final toParam = request.url.queryParameters['to'];
 
@@ -65,6 +80,12 @@ class StatisticsHandler {
 
   Future<Response> _getPlayerStatistics(Request request, String teamId, String userId) async {
     try {
+      final requestUserId = getUserId(request);
+      if (requestUserId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, requestUserId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
       final stats = await _statisticsService.getPlayerStatistics(userId, teamId);
 
       if (stats == null) {
@@ -79,6 +100,9 @@ class StatisticsHandler {
 
   Future<Response> _getMatchStats(Request request, String instanceId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
       final stats = await _statisticsService.getMatchStats(instanceId);
 
       return resp.ok({
@@ -91,7 +115,10 @@ class StatisticsHandler {
 
   Future<Response> _recordMatchStats(Request request, String instanceId) async {
     try {
-      final body = jsonDecode(await request.readAsString());
+      final requestUserId = getUserId(request);
+      if (requestUserId == null) return resp.forbidden('Ikke autorisert');
+
+      final body = await parseBody(request);
       final userId = body['user_id'] as String?;
 
       if (userId == null) {

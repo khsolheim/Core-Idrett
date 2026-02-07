@@ -6,16 +6,22 @@ import '../services/team_service.dart';
 import '../services/activity_service.dart';
 import '../services/activity_instance_service.dart';
 import '../services/mini_activity_service.dart';
+import '../services/mini_activity_template_service.dart';
+import '../services/mini_activity_division_service.dart';
+import '../services/mini_activity_result_service.dart';
 import '../services/statistics_service.dart';
 import '../services/fine_service.dart';
 import '../services/season_service.dart';
 import '../services/leaderboard_service.dart';
+import '../services/leaderboard_entry_service.dart';
+import '../services/team_member_service.dart';
 import '../services/test_service.dart';
 import '../services/notification_service.dart';
 import '../services/message_service.dart';
 import '../services/document_service.dart';
 import '../services/export_service.dart';
 import '../services/tournament_service.dart';
+import '../services/tournament_group_service.dart';
 import '../services/stopwatch_service.dart';
 import '../services/mini_activity_statistics_service.dart';
 import '../services/points_config_service.dart';
@@ -45,11 +51,16 @@ import 'achievements_handler.dart';
 Router createRouter(Database db) {
   final authService = AuthService(db);
   final teamService = TeamService(db);
+  final teamMemberService = TeamMemberService(db);
   final seasonService = SeasonService(db);
-  final leaderboardService = LeaderboardService(db);
+  final leaderboardEntryService = LeaderboardEntryService(db);
+  final leaderboardService = LeaderboardService(db, leaderboardEntryService);
   final activityService = ActivityService(db);
   final activityInstanceService = ActivityInstanceService(db, leaderboardService, seasonService);
-  final miniActivityService = MiniActivityService(db, leaderboardService, seasonService);
+  final miniActivityService = MiniActivityService(db);
+  final miniActivityTemplateService = MiniActivityTemplateService(db);
+  final miniActivityDivisionService = MiniActivityDivisionService(db);
+  final miniActivityResultService = MiniActivityResultService(db, leaderboardService, seasonService);
   final statisticsService = StatisticsService(db);
   final fineService = FineService(db);
   final testService = TestService(db);
@@ -57,7 +68,8 @@ Router createRouter(Database db) {
   final messageService = MessageService(db);
   final documentService = DocumentService(db);
   final exportService = ExportService(db);
-  final tournamentService = TournamentService(db);
+  final tournamentGroupService = TournamentGroupService(db);
+  final tournamentService = TournamentService(db, tournamentGroupService);
   final stopwatchService = StopwatchService(db);
   final miniActivityStatisticsService = MiniActivityStatisticsService(db);
   final pointsConfigService = PointsConfigService(db);
@@ -74,7 +86,7 @@ Router createRouter(Database db) {
   router.mount('/auth', authHandler.router.call);
 
   // Protected routes - wrapped with auth middleware
-  final teamsHandler = TeamsHandler(teamService);
+  final teamsHandler = TeamsHandler(teamService, teamMemberService);
   router.mount('/teams', const Pipeline().addMiddleware(auth).addHandler(teamsHandler.router.call).call);
 
   final activitiesHandler = ActivitiesHandler(activityService, activityInstanceService, teamService);
@@ -82,12 +94,15 @@ Router createRouter(Database db) {
 
   final miniActivitiesHandler = MiniActivitiesHandler(
     miniActivityService,
+    miniActivityTemplateService,
+    miniActivityDivisionService,
+    miniActivityResultService,
     teamService,
     miniActivityStatisticsService,
   );
   router.mount('/mini-activities', const Pipeline().addMiddleware(auth).addHandler(miniActivitiesHandler.router.call).call);
 
-  final tournamentsHandler = TournamentsHandler(tournamentService);
+  final tournamentsHandler = TournamentsHandler(tournamentService, tournamentGroupService, teamService);
   router.mount('/tournaments', const Pipeline().addMiddleware(auth).addHandler(tournamentsHandler.router.call).call);
 
   final stopwatchHandler = StopwatchHandler(stopwatchService, teamService);
@@ -99,10 +114,10 @@ Router createRouter(Database db) {
   );
   router.mount('/mini-activity-stats', const Pipeline().addMiddleware(auth).addHandler(miniActivityStatsHandler.router.call).call);
 
-  final statisticsHandler = StatisticsHandler(statisticsService);
+  final statisticsHandler = StatisticsHandler(statisticsService, teamService);
   router.mount('/statistics', const Pipeline().addMiddleware(auth).addHandler(statisticsHandler.router.call).call);
 
-  final finesHandler = FinesHandler(fineService);
+  final finesHandler = FinesHandler(fineService, teamService);
   router.mount('/fines', const Pipeline().addMiddleware(auth).addHandler(finesHandler.router.call).call);
 
   final seasonsHandler = SeasonsHandler(seasonService, teamService);

@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/season_service.dart';
@@ -117,7 +117,7 @@ class SeasonsHandler {
         return resp.forbidden('Kun admin kan opprette sesonger');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final name = body['name'] as String?;
 
       if (name == null || name.isEmpty) {
@@ -163,7 +163,7 @@ class SeasonsHandler {
         return resp.forbidden('Kun admin kan oppdatere sesonger');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       final startDateStr = body['start_date'] as String?;
       final endDateStr = body['end_date'] as String?;
@@ -269,7 +269,7 @@ class SeasonsHandler {
         return resp.forbidden('Kun admin kan starte ny sesong');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final name = body['name'] as String?;
 
       if (name == null || name.isEmpty) {

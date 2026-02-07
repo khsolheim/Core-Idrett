@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/message_service.dart';
 import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class MessagesHandler {
@@ -78,8 +78,7 @@ class MessagesHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final content = data['content'] as String?;
       if (content == null || content.trim().isEmpty) {
@@ -106,8 +105,7 @@ class MessagesHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final content = data['content'] as String?;
       if (content == null || content.trim().isEmpty) {
@@ -276,8 +274,7 @@ class MessagesHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final content = data['content'] as String?;
       if (content == null || content.trim().isEmpty) {

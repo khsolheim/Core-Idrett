@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/test_service.dart';
@@ -98,7 +98,7 @@ class TestsHandler {
         return resp.forbidden('Kun admin kan opprette testmaler');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final name = body['name'] as String?;
       final unit = body['unit'] as String?;
 
@@ -145,7 +145,7 @@ class TestsHandler {
         return resp.forbidden('Kun admin kan oppdatere testmaler');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       final template = await _testService.updateTemplate(
         templateId: templateId,
@@ -284,7 +284,7 @@ class TestsHandler {
         return resp.forbidden('Kun admin kan registrere resultater');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final targetUserId = body['user_id'] as String?;
       final value = body['value'];
 
@@ -331,7 +331,7 @@ class TestsHandler {
         return resp.forbidden('Kun admin kan registrere resultater');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final results = body['results'] as List?;
 
       if (results == null || results.isEmpty) {

@@ -1,14 +1,16 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/mini_activity_service.dart';
+import '../services/mini_activity_division_service.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class MiniActivityTeamsHandler {
   final MiniActivityService _miniActivityService;
+  final MiniActivityDivisionService _divisionService;
 
-  MiniActivityTeamsHandler(this._miniActivityService);
+  MiniActivityTeamsHandler(this._miniActivityService, this._divisionService);
 
   Router get router {
     final router = Router();
@@ -39,8 +41,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final method = data['method'] as String?;
       final numberOfTeams = data['number_of_teams'] as int?;
@@ -65,7 +66,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('For få deltakere for antall lag');
       }
 
-      await _miniActivityService.divideTeams(
+      await _divisionService.divideTeams(
         miniActivityId: miniActivityId,
         method: method,
         numberOfTeams: numberOfTeams,
@@ -91,7 +92,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      await _miniActivityService.resetTeamDivision(miniActivityId);
+      await _divisionService.resetTeamDivision(miniActivityId);
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
@@ -106,8 +107,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final participantUserId = data['user_id'] as String?;
       final miniTeamId = data['mini_team_id'] as String?;
@@ -116,7 +116,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('Mangler påkrevde felt (user_id, mini_team_id)');
       }
 
-      await _miniActivityService.addLateParticipant(
+      await _divisionService.addLateParticipant(
         miniActivityId: miniActivityId,
         userId: participantUserId,
         teamId: miniTeamId,
@@ -136,15 +136,14 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final newName = data['name'] as String?;
       if (newName == null) {
         return resp.badRequest('Mangler påkrevd felt (name)');
       }
 
-      await _miniActivityService.updateTeamName(teamId: miniTeamId, newName: newName);
+      await _divisionService.updateTeamName(teamId: miniTeamId, newName: newName);
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
@@ -159,15 +158,14 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final name = data['name'] as String?;
       if (name == null || name.isEmpty) {
         return resp.badRequest('Mangler påkrevd felt (name)');
       }
 
-      await _miniActivityService.createTeam(
+      await _divisionService.createTeam(
         miniActivityId: miniActivityId,
         name: name,
       );
@@ -186,16 +184,17 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      Map<String, dynamic>? data;
-      if (body.isNotEmpty) {
-        data = jsonDecode(body) as Map<String, dynamic>?;
+      Map<String, dynamic> data = {};
+      try {
+        data = await parseBody(request);
+      } catch (_) {
+        // Body is optional for delete
       }
 
-      await _miniActivityService.deleteTeam(
+      await _divisionService.deleteTeam(
         miniActivityId: miniActivityId,
         teamId: miniTeamId,
-        moveParticipantsToTeamId: data?['move_participants_to_team_id'] as String?,
+        moveParticipantsToTeamId: data['move_participants_to_team_id'] as String?,
       );
 
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
@@ -212,15 +211,14 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final targetTeamId = data['target_team_id'] as String?;
       if (targetTeamId == null) {
         return resp.badRequest('Mangler påkrevd felt (target_team_id)');
       }
 
-      await _miniActivityService.moveParticipantToTeam(
+      await _divisionService.moveParticipantToTeam(
         participantId: participantId,
         newTeamId: targetTeamId,
       );
@@ -241,7 +239,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final handicaps = await _miniActivityService.getHandicaps(miniActivityId);
+      final handicaps = await _divisionService.getHandicaps(miniActivityId);
       return resp.ok(handicaps.map((h) => h.toJson()).toList());
     } catch (e) {
       return resp.serverError('En feil oppstod: $e');
@@ -255,8 +253,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final targetUserId = data['user_id'] as String?;
       final handicapValue = (data['handicap_value'] as num?)?.toDouble();
@@ -265,7 +262,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('Mangler påkrevde felt (user_id, handicap_value)');
       }
 
-      final handicap = await _miniActivityService.setHandicap(
+      final handicap = await _divisionService.setHandicap(
         miniActivityId: miniActivityId,
         userId: targetUserId,
         handicapValue: handicapValue,
@@ -284,7 +281,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      await _miniActivityService.removeHandicap(miniActivityId: miniActivityId, userId: targetUserId);
+      await _divisionService.removeHandicap(miniActivityId: miniActivityId, userId: targetUserId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError('En feil oppstod: $e');

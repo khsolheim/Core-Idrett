@@ -1,15 +1,17 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/team_service.dart';
+import '../services/team_member_service.dart';
 import 'team_settings_handler.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class TeamsHandler {
   final TeamService _teamService;
+  final TeamMemberService _memberService;
 
-  TeamsHandler(this._teamService);
+  TeamsHandler(this._teamService, this._memberService);
 
   Router get router {
     final router = Router();
@@ -31,7 +33,7 @@ class TeamsHandler {
     router.delete('/<teamId>/members/<memberId>', _removeMember);
 
     // Mount settings & trainer types routes
-    final settingsHandler = TeamSettingsHandler(_teamService);
+    final settingsHandler = TeamSettingsHandler(_teamService, _memberService);
     router.mount('/', settingsHandler.router.call);
 
     return router;
@@ -60,8 +62,7 @@ class TeamsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final name = data['name'] as String?;
       final sport = data['sport'] as String?;
@@ -112,8 +113,7 @@ class TeamsHandler {
         return resp.forbidden('Kun administratorer kan redigere laget');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final name = data['name'] as String?;
       final sport = data['sport'] as String?;
@@ -220,8 +220,7 @@ class TeamsHandler {
         return resp.forbidden('Kun administratorer kan endre tilganger');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final isAdminFlag = data['is_admin'] as bool?;
       final isFineBoss = data['is_fine_boss'] as bool?;
@@ -229,7 +228,7 @@ class TeamsHandler {
       final trainerTypeId = data['trainer_type_id'] as String?;
       final clearTrainerType = data.containsKey('trainer_type_id') && trainerTypeId == null;
 
-      await _teamService.updateMemberPermissions(
+      await _memberService.updateMemberPermissions(
         memberId: memberId,
         isAdmin: isAdminFlag,
         isFineBoss: isFineBoss,
@@ -256,7 +255,7 @@ class TeamsHandler {
         return resp.forbidden('Kun administratorer kan deaktivere medlemmer');
       }
 
-      await _teamService.deactivateMember(memberId);
+      await _memberService.deactivateMember(memberId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError();
@@ -275,7 +274,7 @@ class TeamsHandler {
         return resp.forbidden('Kun administratorer kan reaktivere medlemmer');
       }
 
-      await _teamService.reactivateMember(memberId);
+      await _memberService.reactivateMember(memberId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError();
@@ -294,7 +293,7 @@ class TeamsHandler {
         return resp.forbidden('Kun administratorer kan fjerne medlemmer');
       }
 
-      await _teamService.removeMember(memberId);
+      await _memberService.removeMember(memberId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError();
@@ -313,15 +312,14 @@ class TeamsHandler {
         return resp.forbidden('Kun administratorer kan endre skadet-status');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
       final isInjured = data['is_injured'] as bool?;
 
       if (isInjured == null) {
         return resp.badRequest('is_injured er pakrevd');
       }
 
-      await _teamService.setMemberInjuredStatus(memberId, isInjured);
+      await _memberService.setMemberInjuredStatus(memberId, isInjured);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError();

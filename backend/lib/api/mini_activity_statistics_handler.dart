@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/mini_activity_statistics_service.dart';
 import '../services/team_service.dart';
 import '../models/mini_activity_statistics.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class MiniActivityStatisticsHandler {
@@ -293,8 +293,7 @@ class MiniActivityStatisticsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final teamId = data['team_id'] as String?;
       final results = (data['results'] as List?)?.cast<Map<String, dynamic>>();

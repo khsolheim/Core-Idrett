@@ -1,14 +1,16 @@
-import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/fine_service.dart';
+import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class FinesHandler {
   final FineService _fineService;
+  final TeamService _teamService;
 
-  FinesHandler(this._fineService);
+  FinesHandler(this._fineService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -44,6 +46,12 @@ class FinesHandler {
   // Fine Rules
   Future<Response> _getFineRules(Request request, String teamId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
       final activeOnly = request.url.queryParameters['active'] == 'true';
       final rules = await _fineService.getFineRules(teamId, activeOnly: activeOnly ? true : null);
 
@@ -55,7 +63,17 @@ class FinesHandler {
 
   Future<Response> _createFineRule(Request request, String teamId) async {
     try {
-      final body = jsonDecode(await request.readAsString());
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
+      if (!isAdmin(team)) {
+        return resp.forbidden('Kun admin kan opprette bøteregler');
+      }
+
+      final body = await parseBody(request);
 
       final rule = await _fineService.createFineRule(
         teamId: teamId,
@@ -72,7 +90,10 @@ class FinesHandler {
 
   Future<Response> _updateFineRule(Request request, String ruleId) async {
     try {
-      final body = jsonDecode(await request.readAsString());
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final body = await parseBody(request);
 
       final rule = await _fineService.updateFineRule(
         ruleId: ruleId,
@@ -94,6 +115,9 @@ class FinesHandler {
 
   Future<Response> _deleteFineRule(Request request, String ruleId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
       final success = await _fineService.deleteFineRule(ruleId);
 
       if (!success) {
@@ -109,6 +133,12 @@ class FinesHandler {
   // Fines
   Future<Response> _getFines(Request request, String teamId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
       final status = request.url.queryParameters['status'];
       final offenderId = request.url.queryParameters['offender_id'];
       final limit = int.tryParse(request.url.queryParameters['limit'] ?? '') ?? 50;
@@ -130,17 +160,18 @@ class FinesHandler {
 
   Future<Response> _createFine(Request request, String teamId) async {
     try {
-      final body = jsonDecode(await request.readAsString());
-      final reporterId = getUserId(request);
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
 
-      if (reporterId == null) {
-        return resp.unauthorized();
-      }
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
+      final body = await parseBody(request);
 
       final fine = await _fineService.createFine(
         teamId: teamId,
         offenderId: body['offender_id'],
-        reporterId: reporterId,
+        reporterId: userId,
         ruleId: body['rule_id'],
         amount: (body['amount'] as num).toDouble(),
         description: body['description'],
@@ -156,6 +187,9 @@ class FinesHandler {
 
   Future<Response> _getFine(Request request, String fineId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
       final fine = await _fineService.getFine(fineId);
 
       if (fine == null) {
@@ -170,13 +204,10 @@ class FinesHandler {
 
   Future<Response> _approveFine(Request request, String fineId) async {
     try {
-      final approvedBy = getUserId(request);
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
 
-      if (approvedBy == null) {
-        return resp.unauthorized();
-      }
-
-      final fine = await _fineService.approveFine(fineId, approvedBy);
+      final fine = await _fineService.approveFine(fineId, userId);
 
       if (fine == null) {
         return resp.badRequest('Kunne ikke godkjenne bøte (kanskje allerede behandlet)');
@@ -190,13 +221,10 @@ class FinesHandler {
 
   Future<Response> _rejectFine(Request request, String fineId) async {
     try {
-      final approvedBy = getUserId(request);
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
 
-      if (approvedBy == null) {
-        return resp.unauthorized();
-      }
-
-      final fine = await _fineService.rejectFine(fineId, approvedBy);
+      final fine = await _fineService.rejectFine(fineId, userId);
 
       if (fine == null) {
         return resp.badRequest('Kunne ikke avvise bøte (kanskje allerede behandlet)');
@@ -211,7 +239,10 @@ class FinesHandler {
   // Appeals
   Future<Response> _createAppeal(Request request, String fineId) async {
     try {
-      final body = jsonDecode(await request.readAsString());
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final body = await parseBody(request);
 
       final appeal = await _fineService.createAppeal(
         fineId: fineId,
@@ -230,16 +261,14 @@ class FinesHandler {
 
   Future<Response> _resolveAppeal(Request request, String appealId) async {
     try {
-      final body = jsonDecode(await request.readAsString());
-      final decidedBy = getUserId(request);
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
 
-      if (decidedBy == null) {
-        return resp.unauthorized();
-      }
+      final body = await parseBody(request);
 
       final appeal = await _fineService.resolveAppeal(
         appealId: appealId,
-        decidedBy: decidedBy,
+        decidedBy: userId,
         accepted: body['accepted'] == true,
         extraFee: body['extra_fee'] != null ? (body['extra_fee'] as num).toDouble() : null,
       );
@@ -256,6 +285,12 @@ class FinesHandler {
 
   Future<Response> _getPendingAppeals(Request request, String teamId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
       final appeals = await _fineService.getPendingAppeals(teamId);
 
       return resp.ok({'appeals': appeals.map((a) => a.toJson()).toList()});
@@ -267,17 +302,15 @@ class FinesHandler {
   // Payments
   Future<Response> _recordPayment(Request request, String fineId) async {
     try {
-      final body = jsonDecode(await request.readAsString());
-      final registeredBy = getUserId(request);
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
 
-      if (registeredBy == null) {
-        return resp.unauthorized();
-      }
+      final body = await parseBody(request);
 
       final payment = await _fineService.recordPayment(
         fineId: fineId,
         amount: (body['amount'] as num).toDouble(),
-        registeredBy: registeredBy,
+        registeredBy: userId,
       );
 
       return resp.ok(payment.toJson());
@@ -289,6 +322,12 @@ class FinesHandler {
   // Summary
   Future<Response> _getTeamSummary(Request request, String teamId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
       final summary = await _fineService.getTeamSummary(teamId);
 
       return resp.ok(summary.toJson());
@@ -299,6 +338,12 @@ class FinesHandler {
 
   Future<Response> _getUserSummaries(Request request, String teamId) async {
     try {
+      final userId = getUserId(request);
+      if (userId == null) return resp.forbidden('Ikke autorisert');
+
+      final team = await requireTeamMember(_teamService, teamId, userId);
+      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
       final summaries = await _fineService.getUserSummaries(teamId);
 
       return resp.ok({'summaries': summaries.map((s) => s.toJson()).toList()});

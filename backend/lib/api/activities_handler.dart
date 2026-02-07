@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/activity_service.dart';
 import '../services/activity_instance_service.dart';
 import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class ActivitiesHandler {
@@ -73,8 +73,7 @@ class ActivitiesHandler {
         return resp.forbidden('Kun administratorer kan opprette aktiviteter');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final title = data['title'] as String?;
       final type = data['type'] as String?;
@@ -201,8 +200,7 @@ class ActivitiesHandler {
         return resp.forbidden('Ingen tilgang til denne aktiviteten');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final response = data['response'] as String?;
       final comment = data['comment'] as String?;
@@ -241,8 +239,7 @@ class ActivitiesHandler {
         return resp.forbidden('Kun administratorer kan endre status');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final status = data['status'] as String?;
       if (status == null || !['scheduled', 'completed', 'cancelled'].contains(status)) {
@@ -302,8 +299,7 @@ class ActivitiesHandler {
         return resp.forbidden('Kun administratorer kan oppdatere aktiviteter');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final title = data['title'] as String?;
       final type = data['type'] as String?;
@@ -359,8 +355,7 @@ class ActivitiesHandler {
         return resp.forbidden('Du har ikke tilgang til å redigere denne aktiviteten');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final editScope = data['edit_scope'] as String?;
       if (editScope == null || !['single', 'this_and_future'].contains(editScope)) {
@@ -422,8 +417,7 @@ class ActivitiesHandler {
         return resp.forbidden('Du har ikke tilgang til å slette denne aktiviteten');
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final deleteScope = data['delete_scope'] as String?;
       if (deleteScope == null || !['single', 'this_and_future'].contains(deleteScope)) {

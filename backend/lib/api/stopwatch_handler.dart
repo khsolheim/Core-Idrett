@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/stopwatch_service.dart';
 import '../services/team_service.dart';
 import '../models/stopwatch.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class StopwatchHandler {
@@ -60,8 +60,7 @@ class StopwatchHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final sessionTypeStr = data['session_type'] as String?;
       if (sessionTypeStr == null) {
@@ -284,8 +283,7 @@ class StopwatchHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final participantUserId = data['user_id'] as String?;
       final timeMs = data['time_ms'] as int?;
@@ -317,8 +315,7 @@ class StopwatchHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final participantUserId = data['user_id'] as String?;
       if (participantUserId == null) {
@@ -381,8 +378,7 @@ class StopwatchHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       await _stopwatchService.updateTime(
         timeId: timeId,
@@ -419,8 +415,7 @@ class StopwatchHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final times = (data['times'] as List?)?.cast<Map<String, dynamic>>();
       if (times == null || times.isEmpty) {

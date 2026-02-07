@@ -1,16 +1,18 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/mini_activity_service.dart';
+import '../services/mini_activity_result_service.dart';
 import '../services/mini_activity_statistics_service.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class MiniActivityScoringHandler {
   final MiniActivityService _miniActivityService;
+  final MiniActivityResultService _resultService;
   final MiniActivityStatisticsService? _statsService;
 
-  MiniActivityScoringHandler(this._miniActivityService, [this._statsService]);
+  MiniActivityScoringHandler(this._miniActivityService, this._resultService, [this._statsService]);
 
   Router get router {
     final router = Router();
@@ -39,15 +41,14 @@ class MiniActivityScoringHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final teamScores = (data['team_scores'] as Map<String, dynamic>?)
           ?.map((k, v) => MapEntry(k, v as int)) ?? {};
       final participantPoints = (data['participant_points'] as Map<String, dynamic>?)
           ?.map((k, v) => MapEntry(k, v as int)) ?? {};
 
-      await _miniActivityService.recordMultipleScores(
+      await _resultService.recordMultipleScores(
         miniActivityId: miniActivityId,
         teamScores: teamScores,
         participantPoints: participantPoints,
@@ -70,13 +71,12 @@ class MiniActivityScoringHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final winnerTeamId = data['winner_team_id'] as String?;
       final addToLeaderboard = data['add_to_leaderboard'] as bool? ?? false;
 
-      await _miniActivityService.setWinner(
+      await _resultService.setWinner(
         miniActivityId: miniActivityId,
         winnerTeamId: winnerTeamId,
         addToLeaderboard: addToLeaderboard,
@@ -96,7 +96,7 @@ class MiniActivityScoringHandler {
         return resp.unauthorized();
       }
 
-      await _miniActivityService.clearResult(miniActivityId);
+      await _resultService.clearResult(miniActivityId);
 
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
@@ -114,7 +114,7 @@ class MiniActivityScoringHandler {
         return resp.unauthorized();
       }
 
-      final adjustments = await _miniActivityService.getAdjustments(miniActivityId);
+      final adjustments = await _resultService.getAdjustments(miniActivityId);
       return resp.ok(adjustments.map((a) => a.toJson()).toList());
     } catch (e) {
       return resp.serverError('En feil oppstod: $e');
@@ -128,15 +128,14 @@ class MiniActivityScoringHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final points = data['points'] as int?;
       if (points == null) {
         return resp.badRequest('Mangler påkrevd felt (points)');
       }
 
-      final adjustment = await _miniActivityService.awardAdjustment(
+      final adjustment = await _resultService.awardAdjustment(
         miniActivityId: miniActivityId,
         teamId: data['team_id'] as String?,
         userId: data['user_id'] as String?,

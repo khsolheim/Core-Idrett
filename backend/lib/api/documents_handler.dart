@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/document_service.dart';
@@ -80,7 +81,7 @@ class DocumentsHandler {
         return resp.forbidden('Not a team member');
       }
 
-      final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+      final body = await parseBody(request);
 
       // Validate required fields
       final name = body['name'] as String?;
@@ -176,7 +177,7 @@ class DocumentsHandler {
         return resp.forbidden('Not authorized to update this document');
       }
 
-      final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+      final body = await parseBody(request);
 
       final document = await _documentService.updateDocument(
         documentId: documentId,
@@ -239,7 +240,7 @@ class DocumentsHandler {
 
       if (contentType.contains('application/json')) {
         // JSON with base64 encoded file
-        final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+        final body = await parseBody(request);
 
         final fileName = body['file_name'] as String?;
         final fileContent = body['file_content'] as String?; // base64 encoded

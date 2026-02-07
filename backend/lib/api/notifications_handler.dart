@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/notification_service.dart';
@@ -31,8 +31,7 @@ class NotificationsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final token = data['token'] as String?;
       final platform = data['platform'] as String?;
@@ -64,8 +63,7 @@ class NotificationsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final token = data['token'] as String?;
       if (token == null) {
@@ -106,8 +104,7 @@ class NotificationsHandler {
         return resp.unauthorized();
       }
 
-      final body = await request.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
+      final data = await parseBody(request);
 
       final prefs = await _notificationService.updatePreferences(
         userId: userId,

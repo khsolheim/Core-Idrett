@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/absence_service.dart';
@@ -89,7 +89,7 @@ class AbsenceHandler {
         return resp.forbidden('Kun admin kan opprette fraværskategorier');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final name = body['name'] as String?;
 
       if (name == null || name.isEmpty) {
@@ -132,7 +132,7 @@ class AbsenceHandler {
         return resp.forbidden('Kun admin kan oppdatere fraværskategorier');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       final category = await _absenceService.updateCategory(
         categoryId: categoryId,
@@ -255,7 +255,7 @@ class AbsenceHandler {
         return resp.unauthorized();
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final targetUserId = body['user_id'] as String? ?? userId;
       final instanceId = body['instance_id'] as String?;
 
@@ -352,7 +352,7 @@ class AbsenceHandler {
         return resp.forbidden('Kun admin kan avvise fravær');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       final absence = await _absenceService.rejectAbsence(
         absenceId: absenceId,

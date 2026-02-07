@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/achievement_service.dart';
@@ -92,7 +92,7 @@ class AchievementsHandler {
         return resp.forbidden('Kun admin kan opprette achievements');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       final code = body['code'] as String?;
       final name = body['name'] as String?;
@@ -180,7 +180,7 @@ class AchievementsHandler {
         return resp.forbidden('Kun admin kan oppdatere achievements');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
 
       AchievementTier? tier;
       if (body['tier'] != null) {
@@ -342,7 +342,7 @@ class AchievementsHandler {
         return resp.forbidden('Kun admin kan tildele achievements');
       }
 
-      final body = jsonDecode(await request.readAsString());
+      final body = await parseBody(request);
       final targetUserId = body['user_id'] as String?;
       final achievementId = body['achievement_id'] as String?;
 
@@ -381,11 +381,12 @@ class AchievementsHandler {
         }
       }
 
-      final body = await request.readAsString();
       Map<String, dynamic>? context;
-      if (body.isNotEmpty) {
-        final parsed = jsonDecode(body);
+      try {
+        final parsed = await parseBody(request);
         context = parsed['context'] as Map<String, dynamic>?;
+      } catch (_) {
+        // Body is optional
       }
 
       final seasonId = request.url.queryParameters['season_id'];
