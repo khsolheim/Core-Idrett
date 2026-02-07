@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../data/models/achievement.dart';
 
@@ -302,7 +303,7 @@ class TeamAchievementCard extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundImage: achievement.userAvatarUrl != null
-              ? NetworkImage(achievement.userAvatarUrl!)
+              ? CachedNetworkImageProvider(achievement.userAvatarUrl!)
               : null,
           child: achievement.userAvatarUrl == null && achievement.userName != null
               ? Text(achievement.userName!.substring(0, 1).toUpperCase())

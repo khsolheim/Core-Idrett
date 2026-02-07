@@ -128,7 +128,7 @@ cd backend && dart analyze && dart test
 ## Fase 17: Backend Service Boundaries
 **Priority: MEDIUM (Architecture)**
 **Files: ~8-10 files**
-**Status: TODO**
+**Status: DONE** (commit f54cbcc)
 
 ### Problem
 1. `TeamService.getDashboardData()` is 150+ lines aggregating 4 unrelated concerns
@@ -271,7 +271,7 @@ cd app && flutter analyze
 ## Fase 21: Frontend Widget Extraction (Round 2)
 **Priority: MEDIUM (Maintainability)**
 **Files: ~10 files**
-**Status: TODO**
+**Status: DONE** (commit f54cbcc)
 
 ### Problem
 6 screens still 450+ lines with large build methods:
@@ -296,7 +296,7 @@ cd app && flutter analyze
 ## Fase 22: Frontend Performance & Image Caching
 **Priority: MEDIUM (Performance/UX)**
 **Files: ~10-15 files**
-**Status: TODO**
+**Status: DONE** (commit f54cbcc)
 
 ### Problem
 1. 25+ files use `NetworkImage` without error handling or caching
