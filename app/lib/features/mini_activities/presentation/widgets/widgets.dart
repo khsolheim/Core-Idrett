@@ -1,13 +1,23 @@
 // Barrel file for mini_activities widgets
 export 'adjustment_card.dart';
 export 'adjustment_sheet.dart';
+export 'create_standalone_activity_sheet.dart';
 export 'group_standings_table.dart';
 export 'handicap_sheet.dart';
+export 'leaderboard_tab.dart';
+export 'leaderboard_widgets.dart';
 export 'match_card.dart';
 export 'match_result_sheet.dart';
+export 'mini_activity_detail_content.dart';
+export 'mini_activity_helpers.dart';
+export 'mini_activity_sheets.dart';
+export 'mini_activity_team_card.dart';
+export 'rivalries_tab.dart';
+export 'standalone_activity_list.dart';
 export 'stats_widgets.dart';
 export 'stopwatch_display.dart';
 export 'stopwatch_setup_sheet.dart';
 export 'stopwatch_time_sheet.dart';
+export 'team_stats_tab.dart';
 export 'tournament_bracket.dart';
 export 'tournament_setup_sheet.dart';
