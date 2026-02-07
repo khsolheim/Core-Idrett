@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/statistics.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../providers/test_provider.dart';
 
 class TestsScreen extends ConsumerWidget {
@@ -17,7 +18,6 @@ class TestsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final testState = ref.watch(testNotifierProvider(teamId));
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,37 +32,17 @@ class TestsScreen extends ConsumerWidget {
       body: testState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : testState.templates.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.speed,
-                        size: 64,
-                        color: theme.colorScheme.outline,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Ingen tester enna',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Opprett tester for a spore fremgang',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                      if (isAdmin) ...[
-                        const SizedBox(height: 24),
-                        FilledButton.icon(
+              ? EmptyStateWidget(
+                  icon: Icons.speed,
+                  title: 'Ingen tester enna',
+                  subtitle: 'Opprett tester for a spore fremgang',
+                  action: isAdmin
+                      ? FilledButton.icon(
                           onPressed: () => _showCreateTemplateDialog(context, ref),
                           icon: const Icon(Icons.add),
                           label: const Text('Opprett test'),
-                        ),
-                      ],
-                    ],
-                  ),
+                        )
+                      : null,
                 )
               : RefreshIndicator(
                   onRefresh: () => ref.read(testNotifierProvider(teamId).notifier).loadTemplates(),

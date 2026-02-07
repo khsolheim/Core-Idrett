@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/message.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/direct_message_provider.dart';
@@ -127,29 +128,10 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
               onRetry: () => ref.invalidate(directMessageNotifierProvider(widget.recipientId)),
               data: (messages) {
                 if (messages.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: theme.colorScheme.outline,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Ingen meldinger enna',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Send en melding for a starte samtalen!',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
+                  return const EmptyStateWidget(
+                    icon: Icons.chat_bubble_outline,
+                    title: 'Ingen meldinger enna',
+                    subtitle: 'Send en melding for a starte samtalen!',
                   );
                 }
 

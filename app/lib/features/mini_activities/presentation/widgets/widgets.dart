@@ -12,6 +12,8 @@ export 'mini_activity_detail_content.dart';
 export 'mini_activity_helpers.dart';
 export 'mini_activity_sheets.dart';
 export 'mini_activity_team_card.dart';
+export 'add_participant_sheet.dart';
+export 'team_card_dialogs.dart';
 export 'rivalries_tab.dart';
 export 'standalone_activity_list.dart';
 export 'stats_widgets.dart';
