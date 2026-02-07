@@ -4,12 +4,6 @@ import '../../../core/services/error_display_service.dart';
 import '../../../data/models/message.dart';
 import '../data/chat_repository.dart';
 
-// Messages provider - fetches initial messages
-final messagesProvider = FutureProvider.family<List<Message>, String>((ref, teamId) async {
-  final repo = ref.watch(chatRepositoryProvider);
-  return repo.getMessages(teamId);
-});
-
 // Unread count provider
 final unreadCountProvider = FutureProvider.family<int, String>((ref, teamId) async {
   final repo = ref.watch(chatRepositoryProvider);

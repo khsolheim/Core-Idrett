@@ -55,7 +55,6 @@ dependencies:
   intl: ^0.20.2
 
   # UUID generation
-  uuid: ^4.4.0
 
   # Network connectivity monitoring
   connectivity_plus: ^7.0.0

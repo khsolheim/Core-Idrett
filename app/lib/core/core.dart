@@ -5,4 +5,4 @@ export 'config.dart';
 export 'errors/errors.dart';
 export 'extensions/extensions.dart';
 export 'services/services.dart';
-export 'utils/utils.dart';
+export 'utils/api_response_parser.dart';

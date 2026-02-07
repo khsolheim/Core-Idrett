@@ -2,20 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/message.dart';
-import '../../../data/models/conversation.dart';
 import '../data/chat_repository.dart';
-
-// Conversations provider - fetches list of DM conversations
-final conversationsProvider = FutureProvider<List<Conversation>>((ref) async {
-  final repo = ref.watch(chatRepositoryProvider);
-  return repo.getConversations();
-});
-
-// Direct messages provider - fetches messages with a specific user
-final directMessagesProvider = FutureProvider.family<List<Message>, String>((ref, recipientId) async {
-  final repo = ref.watch(chatRepositoryProvider);
-  return repo.getDirectMessages(recipientId);
-});
 
 // Direct unread count provider
 final directUnreadCountProvider = FutureProvider.family<int, String>((ref, recipientId) async {
@@ -89,8 +76,6 @@ class DirectMessageNotifier extends AsyncNotifier<List<Message>> {
       state = AsyncValue.data([message, ...currentMessages]);
       _lastMessageTime = message.createdAt;
 
-      // Invalidate conversations to update the list
-      ref.invalidate(conversationsProvider);
       return true;
     } catch (e) {
       ErrorDisplayService.showWarning('Kunne ikke sende melding. Prøv igjen.');
@@ -167,7 +152,6 @@ class DirectMessageNotifier extends AsyncNotifier<List<Message>> {
     try {
       await _repo.markDirectAsRead(_recipientId);
       ref.invalidate(directUnreadCountProvider(_recipientId));
-      ref.invalidate(conversationsProvider);
     } catch (e) {
       // Ignore errors
     }
