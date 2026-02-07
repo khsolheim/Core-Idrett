@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../core/extensions/async_value_extensions.dart';
 import '../../../data/models/activity.dart';
 import '../providers/activity_provider.dart';
+import 'widgets/edit_instance_form_fields.dart';
+import 'widgets/edit_instance_info_cards.dart';
 
 class EditInstanceScreen extends ConsumerStatefulWidget {
   final String teamId;
@@ -197,12 +198,7 @@ class _EditInstanceScreenState extends ConsumerState<EditInstanceScreen> {
   @override
   Widget build(BuildContext context) {
     final instanceAsync = ref.watch(instanceDetailProvider(widget.instanceId));
-    final dateFormat = DateFormat('EEEE d. MMMM yyyy', 'nb_NO');
     final theme = Theme.of(context);
-
-    final scopeDescription = widget.scope == EditScope.single
-        ? 'Kun denne aktiviteten endres'
-        : 'Denne og alle fremtidige aktiviteter i serien endres';
 
     return Scaffold(
       appBar: AppBar(
@@ -219,43 +215,7 @@ class _EditInstanceScreenState extends ConsumerState<EditInstanceScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 // Scope indicator
-                Card(
-                  color: theme.colorScheme.primaryContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Icon(
-                          widget.scope == EditScope.single
-                              ? Icons.event
-                              : Icons.repeat,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.scope.displayName,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                scopeDescription,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                EditScopeIndicator(scope: widget.scope),
                 const SizedBox(height: 16),
 
                 // Series info
@@ -271,190 +231,29 @@ class _EditInstanceScreenState extends ConsumerState<EditInstanceScreen> {
 
                 // Detached warning
                 if (instance.isDetached) ...[
-                  Card(
-                    color: theme.colorScheme.tertiaryContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.link_off,
-                            color: theme.colorScheme.onTertiaryContainer,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Denne aktiviteten er allerede løsrevet fra serien',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onTertiaryContainer,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  const DetachedWarningCard(),
                   const SizedBox(height: 16),
                 ],
 
-                // Title
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Tittel',
-                    suffixIcon: instance.titleOverride != null
-                        ? Tooltip(
-                            message: 'Har egendefinert verdi',
-                            child: Icon(
-                              Icons.edit,
-                              size: 18,
-                              color: theme.colorScheme.primary,
-                            ),
-                          )
-                        : null,
-                  ),
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Vennligst skriv inn en tittel';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Date (only for single scope)
-                if (widget.scope == EditScope.single) ...[
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text('Dato'),
-                    subtitle: Text(_date != null ? dateFormat.format(_date!) : 'Ikke satt'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (instance.dateOverride != null)
-                          Tooltip(
-                            message: 'Har egendefinert dato',
-                            child: Icon(
-                              Icons.edit,
-                              size: 18,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                        const Icon(Icons.chevron_right),
-                      ],
-                    ),
-                    onTap: _selectDate,
-                  ),
-                  const Divider(),
-                ],
-
-                // Time
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.access_time),
-                        title: const Text('Fra'),
-                        subtitle: Text(
-                          _startTime != null ? _formatTimeOfDay(_startTime!) : 'Ikke satt',
-                        ),
-                        onTap: _selectStartTime,
-                      ),
-                    ),
-                    Expanded(
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Til'),
-                        subtitle: Text(
-                          _endTime != null ? _formatTimeOfDay(_endTime!) : 'Ikke satt',
-                        ),
-                        onTap: _selectEndTime,
-                      ),
-                    ),
-                  ],
-                ),
-                if (instance.startTimeOverride != null || instance.endTimeOverride != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 40),
-                    child: Text(
-                      'Har egendefinerte tidspunkter',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                const Divider(),
-
-                // Location
-                TextFormField(
-                  controller: _locationController,
-                  decoration: InputDecoration(
-                    labelText: 'Sted (valgfritt)',
-                    prefixIcon: const Icon(Icons.location_on),
-                    suffixIcon: instance.locationOverride != null
-                        ? Tooltip(
-                            message: 'Har egendefinert verdi',
-                            child: Icon(
-                              Icons.edit,
-                              size: 18,
-                              color: theme.colorScheme.primary,
-                            ),
-                          )
-                        : null,
-                  ),
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 16),
-
-                // Description
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Beskrivelse (valgfritt)',
-                    alignLabelWithHint: true,
-                    suffixIcon: instance.descriptionOverride != null
-                        ? Tooltip(
-                            message: 'Har egendefinert verdi',
-                            child: Icon(
-                              Icons.edit,
-                              size: 18,
-                              color: theme.colorScheme.primary,
-                            ),
-                          )
-                        : null,
-                  ),
-                  maxLines: 3,
+                // Form fields
+                EditInstanceFormFields(
+                  instance: instance,
+                  scope: widget.scope,
+                  titleController: _titleController,
+                  locationController: _locationController,
+                  descriptionController: _descriptionController,
+                  date: _date,
+                  startTime: _startTime,
+                  endTime: _endTime,
+                  onSelectDate: _selectDate,
+                  onSelectStartTime: _selectStartTime,
+                  onSelectEndTime: _selectEndTime,
                 ),
                 const SizedBox(height: 24),
 
                 // Warning for "this and future"
                 if (widget.scope == EditScope.thisAndFuture) ...[
-                  Card(
-                    color: theme.colorScheme.errorContainer.withValues(alpha: 0.5),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.warning_amber,
-                            color: theme.colorScheme.error,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Svar på berørte aktiviteter vil bli nullstilt',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onErrorContainer,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  const FutureEditWarningCard(),
                   const SizedBox(height: 16),
                 ],
 

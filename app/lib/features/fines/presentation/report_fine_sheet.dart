@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/extensions/async_value_extensions.dart';
@@ -84,7 +85,7 @@ class _ReportFineSheetState extends ConsumerState<ReportFineSheet> {
                       CircleAvatar(
                         radius: 14,
                         backgroundImage: member.userAvatarUrl != null
-                            ? NetworkImage(member.userAvatarUrl!)
+                            ? CachedNetworkImageProvider(member.userAvatarUrl!)
                             : null,
                         child: member.userAvatarUrl == null
                             ? Text(member.userName.substring(0, 1).toUpperCase())

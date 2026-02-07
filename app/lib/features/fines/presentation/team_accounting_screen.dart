@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/extensions/async_value_extensions.dart';
@@ -120,11 +121,12 @@ class TeamAccountingScreen extends ConsumerWidget {
                       final outstanding = user.outstandingBalance;
 
                       return Card(
+                        key: ValueKey(user.userId),
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundImage: user.userAvatarUrl != null
-                                ? NetworkImage(user.userAvatarUrl!)
+                                ? CachedNetworkImageProvider(user.userAvatarUrl!)
                                 : null,
                             child: user.userAvatarUrl == null
                                 ? Text(user.userName.substring(0, 1).toUpperCase())

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
@@ -100,7 +101,7 @@ class TeamDivisionSheetState extends ConsumerState<TeamDivisionSheet> {
             return Chip(
               avatar: CircleAvatar(
                 backgroundImage: r.userAvatarUrl != null
-                    ? NetworkImage(r.userAvatarUrl!)
+                    ? CachedNetworkImageProvider(r.userAvatarUrl!)
                     : null,
                 child: r.userAvatarUrl == null
                     ? Text(
@@ -164,7 +165,7 @@ class TeamDivisionSheetState extends ConsumerState<TeamDivisionSheet> {
                     selected: isSelected,
                     avatar: CircleAvatar(
                       backgroundImage: member.userAvatarUrl != null
-                          ? NetworkImage(member.userAvatarUrl!)
+                          ? CachedNetworkImageProvider(member.userAvatarUrl!)
                           : null,
                       child: member.userAvatarUrl == null
                           ? Text(

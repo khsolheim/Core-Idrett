@@ -2,6 +2,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../services/team_service.dart';
 import '../services/team_member_service.dart';
+import '../services/dashboard_service.dart';
 import 'team_settings_handler.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
@@ -10,8 +11,9 @@ import 'helpers/response_helpers.dart' as resp;
 class TeamsHandler {
   final TeamService _teamService;
   final TeamMemberService _memberService;
+  final DashboardService _dashboardService;
 
-  TeamsHandler(this._teamService, this._memberService);
+  TeamsHandler(this._teamService, this._memberService, this._dashboardService);
 
   Router get router {
     final router = Router();
@@ -173,7 +175,7 @@ class TeamsHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final dashboard = await _teamService.getDashboardData(teamId, userId);
+      final dashboard = await _dashboardService.getDashboardData(teamId, userId);
       return resp.ok(dashboard);
     } catch (e) {
       return resp.serverError();

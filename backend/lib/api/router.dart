@@ -33,6 +33,7 @@ import '../services/achievement_service.dart';
 import '../services/achievement_definition_service.dart';
 import '../services/achievement_progress_service.dart';
 import '../services/user_service.dart';
+import '../services/dashboard_service.dart';
 import '../services/player_rating_service.dart';
 import 'middleware/auth_middleware.dart';
 import 'auth_handler.dart';
@@ -58,7 +59,8 @@ import 'achievements_handler.dart';
 Router createRouter(Database db) {
   final authService = AuthService(db);
   final userService = UserService(db);
-  final teamService = TeamService(db, userService);
+  final teamService = TeamService(db);
+  final dashboardService = DashboardService(db, userService);
   final teamMemberService = TeamMemberService(db);
   final seasonService = SeasonService(db);
   final leaderboardEntryService = LeaderboardEntryService(db, userService);
@@ -104,7 +106,7 @@ Router createRouter(Database db) {
   router.mount('/auth', authHandler.router.call);
 
   // Protected routes - wrapped with auth middleware
-  final teamsHandler = TeamsHandler(teamService, teamMemberService);
+  final teamsHandler = TeamsHandler(teamService, teamMemberService, dashboardService);
   router.mount('/teams', const Pipeline().addMiddleware(auth).addHandler(teamsHandler.router.call).call);
 
   final activitiesHandler = ActivitiesHandler(activityService, activityInstanceService, teamService);

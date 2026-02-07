@@ -151,6 +151,7 @@ class _DirectMessageScreenState extends ConsumerState<DirectMessageScreen> {
                         );
 
                     return Column(
+                      key: ValueKey(message.id),
                       children: [
                         if (showDate) DateDivider(date: message.createdAt),
                         MessageBubble(

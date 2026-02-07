@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../data/models/mini_activity_statistics.dart';
 
@@ -35,7 +36,7 @@ class PlayerStatsCard extends StatelessWidget {
                   CircleAvatar(
                     radius: 24,
                     backgroundImage: stats.userProfileImageUrl != null
-                        ? NetworkImage(stats.userProfileImageUrl!)
+                        ? CachedNetworkImageProvider(stats.userProfileImageUrl!)
                         : null,
                     child: stats.userProfileImageUrl == null
                         ? Text(
@@ -169,7 +170,7 @@ class CompactStatsCard extends StatelessWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundImage: stats.userProfileImageUrl != null
-                    ? NetworkImage(stats.userProfileImageUrl!)
+                    ? CachedNetworkImageProvider(stats.userProfileImageUrl!)
                     : null,
                 child: stats.userProfileImageUrl == null
                     ? Text(

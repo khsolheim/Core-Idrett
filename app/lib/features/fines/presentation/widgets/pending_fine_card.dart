@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +27,7 @@ class PendingFineCard extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   backgroundImage: fine.offenderAvatarUrl != null
-                      ? NetworkImage(fine.offenderAvatarUrl!)
+                      ? CachedNetworkImageProvider(fine.offenderAvatarUrl!)
                       : null,
                   child: fine.offenderAvatarUrl == null
                       ? Text(fine.offenderName?.substring(0, 1).toUpperCase() ?? '?')

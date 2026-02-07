@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/stopwatch.dart';
@@ -187,7 +188,7 @@ class _StopwatchTimeSheetState extends ConsumerState<StopwatchTimeSheet> {
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundImage: participant.profileImageUrl != null
-                                  ? NetworkImage(participant.profileImageUrl!)
+                                  ? CachedNetworkImageProvider(participant.profileImageUrl!)
                                   : null,
                               child: participant.profileImageUrl == null
                                   ? Text(

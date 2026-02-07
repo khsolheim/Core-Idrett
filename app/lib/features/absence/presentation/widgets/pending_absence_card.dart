@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/absence.dart';
@@ -122,7 +123,7 @@ class _PendingAbsenceCardState extends ConsumerState<PendingAbsenceCard> {
                   ],
                   CircleAvatar(
                   backgroundImage: absence.userAvatarUrl != null
-                      ? NetworkImage(absence.userAvatarUrl!)
+                      ? CachedNetworkImageProvider(absence.userAvatarUrl!)
                       : null,
                   child: absence.userAvatarUrl == null && absence.userName != null
                       ? Text(absence.userName!.substring(0, 1).toUpperCase())

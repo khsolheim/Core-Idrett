@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/achievement.dart';
 import '../providers/achievement_provider.dart';
+import 'widgets/achievement_criteria_section.dart';
+import 'widgets/achievement_form_fields.dart';
 
 /// Bottom sheet for creating or editing an achievement definition
 class CreateEditAchievementSheet extends ConsumerStatefulWidget {
@@ -111,183 +113,36 @@ class _CreateEditAchievementSheetState
             ),
             const SizedBox(height: 16),
 
-            // Name
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Navn',
-                border: OutlineInputBorder(),
-                hintText: 'F.eks. "Treningsstrek"',
-              ),
-              textCapitalization: TextCapitalization.sentences,
+            // Basic info fields
+            AchievementBasicInfoFields(
+              nameController: _nameController,
+              codeController: _codeController,
+              descriptionController: _descriptionController,
+              iconController: _iconController,
+              bonusPointsController: _bonusPointsController,
+              isEditing: isEditing,
             ),
             const SizedBox(height: 16),
 
-            // Code (only for new)
-            if (!isEditing) ...[
-              TextField(
-                controller: _codeController,
-                decoration: const InputDecoration(
-                  labelText: 'Kode (unik)',
-                  border: OutlineInputBorder(),
-                  hintText: 'F.eks. "training_streak_10"',
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // Description
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Beskrivelse',
-                border: OutlineInputBorder(),
-                hintText: 'Hva må spilleren gjøre?',
-              ),
-              maxLines: 2,
-              textCapitalization: TextCapitalization.sentences,
+            // Criteria section
+            AchievementCriteriaSection(
+              category: _category,
+              tier: _tier,
+              criteriaType: _criteriaType,
+              thresholdController: _thresholdController,
+              cooldownDaysController: _cooldownDaysController,
+              isActive: _isActive,
+              isSecret: _isSecret,
+              isRepeatable: _isRepeatable,
+              onCategoryChanged: (v) => setState(() => _category = v),
+              onTierChanged: (v) => setState(() => _tier = v),
+              onCriteriaTypeChanged: (v) =>
+                  setState(() => _criteriaType = v),
+              onActiveChanged: (v) => setState(() => _isActive = v),
+              onSecretChanged: (v) => setState(() => _isSecret = v),
+              onRepeatableChanged: (v) =>
+                  setState(() => _isRepeatable = v),
             ),
-            const SizedBox(height: 16),
-
-            // Icon and Bonus Points row
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _iconController,
-                    decoration: const InputDecoration(
-                      labelText: 'Ikon (emoji)',
-                      border: OutlineInputBorder(),
-                      hintText: 'F.eks. 🔥',
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _bonusPointsController,
-                    decoration: const InputDecoration(
-                      labelText: 'Bonuspoeng',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Category
-            const Text('Kategori',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: AchievementCategory.values.map((cat) {
-                return ChoiceChip(
-                  label: Text('${cat.icon} ${cat.displayName}'),
-                  selected: _category == cat,
-                  onSelected: (_) => setState(() => _category = cat),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-
-            // Tier
-            const Text('Nivå', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            SegmentedButton<AchievementTier>(
-              segments: AchievementTier.values.map((tier) {
-                return ButtonSegment(
-                  value: tier,
-                  label: Text(tier.emoji),
-                  tooltip: tier.displayName,
-                );
-              }).toList(),
-              selected: {_tier},
-              onSelectionChanged: (selection) {
-                setState(() => _tier = selection.first);
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Criteria type
-            const Text('Kriteriumtype',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<AchievementCriteriaType>(
-              initialValue: _criteriaType,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              items: AchievementCriteriaType.values
-                  .where((t) => t != AchievementCriteriaType.custom)
-                  .map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(_getCriteriaTypeLabel(type)),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) setState(() => _criteriaType = value);
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Threshold
-            if (_criteriaType != AchievementCriteriaType.perfectAttendance) ...[
-              TextField(
-                controller: _thresholdController,
-                decoration: InputDecoration(
-                  labelText: _getThresholdLabel(_criteriaType),
-                  border: const OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // Flags
-            const Text('Innstillinger',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                FilterChip(
-                  label: const Text('Aktiv'),
-                  selected: _isActive,
-                  onSelected: (value) => setState(() => _isActive = value),
-                ),
-                FilterChip(
-                  label: const Text('Hemmelig'),
-                  selected: _isSecret,
-                  onSelected: (value) => setState(() => _isSecret = value),
-                ),
-                FilterChip(
-                  label: const Text('Kan gjentas'),
-                  selected: _isRepeatable,
-                  onSelected: (value) => setState(() => _isRepeatable = value),
-                ),
-              ],
-            ),
-
-            // Cooldown days (shown when repeatable is enabled)
-            if (_isRepeatable) ...[
-              const SizedBox(height: 16),
-              TextField(
-                controller: _cooldownDaysController,
-                decoration: const InputDecoration(
-                  labelText: 'Ventetid mellom gjentagelser (dager)',
-                  border: OutlineInputBorder(),
-                  hintText: 'F.eks. 30 dager',
-                  helperText: 'Hvor lenge må spilleren vente før achievement kan oppnås igjen',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
             const SizedBox(height: 24),
 
             // Submit button
@@ -309,46 +164,6 @@ class _CreateEditAchievementSheetState
         ),
       ),
     );
-  }
-
-  String _getCriteriaTypeLabel(AchievementCriteriaType type) {
-    switch (type) {
-      case AchievementCriteriaType.attendanceStreak:
-        return 'Oppmøte-streak (antall på rad)';
-      case AchievementCriteriaType.attendanceTotal:
-        return 'Totalt antall oppmøter';
-      case AchievementCriteriaType.attendanceRate:
-        return 'Oppmøteprosent';
-      case AchievementCriteriaType.pointsTotal:
-        return 'Totalt antall poeng';
-      case AchievementCriteriaType.miniActivityWins:
-        return 'Mini-aktivitet seire';
-      case AchievementCriteriaType.perfectAttendance:
-        return '100% oppmøte i sesong';
-      case AchievementCriteriaType.socialEvents:
-        return 'Sosiale arrangementer';
-      case AchievementCriteriaType.custom:
-        return 'Egendefinert';
-    }
-  }
-
-  String _getThresholdLabel(AchievementCriteriaType type) {
-    switch (type) {
-      case AchievementCriteriaType.attendanceStreak:
-        return 'Antall aktiviteter på rad';
-      case AchievementCriteriaType.attendanceTotal:
-        return 'Antall oppmøter';
-      case AchievementCriteriaType.attendanceRate:
-        return 'Prosent (0-100)';
-      case AchievementCriteriaType.pointsTotal:
-        return 'Antall poeng';
-      case AchievementCriteriaType.miniActivityWins:
-        return 'Antall seire';
-      case AchievementCriteriaType.socialEvents:
-        return 'Antall arrangementer';
-      default:
-        return 'Terskelverdi';
-    }
   }
 
   /// Maximum bonus points allowed for an achievement

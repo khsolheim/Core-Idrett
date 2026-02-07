@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -83,7 +84,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         CircleAvatar(
                           radius: 50,
                           backgroundImage: _avatarUrlController.text.isNotEmpty
-                              ? NetworkImage(_avatarUrlController.text)
+                              ? CachedNetworkImageProvider(_avatarUrlController.text)
                               : null,
                           child: _avatarUrlController.text.isEmpty
                               ? Text(

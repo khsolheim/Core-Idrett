@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../data/models/activity.dart';
 
@@ -173,7 +174,7 @@ class ResponseListItem extends StatelessWidget {
           CircleAvatar(
             radius: 16,
             backgroundImage: response.userAvatarUrl != null
-                ? NetworkImage(response.userAvatarUrl!)
+                ? CachedNetworkImageProvider(response.userAvatarUrl!)
                 : null,
             child: response.userAvatarUrl == null
                 ? Text(response.userName?.substring(0, 1).toUpperCase() ?? '?')

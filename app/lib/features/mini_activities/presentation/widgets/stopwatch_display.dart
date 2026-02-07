@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/stopwatch.dart';
@@ -311,7 +312,7 @@ class StopwatchTimeRow extends StatelessWidget {
           CircleAvatar(
             radius: 16,
             backgroundImage: time.userProfileImageUrl != null
-                ? NetworkImage(time.userProfileImageUrl!)
+                ? CachedNetworkImageProvider(time.userProfileImageUrl!)
                 : null,
             child: time.userProfileImageUrl == null
                 ? Text(

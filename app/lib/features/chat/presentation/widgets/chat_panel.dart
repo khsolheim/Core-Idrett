@@ -285,6 +285,7 @@ class ChatPanelState extends ConsumerState<ChatPanel> {
                         );
 
                     return Column(
+                      key: ValueKey(message.id),
                       children: [
                         if (showDate)
                           DateDivider(date: message.createdAt),

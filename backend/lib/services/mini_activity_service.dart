@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
+import '../helpers/collection_helpers.dart';
 import '../models/mini_activity.dart';
 import 'user_service.dart';
 
@@ -244,11 +245,7 @@ class MiniActivityService {
       filters: {'mini_activity_id': 'in.(${miniActivityIds.join(',')})'},
     );
 
-    final teamCounts = <String, int>{};
-    for (final t in teams) {
-      final id = t['mini_activity_id'] as String;
-      teamCounts[id] = (teamCounts[id] ?? 0) + 1;
-    }
+    final teamCounts = groupByCount(teams, 'mini_activity_id');
 
     // Get participant counts
     final participants = await _db.client.select(
@@ -257,11 +254,7 @@ class MiniActivityService {
       filters: {'mini_activity_id': 'in.(${miniActivityIds.join(',')})'},
     );
 
-    final participantCounts = <String, int>{};
-    for (final p in participants) {
-      final id = p['mini_activity_id'] as String;
-      participantCounts[id] = (participantCounts[id] ?? 0) + 1;
-    }
+    final participantCounts = groupByCount(participants, 'mini_activity_id');
 
     return miniActivities.map((ma) {
       final id = ma['id'] as String;
@@ -304,11 +297,7 @@ class MiniActivityService {
       filters: {'mini_activity_id': 'in.(${miniActivityIds.join(',')})'},
     );
 
-    final teamCounts = <String, int>{};
-    for (final t in teams) {
-      final id = t['mini_activity_id'] as String;
-      teamCounts[id] = (teamCounts[id] ?? 0) + 1;
-    }
+    final teamCounts = groupByCount(teams, 'mini_activity_id');
 
     // Get participant counts
     final participants = await _db.client.select(
@@ -317,11 +306,7 @@ class MiniActivityService {
       filters: {'mini_activity_id': 'in.(${miniActivityIds.join(',')})'},
     );
 
-    final participantCounts = <String, int>{};
-    for (final p in participants) {
-      final id = p['mini_activity_id'] as String;
-      participantCounts[id] = (participantCounts[id] ?? 0) + 1;
-    }
+    final participantCounts = groupByCount(participants, 'mini_activity_id');
 
     return miniActivities.map((ma) {
       final id = ma['id'] as String;

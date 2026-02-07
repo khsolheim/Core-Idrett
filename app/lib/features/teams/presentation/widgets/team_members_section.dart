@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -59,7 +60,7 @@ class _CollapsibleMembersSectionState extends ConsumerState<CollapsibleMembersSe
                 leading: CircleAvatar(
                   radius: 18,
                   backgroundImage: member.userAvatarUrl != null
-                      ? NetworkImage(member.userAvatarUrl!)
+                      ? CachedNetworkImageProvider(member.userAvatarUrl!)
                       : null,
                   child: member.userAvatarUrl == null
                       ? Text(
@@ -190,7 +191,7 @@ class _MemberOptionsSheetState extends ConsumerState<MemberOptionsSheet> {
                 CircleAvatar(
                   radius: 24,
                   backgroundImage: widget.member.userAvatarUrl != null
-                      ? NetworkImage(widget.member.userAvatarUrl!)
+                      ? CachedNetworkImageProvider(widget.member.userAvatarUrl!)
                       : null,
                   child: widget.member.userAvatarUrl == null
                       ? Text(widget.member.userName.substring(0, 1).toUpperCase())

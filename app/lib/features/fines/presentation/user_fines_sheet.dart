@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -53,7 +54,7 @@ class UserFinesSheet extends ConsumerWidget {
                       CircleAvatar(
                         radius: 24,
                         backgroundImage: user.userAvatarUrl != null
-                            ? NetworkImage(user.userAvatarUrl!)
+                            ? CachedNetworkImageProvider(user.userAvatarUrl!)
                             : null,
                         child: user.userAvatarUrl == null
                             ? Text(

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -169,6 +170,7 @@ class _CategoryLeaderboard extends ConsumerWidget {
               final entry = entries[index];
               final isCurrentUser = currentUserId == entry.userId;
               return _RankedLeaderboardCard(
+                key: ValueKey(entry.userId),
                 entry: entry,
                 isCurrentUser: isCurrentUser,
                 teamId: teamId,
@@ -187,6 +189,7 @@ class _RankedLeaderboardCard extends StatelessWidget {
   final String teamId;
 
   const _RankedLeaderboardCard({
+    super.key,
     required this.entry,
     required this.isCurrentUser,
     required this.teamId,
@@ -258,7 +261,7 @@ class _RankedLeaderboardCard extends StatelessWidget {
               // Avatar
               CircleAvatar(
                 backgroundImage: entry.userAvatarUrl != null
-                    ? NetworkImage(entry.userAvatarUrl!)
+                    ? CachedNetworkImageProvider(entry.userAvatarUrl!)
                     : null,
                 child: entry.userAvatarUrl == null && entry.userName != null
                     ? Text(entry.userName!.substring(0, 1).toUpperCase())

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -51,6 +52,7 @@ class TeamsScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final team = teams[index];
                 return _TeamCard(
+                  key: ValueKey(team.id),
                   team: team,
                   onTap: () => context.pushNamed('team-detail', pathParameters: {'teamId': team.id}),
                 );
@@ -78,7 +80,7 @@ class TeamsScreen extends ConsumerWidget {
             CircleAvatar(
               radius: 40,
               backgroundImage: user?.avatarUrl != null
-                  ? NetworkImage(user.avatarUrl!)
+                  ? CachedNetworkImageProvider(user.avatarUrl!)
                   : null,
               child: user?.avatarUrl == null
                   ? Text(
@@ -126,7 +128,7 @@ class _TeamCard extends StatelessWidget {
   final Team team;
   final VoidCallback onTap;
 
-  const _TeamCard({required this.team, required this.onTap});
+  const _TeamCard({super.key, required this.team, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

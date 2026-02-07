@@ -5,6 +5,8 @@ import '../../../data/models/points_config.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/points_provider.dart';
 import 'widgets/points_config_fields.dart';
+import 'widgets/points_segmented_sections.dart';
+import 'widgets/points_toggle_settings.dart';
 
 class PointsConfigScreen extends ConsumerStatefulWidget {
   final String teamId;
@@ -269,202 +271,54 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
               const SizedBox(height: 24),
 
               // Mini-activity distribution
-              SectionHeader(title: 'Mini-aktiviteter'),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Poengfordeling',
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      SegmentedButton<MiniActivityDistribution>(
-                        segments: const [
-                          ButtonSegment(
-                            value: MiniActivityDistribution.winnerOnly,
-                            label: Text('Kun vinner'),
-                          ),
-                          ButtonSegment(
-                            value: MiniActivityDistribution.topThree,
-                            label: Text('Topp 3'),
-                          ),
-                          ButtonSegment(
-                            value: MiniActivityDistribution.allParticipants,
-                            label: Text('Alle'),
-                          ),
-                        ],
-                        selected: {_miniActivityDistribution},
-                        onSelectionChanged: (set) {
-                          setState(() {
-                            _miniActivityDistribution = set.first;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+              MiniActivityDistributionCard(
+                value: _miniActivityDistribution,
+                onChanged: (v) =>
+                    setState(() => _miniActivityDistribution = v),
               ),
 
               const SizedBox(height: 24),
 
               // Visibility
-              SectionHeader(title: 'Synlighet'),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hvem kan se poeng?',
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      SegmentedButton<LeaderboardVisibility>(
-                        segments: const [
-                          ButtonSegment(
-                            value: LeaderboardVisibility.all,
-                            label: Text('Alle'),
-                          ),
-                          ButtonSegment(
-                            value: LeaderboardVisibility.rankingOnly,
-                            label: Text('Rangering'),
-                          ),
-                          ButtonSegment(
-                            value: LeaderboardVisibility.ownOnly,
-                            label: Text('Kun egen'),
-                          ),
-                        ],
-                        selected: {_visibility},
-                        onSelectionChanged: (set) {
-                          setState(() {
-                            _visibility = set.first;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+              VisibilityCard(
+                value: _visibility,
+                onChanged: (v) => setState(() => _visibility = v),
               ),
 
               const SizedBox(height: 24),
 
               // New player start
-              SectionHeader(title: 'Nye spillere'),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Starter med poeng fra',
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      SegmentedButton<NewPlayerStartMode>(
-                        segments: const [
-                          ButtonSegment(
-                            value: NewPlayerStartMode.fromJoin,
-                            label: Text('Fra start'),
-                          ),
-                          ButtonSegment(
-                            value: NewPlayerStartMode.wholeSeason,
-                            label: Text('Hele sesong'),
-                          ),
-                          ButtonSegment(
-                            value: NewPlayerStartMode.adminChooses,
-                            label: Text('Admin velger'),
-                          ),
-                        ],
-                        selected: {_newPlayerStartMode},
-                        onSelectionChanged: (set) {
-                          setState(() {
-                            _newPlayerStartMode = set.first;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+              NewPlayerStartCard(
+                value: _newPlayerStartMode,
+                onChanged: (v) =>
+                    setState(() => _newPlayerStartMode = v),
               ),
 
               const SizedBox(height: 24),
 
               // Toggle settings
-              SectionHeader(title: 'Automatisering'),
-              Card(
-                child: Column(
-                  children: [
-                    SwitchListTile(
-                      title: const Text('Automatisk poengtildeling'),
-                      subtitle: const Text(
-                        'Gi poeng automatisk ved oppmøteregistrering',
-                      ),
-                      value: _autoAwardAttendance,
-                      onChanged: (value) {
-                        setState(() => _autoAwardAttendance = value);
-                      },
-                    ),
-                    const Divider(height: 1),
-                    SwitchListTile(
-                      title: const Text('Tillat opt-out'),
-                      subtitle: const Text(
-                        'Spillere kan velge å skjule seg fra leaderboard',
-                      ),
-                      value: _allowOptOut,
-                      onChanged: (value) {
-                        setState(() => _allowOptOut = value);
-                      },
-                    ),
-                  ],
-                ),
+              AutomationSettingsCard(
+                autoAwardAttendance: _autoAwardAttendance,
+                allowOptOut: _allowOptOut,
+                onAutoAwardChanged: (v) =>
+                    setState(() => _autoAwardAttendance = v),
+                onAllowOptOutChanged: (v) =>
+                    setState(() => _allowOptOut = v),
               ),
 
               const SizedBox(height: 24),
 
               // Absence settings
-              SectionHeader(title: 'Fravær'),
-              Card(
-                child: Column(
-                  children: [
-                    SwitchListTile(
-                      title: const Text('Krev begrunnelse'),
-                      subtitle: const Text(
-                        'Spillere må oppgi årsak ved fravær',
-                      ),
-                      value: _requireAbsenceReason,
-                      onChanged: (value) {
-                        setState(() => _requireAbsenceReason = value);
-                      },
-                    ),
-                    const Divider(height: 1),
-                    SwitchListTile(
-                      title: const Text('Krev godkjenning'),
-                      subtitle: const Text(
-                        'Admin må godkjenne fravær før det teller',
-                      ),
-                      value: _requireAbsenceApproval,
-                      onChanged: (value) {
-                        setState(() => _requireAbsenceApproval = value);
-                      },
-                    ),
-                    const Divider(height: 1),
-                    SwitchListTile(
-                      title: const Text('Ekskluder gyldig fravær'),
-                      subtitle: const Text(
-                        'Gyldig fravær tas ikke med i prosentberegning',
-                      ),
-                      value: _excludeValidAbsence,
-                      onChanged: (value) {
-                        setState(() => _excludeValidAbsence = value);
-                      },
-                    ),
-                  ],
-                ),
+              AbsenceSettingsCard(
+                requireAbsenceReason: _requireAbsenceReason,
+                requireAbsenceApproval: _requireAbsenceApproval,
+                excludeValidAbsence: _excludeValidAbsence,
+                onRequireReasonChanged: (v) =>
+                    setState(() => _requireAbsenceReason = v),
+                onRequireApprovalChanged: (v) =>
+                    setState(() => _requireAbsenceApproval = v),
+                onExcludeValidChanged: (v) =>
+                    setState(() => _excludeValidAbsence = v),
               ),
 
               const SizedBox(height: 32),

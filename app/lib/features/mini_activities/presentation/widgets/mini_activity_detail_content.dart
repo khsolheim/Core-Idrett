@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/mini_activity.dart';
@@ -244,7 +245,7 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundImage: participant.userAvatarUrl != null
-                            ? NetworkImage(participant.userAvatarUrl!)
+                            ? CachedNetworkImageProvider(participant.userAvatarUrl!)
                             : null,
                         child: participant.userAvatarUrl == null
                             ? Text(participant.userName?.substring(0, 1).toUpperCase() ?? '?')

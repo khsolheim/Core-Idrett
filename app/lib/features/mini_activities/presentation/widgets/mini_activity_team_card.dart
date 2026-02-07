@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/mini_activity.dart';
@@ -181,7 +182,7 @@ class MiniActivityTeamCard extends ConsumerWidget {
                       child: Chip(
                         avatar: CircleAvatar(
                           backgroundImage: p.userAvatarUrl != null
-                              ? NetworkImage(p.userAvatarUrl!)
+                              ? CachedNetworkImageProvider(p.userAvatarUrl!)
                               : null,
                           child: p.userAvatarUrl == null
                               ? Text(p.userName?.substring(0, 1).toUpperCase() ?? '?',
@@ -202,7 +203,7 @@ class MiniActivityTeamCard extends ConsumerWidget {
                   return Chip(
                     avatar: CircleAvatar(
                       backgroundImage: p.userAvatarUrl != null
-                          ? NetworkImage(p.userAvatarUrl!)
+                          ? CachedNetworkImageProvider(p.userAvatarUrl!)
                           : null,
                       child: p.userAvatarUrl == null
                           ? Text(p.userName?.substring(0, 1).toUpperCase() ?? '?',

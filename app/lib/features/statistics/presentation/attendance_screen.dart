@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/extensions/async_value_extensions.dart';
@@ -39,6 +40,7 @@ class AttendanceScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final record = records[index];
                 return Card(
+                  key: ValueKey(record.userId),
                   margin: const EdgeInsets.only(bottom: 8),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
@@ -46,7 +48,7 @@ class AttendanceScreen extends ConsumerWidget {
                       children: [
                         CircleAvatar(
                           backgroundImage: record.userAvatarUrl != null
-                              ? NetworkImage(record.userAvatarUrl!)
+                              ? CachedNetworkImageProvider(record.userAvatarUrl!)
                               : null,
                           child: record.userAvatarUrl == null
                               ? Text(record.userName.substring(0, 1).toUpperCase())

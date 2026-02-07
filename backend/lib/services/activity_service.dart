@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
+import '../helpers/collection_helpers.dart';
 import '../models/activity.dart';
 import 'user_service.dart';
 
@@ -191,11 +192,7 @@ class ActivityService {
     );
 
     // Count instances per activity
-    final instanceCounts = <String, int>{};
-    for (final instance in instances) {
-      final activityId = instance['activity_id'] as String;
-      instanceCounts[activityId] = (instanceCounts[activityId] ?? 0) + 1;
-    }
+    final instanceCounts = groupByCount(instances, 'activity_id');
 
     return activities.map((a) {
       return {

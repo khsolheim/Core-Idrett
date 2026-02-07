@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -439,7 +440,7 @@ class NewConversationSheet extends ConsumerWidget {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundImage: member.userAvatarUrl != null
-                              ? NetworkImage(member.userAvatarUrl!)
+                              ? CachedNetworkImageProvider(member.userAvatarUrl!)
                               : null,
                           child: member.userAvatarUrl == null
                               ? Text(member.userName.isNotEmpty

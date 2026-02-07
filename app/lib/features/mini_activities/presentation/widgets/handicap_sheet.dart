@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/mini_activity.dart';
@@ -237,7 +238,7 @@ class _HandicapSheetState extends ConsumerState<HandicapSheet> {
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundImage: user.profileImageUrl != null
-                                  ? NetworkImage(user.profileImageUrl!)
+                                  ? CachedNetworkImageProvider(user.profileImageUrl!)
                                   : null,
                               child: user.profileImageUrl == null
                                   ? Text(

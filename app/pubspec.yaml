@@ -75,6 +75,9 @@ dependencies:
   # Supabase for realtime updates
   supabase_flutter: ^2.8.0
 
+  # Image caching
+  cached_network_image: ^3.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

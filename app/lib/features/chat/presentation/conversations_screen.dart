@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -79,6 +80,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
               itemBuilder: (context, index) {
                 final conversation = conversations[index];
                 return _ConversationTile(
+                  key: ValueKey(conversation.recipientId),
                   conversation: conversation,
                   onTap: () => context.push(
                     '/teams/${widget.teamId}/conversations/${conversation.recipientId}',
@@ -107,6 +109,7 @@ class _ConversationTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const _ConversationTile({
+    super.key,
     required this.conversation,
     required this.onTap,
   });
@@ -119,7 +122,7 @@ class _ConversationTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundImage: conversation.recipientAvatarUrl != null
-            ? NetworkImage(conversation.recipientAvatarUrl!)
+            ? CachedNetworkImageProvider(conversation.recipientAvatarUrl!)
             : null,
         child: conversation.recipientAvatarUrl == null
             ? Text(conversation.recipientName.isNotEmpty
@@ -277,7 +280,7 @@ class _NewConversationSheet extends ConsumerWidget {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundImage: member.userAvatarUrl != null
-                              ? NetworkImage(member.userAvatarUrl!)
+                              ? CachedNetworkImageProvider(member.userAvatarUrl!)
                               : null,
                           child: member.userAvatarUrl == null
                               ? Text(member.userName.isNotEmpty

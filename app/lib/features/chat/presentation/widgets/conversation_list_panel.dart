@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -138,6 +139,7 @@ class ConversationListPanelState extends ConsumerState<ConversationListPanel> {
                           selected?.id == conversation.id;
 
                       return ConversationTile(
+                        key: ValueKey(conversation.id),
                         conversation: conversation,
                         isSelected: isSelected,
                         onTap: () {
@@ -194,7 +196,7 @@ class ConversationTile extends StatelessWidget {
       selected: isSelected,
       leading: CircleAvatar(
         backgroundImage: conversation.avatarUrl != null
-            ? NetworkImage(conversation.avatarUrl!)
+            ? CachedNetworkImageProvider(conversation.avatarUrl!)
             : null,
         child: conversation.avatarUrl == null
             ? Icon(

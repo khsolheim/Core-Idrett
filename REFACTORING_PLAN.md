@@ -84,7 +84,7 @@ grep -rn "\.first[^O]" lib/services/ | grep -v "isEmpty"
 ## Fase 16: Backend N+1 Query Fixes
 **Priority: HIGH (Performance)**
 **Files: ~6 service files**
-**Status: TODO**
+**Status: DONE** (commit 8201190)
 
 ### Problem
 1. `mini_activity_service.dart:462-489` — getHistory() loops N queries for teams (50 items = 51 queries)
@@ -231,7 +231,7 @@ grep -rn "context.push('/" lib/features/
 ## Fase 20: Frontend Provider Optimization
 **Priority: MEDIUM (Performance)**
 **Files: ~10-12 files**
-**Status: TODO**
+**Status: DONE** (commit 8201190)
 
 ### Problem
 1. Widgets watch entire providers when only needing one field (e.g., `isAdmin`)

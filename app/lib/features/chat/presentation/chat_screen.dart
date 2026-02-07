@@ -142,6 +142,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         );
 
                     return Column(
+                      key: ValueKey(message.id),
                       children: [
                         if (showDate) DateDivider(date: message.createdAt),
                         MessageBubble(

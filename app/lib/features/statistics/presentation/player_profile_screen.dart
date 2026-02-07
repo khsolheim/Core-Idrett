@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/extensions/async_value_extensions.dart';
@@ -71,7 +72,7 @@ class PlayerProfileScreen extends ConsumerWidget {
                           CircleAvatar(
                             radius: 40,
                             backgroundImage: stats.userAvatarUrl != null
-                                ? NetworkImage(stats.userAvatarUrl!)
+                                ? CachedNetworkImageProvider(stats.userAvatarUrl!)
                                 : null,
                             child: stats.userAvatarUrl == null
                                 ? Text(

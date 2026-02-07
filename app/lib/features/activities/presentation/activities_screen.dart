@@ -54,6 +54,7 @@ class ActivitiesScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final instance = instances[index];
                 return _ActivityInstanceCard(
+                  key: ValueKey(instance.id),
                   instance: instance,
                   teamId: teamId,
                 );
@@ -76,6 +77,7 @@ class _ActivityInstanceCard extends ConsumerWidget {
   final String teamId;
 
   const _ActivityInstanceCard({
+    super.key,
     required this.instance,
     required this.teamId,
   });
