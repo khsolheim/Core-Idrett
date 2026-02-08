@@ -34,10 +34,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. All backend models successfully roundtrip through fromJson/toJson without data loss
   3. Test data factories generate valid model instances for all core entities
   4. Mock database infrastructure enables service testing without real Supabase connection
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 01-01: [Plan details TBD during planning]
+- [ ] 01-01-PLAN.md — Backend dependencies, Equatable migration, test data factories, mock SupabaseClient
+- [ ] 01-02-PLAN.md — Frontend Equatable migration, test data factory expansion with Norwegian names
+- [ ] 01-03-PLAN.md — Backend model roundtrip tests (all ~62 classes)
+- [ ] 01-04-PLAN.md — Frontend model roundtrip tests (all ~64 classes)
 
 ### Phase 2: Type Safety & Validation
 **Goal**: Eliminate all unsafe type casts and establish validated parsing at deserialization boundaries
@@ -187,7 +190,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Test Infrastructure | 0/0 | Not started | - |
+| 1. Test Infrastructure | 0/4 | Planned | - |
 | 2. Type Safety & Validation | 0/0 | Not started | - |
 | 3. Backend Service Splitting | 0/0 | Not started | - |
 | 4. Backend Security & Input Validation | 0/0 | Not started | - |
