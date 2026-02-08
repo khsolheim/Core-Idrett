@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 /// Achievement tier levels
 enum AchievementTier {
   bronze,
@@ -147,14 +149,13 @@ enum AchievementCriteriaType {
 }
 
 /// Criteria for awarding an achievement
-class AchievementCriteria {
+class AchievementCriteria extends Equatable {
   final AchievementCriteriaType type;
   final int? threshold;
   final double? percentage;
   final String? activityType;
   final String? timeframe;
   final Map<String, dynamic>? customData;
-
   AchievementCriteria({
     required this.type,
     this.threshold,
@@ -165,7 +166,8 @@ class AchievementCriteria {
   });
 
   factory AchievementCriteria.fromJson(Map<String, dynamic> json) {
-    return AchievementCriteria(
+    return
+  AchievementCriteria(
       type: AchievementCriteriaType.fromString(json['type'] ?? 'custom'),
       threshold: json['threshold'],
       percentage: (json['percentage'] as num?)?.toDouble(),
@@ -192,7 +194,8 @@ class AchievementCriteria {
     String? timeframe,
     Map<String, dynamic>? customData,
   }) {
-    return AchievementCriteria(
+    return
+  AchievementCriteria(
       type: type ?? this.type,
       threshold: threshold ?? this.threshold,
       percentage: percentage ?? this.percentage,
@@ -201,4 +204,8 @@ class AchievementCriteria {
       customData: customData ?? this.customData,
     );
   }
+
+
+  @override
+  List<Object?> get props => [type, threshold, percentage, activityType, timeframe, customData];
 }

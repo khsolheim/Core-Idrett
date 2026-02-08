@@ -1,9 +1,10 @@
 // Core points configuration and attendance models
 
 import 'points_config_enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// Team-specific points configuration
-class TeamPointsConfig {
+class TeamPointsConfig extends Equatable {
   final String id;
   final String teamId;
   final String? seasonId;
@@ -23,7 +24,6 @@ class TeamPointsConfig {
   final bool excludeValidAbsenceFromPercentage;
   final NewPlayerStartMode newPlayerStartMode;
   final DateTime createdAt;
-
   TeamPointsConfig({
     required this.id,
     required this.teamId,
@@ -47,7 +47,8 @@ class TeamPointsConfig {
   });
 
   factory TeamPointsConfig.fromJson(Map<String, dynamic> json) {
-    return TeamPointsConfig(
+    return
+  TeamPointsConfig(
       id: json['id'],
       teamId: json['team_id'],
       seasonId: json['season_id'],
@@ -118,7 +119,8 @@ class TeamPointsConfig {
     NewPlayerStartMode? newPlayerStartMode,
     DateTime? createdAt,
   }) {
-    return TeamPointsConfig(
+    return
+  TeamPointsConfig(
       id: id ?? this.id,
       teamId: teamId ?? this.teamId,
       seasonId: seasonId ?? this.seasonId,
@@ -143,10 +145,14 @@ class TeamPointsConfig {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, teamId, seasonId, trainingPoints, matchPoints, socialPoints, trainingWeight, matchWeight, socialWeight, competitionWeight, miniActivityDistribution, autoAwardAttendance, visibility, allowOptOut, requireAbsenceReason, requireAbsenceApproval, excludeValidAbsenceFromPercentage, newPlayerStartMode, createdAt];
 }
 
 /// Individual attendance points record
-class AttendancePoints {
+class AttendancePoints extends Equatable {
   final String id;
   final String teamId;
   final String userId;
@@ -162,7 +168,6 @@ class AttendancePoints {
   final String? userAvatarUrl;
   final String? activityName;
   final DateTime? activityDate;
-
   AttendancePoints({
     required this.id,
     required this.teamId,
@@ -180,7 +185,8 @@ class AttendancePoints {
   });
 
   factory AttendancePoints.fromJson(Map<String, dynamic> json) {
-    return AttendancePoints(
+    return
+  AttendancePoints(
       id: json['id'],
       teamId: json['team_id'],
       userId: json['user_id'],
@@ -214,10 +220,14 @@ class AttendancePoints {
         'activity_name': activityName,
         'activity_date': activityDate?.toIso8601String(),
       };
+
+
+  @override
+  List<Object?> get props => [id, teamId, userId, instanceId, seasonId, activityType, basePoints, weightedPoints, createdAt, userName, userAvatarUrl, activityName, activityDate];
 }
 
 /// User attendance statistics summary
-class UserAttendanceStats {
+class UserAttendanceStats extends Equatable {
   final String userId;
   final String teamId;
   final int totalPoints;
@@ -237,7 +247,6 @@ class UserAttendanceStats {
   final int socialPoints;
   final int competitionPoints;
   final int bonusPoints;
-
   UserAttendanceStats({
     required this.userId,
     required this.teamId,
@@ -269,7 +278,8 @@ class UserAttendanceStats {
       socialPossible > 0 ? socialAttended / socialPossible * 100 : 0.0;
 
   factory UserAttendanceStats.fromJson(Map<String, dynamic> json) {
-    return UserAttendanceStats(
+    return
+  UserAttendanceStats(
       userId: json['user_id'],
       teamId: json['team_id'],
       totalPoints: json['total_points'] ?? 0,
@@ -310,4 +320,8 @@ class UserAttendanceStats {
         'competition_points': competitionPoints,
         'bonus_points': bonusPoints,
       };
+
+
+  @override
+  List<Object?> get props => [userId, teamId, totalPoints, totalWeightedPoints, trainingAttended, trainingPossible, matchAttended, matchPossible, socialAttended, socialPossible, attendanceRate, currentStreak, trainingPoints, matchPoints, socialPoints, competitionPoints, bonusPoints];
 }

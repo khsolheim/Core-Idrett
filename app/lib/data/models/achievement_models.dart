@@ -1,9 +1,10 @@
 // Achievement definition and user achievement models
 
 import 'achievement_enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// Achievement definition (template)
-class AchievementDefinition {
+class AchievementDefinition extends Equatable {
   final String id;
   final String? teamId;
   final String code;
@@ -20,7 +21,6 @@ class AchievementDefinition {
   final bool isRepeatable;
   final int? repeatCooldownDays;
   final DateTime createdAt;
-
   AchievementDefinition({
     required this.id,
     this.teamId,
@@ -43,7 +43,8 @@ class AchievementDefinition {
   bool get isGlobal => teamId == null;
 
   factory AchievementDefinition.fromJson(Map<String, dynamic> json) {
-    return AchievementDefinition(
+    return
+  AchievementDefinition(
       id: json['id'],
       teamId: json['team_id'],
       code: json['code'],
@@ -100,7 +101,8 @@ class AchievementDefinition {
     int? repeatCooldownDays,
     DateTime? createdAt,
   }) {
-    return AchievementDefinition(
+    return
+  AchievementDefinition(
       id: id ?? this.id,
       teamId: teamId ?? this.teamId,
       code: code ?? this.code,
@@ -119,10 +121,14 @@ class AchievementDefinition {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, teamId, code, name, description, icon, color, tier, category, criteria, bonusPoints, isActive, isSecret, isRepeatable, repeatCooldownDays, createdAt];
 }
 
 /// Awarded achievement instance for a user
-class UserAchievement {
+class UserAchievement extends Equatable {
   final String id;
   final String userId;
   final String achievementId;
@@ -137,7 +143,6 @@ class UserAchievement {
   final AchievementDefinition? definition;
   final String? userName;
   final String? userAvatarUrl;
-
   UserAchievement({
     required this.id,
     required this.userId,
@@ -161,7 +166,8 @@ class UserAchievement {
   String? get description => definition?.description;
 
   factory UserAchievement.fromJson(Map<String, dynamic> json) {
-    return UserAchievement(
+    return
+  UserAchievement(
       id: json['id'],
       userId: json['user_id'],
       achievementId: json['achievement_id'],
@@ -193,10 +199,14 @@ class UserAchievement {
         'user_name': userName,
         'user_avatar_url': userAvatarUrl,
       };
+
+
+  @override
+  List<Object?> get props => [id, userId, achievementId, teamId, seasonId, pointsAwarded, repeatCount, triggerReference, awardedAt, definition, userName, userAvatarUrl];
 }
 
 /// Progress towards an achievement
-class AchievementProgress {
+class AchievementProgress extends Equatable {
   final String id;
   final String? userId;
   final String achievementId;
@@ -209,7 +219,6 @@ class AchievementProgress {
   // Joined fields
   final AchievementDefinition? definition;
   final String? userName;
-
   AchievementProgress({
     required this.id,
     this.userId,
@@ -241,7 +250,8 @@ class AchievementProgress {
   AchievementCategory? get category => definition?.category;
 
   factory AchievementProgress.fromJson(Map<String, dynamic> json) {
-    return AchievementProgress(
+    return
+  AchievementProgress(
       id: json['id'],
       userId: json['user_id'],
       achievementId: json['achievement_id'],
@@ -269,10 +279,14 @@ class AchievementProgress {
         if (definition != null) 'definition': definition!.toJson(),
         'user_name': userName,
       };
+
+
+  @override
+  List<Object?> get props => [id, userId, achievementId, teamId, seasonId, currentValue, targetValue, updatedAt, definition, userName];
 }
 
 /// Summary of user achievements
-class UserAchievementsSummary {
+class UserAchievementsSummary extends Equatable {
   final String userId;
   final int totalAchievements;
   final int bronzeCount;
@@ -282,7 +296,6 @@ class UserAchievementsSummary {
   final int totalBonusPoints;
   final List<UserAchievement> recentAchievements;
   final List<AchievementProgress> inProgress;
-
   UserAchievementsSummary({
     required this.userId,
     this.totalAchievements = 0,
@@ -296,7 +309,8 @@ class UserAchievementsSummary {
   });
 
   factory UserAchievementsSummary.fromJson(Map<String, dynamic> json) {
-    return UserAchievementsSummary(
+    return
+  UserAchievementsSummary(
       userId: json['user_id'],
       totalAchievements: json['total_achievements'] ?? 0,
       bronzeCount: json['bronze_count'] ?? 0,
@@ -329,4 +343,8 @@ class UserAchievementsSummary {
             recentAchievements.map((e) => e.toJson()).toList(),
         'in_progress': inProgress.map((e) => e.toJson()).toList(),
       };
+
+
+  @override
+  List<Object?> get props => [userId, totalAchievements, bronzeCount, silverCount, goldCount, platinumCount, totalBonusPoints, recentAchievements, inProgress];
 }

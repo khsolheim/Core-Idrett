@@ -1,4 +1,6 @@
-class TeamDocument {
+import 'package:equatable/equatable.dart';
+
+class TeamDocument extends Equatable {
   final String id;
   final String teamId;
   final String uploadedBy;
@@ -14,7 +16,7 @@ class TeamDocument {
   final String? uploaderName;
   final String? uploaderAvatarUrl;
 
-  TeamDocument({
+  const TeamDocument({
     required this.id,
     required this.teamId,
     required this.uploadedBy,
@@ -92,6 +94,12 @@ class TeamDocument {
 
   /// Check if this is an audio file
   bool get isAudio => mimeType.startsWith('audio/');
+
+  @override
+  List<Object?> get props => [
+    id, teamId, uploadedBy, name, description, filePath, fileSize, mimeType,
+    category, isDeleted, createdAt, updatedAt, uploaderName, uploaderAvatarUrl
+  ];
 }
 
 /// Document categories
@@ -135,12 +143,12 @@ enum DocumentCategory {
 }
 
 /// Category with count (from API)
-class DocumentCategoryCount {
+class DocumentCategoryCount extends Equatable {
   final String category;
   final String displayName;
   final int count;
 
-  DocumentCategoryCount({
+  const DocumentCategoryCount({
     required this.category,
     required this.displayName,
     required this.count,
@@ -153,4 +161,7 @@ class DocumentCategoryCount {
       count: json['count'] as int,
     );
   }
+
+  @override
+  List<Object?> get props => [category, displayName, count];
 }

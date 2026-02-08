@@ -1,12 +1,13 @@
+import 'package:equatable/equatable.dart';
+
 // Supporting models for mini-activities
 // Teams, participants, adjustments, handicaps, and history entries
 
-class MiniActivityTeam {
+class MiniActivityTeam extends Equatable {
   final String id;
   final String? name;
   final int? finalScore;
   final List<MiniActivityParticipant>? participants;
-
   MiniActivityTeam({
     required this.id,
     this.name,
@@ -26,7 +27,8 @@ class MiniActivityTeam {
           .toList();
     }
 
-    return MiniActivityTeam(
+    return
+  MiniActivityTeam(
       id: json['id'] as String,
       name: json['name'] as String?,
       finalScore: json['final_score'] as int?,
@@ -49,22 +51,26 @@ class MiniActivityTeam {
     int? finalScore,
     List<MiniActivityParticipant>? participants,
   }) {
-    return MiniActivityTeam(
+    return
+  MiniActivityTeam(
       id: id ?? this.id,
       name: name ?? this.name,
       finalScore: finalScore ?? this.finalScore,
       participants: participants ?? this.participants,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, name, finalScore, participants];
 }
 
-class MiniActivityParticipant {
+class MiniActivityParticipant extends Equatable {
   final String id;
   final String userId;
   final int points;
   final String? userName;
   final String? userAvatarUrl;
-
   MiniActivityParticipant({
     required this.id,
     required this.userId,
@@ -74,7 +80,8 @@ class MiniActivityParticipant {
   });
 
   factory MiniActivityParticipant.fromJson(Map<String, dynamic> json) {
-    return MiniActivityParticipant(
+    return
+  MiniActivityParticipant(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       points: json['points'] as int? ?? 0,
@@ -100,7 +107,8 @@ class MiniActivityParticipant {
     String? userName,
     String? userAvatarUrl,
   }) {
-    return MiniActivityParticipant(
+    return
+  MiniActivityParticipant(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       points: points ?? this.points,
@@ -108,10 +116,14 @@ class MiniActivityParticipant {
       userAvatarUrl: userAvatarUrl ?? this.userAvatarUrl,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, userId, points, userName, userAvatarUrl];
 }
 
 // Adjustment model for bonus/penalty points
-class MiniActivityAdjustment {
+class MiniActivityAdjustment extends Equatable {
   final String id;
   final String miniActivityId;
   final String? teamId;
@@ -120,7 +132,6 @@ class MiniActivityAdjustment {
   final String? reason;
   final String createdBy;
   final DateTime createdAt;
-
   MiniActivityAdjustment({
     required this.id,
     required this.miniActivityId,
@@ -133,7 +144,8 @@ class MiniActivityAdjustment {
   });
 
   factory MiniActivityAdjustment.fromJson(Map<String, dynamic> json) {
-    return MiniActivityAdjustment(
+    return
+  MiniActivityAdjustment(
       id: json['id'] as String,
       miniActivityId: json['mini_activity_id'] as String,
       teamId: json['team_id'] as String?,
@@ -180,10 +192,14 @@ class MiniActivityAdjustment {
     }
     return '$points';
   }
+
+
+  @override
+  List<Object?> get props => [id, miniActivityId, teamId, userId, points, reason, createdBy, createdAt];
 }
 
 // Handicap model for player handicaps
-class MiniActivityHandicap {
+class MiniActivityHandicap extends Equatable {
   final String id;
   final String miniActivityId;
   final String userId;
@@ -191,7 +207,6 @@ class MiniActivityHandicap {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? userName;
-
   MiniActivityHandicap({
     required this.id,
     required this.miniActivityId,
@@ -203,7 +218,8 @@ class MiniActivityHandicap {
   });
 
   factory MiniActivityHandicap.fromJson(Map<String, dynamic> json) {
-    return MiniActivityHandicap(
+    return
+  MiniActivityHandicap(
       id: json['id'] as String,
       miniActivityId: json['mini_activity_id'] as String,
       userId: json['user_id'] as String,
@@ -232,16 +248,19 @@ class MiniActivityHandicap {
     }
     return handicapValue.toStringAsFixed(1);
   }
+
+
+  @override
+  List<Object?> get props => [id, miniActivityId, userId, handicapValue, createdAt, updatedAt, userName];
 }
 
 // History entry for showing previous results
-class MiniActivityHistoryEntry {
+class MiniActivityHistoryEntry extends Equatable {
   final String id;
   final String name;
   final DateTime createdAt;
   final String? winnerTeamId;
   final List<MiniActivityHistoryTeam> teams;
-
   MiniActivityHistoryEntry({
     required this.id,
     required this.name,
@@ -259,7 +278,8 @@ class MiniActivityHistoryEntry {
           .toList();
     }
 
-    return MiniActivityHistoryEntry(
+    return
+  MiniActivityHistoryEntry(
       id: json['id'] as String,
       name: json['name'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -285,13 +305,16 @@ class MiniActivityHistoryEntry {
     }
     return null;
   }
+
+
+  @override
+  List<Object?> get props => [id, name, createdAt, winnerTeamId, teams];
 }
 
-class MiniActivityHistoryTeam {
+class MiniActivityHistoryTeam extends Equatable {
   final String id;
   final String? name;
   final int? finalScore;
-
   MiniActivityHistoryTeam({
     required this.id,
     this.name,
@@ -299,10 +322,15 @@ class MiniActivityHistoryTeam {
   });
 
   factory MiniActivityHistoryTeam.fromJson(Map<String, dynamic> json) {
-    return MiniActivityHistoryTeam(
+    return
+  MiniActivityHistoryTeam(
       id: json['id'] as String,
       name: json['name'] as String?,
       finalScore: json['final_score'] as int?,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, name, finalScore];
 }

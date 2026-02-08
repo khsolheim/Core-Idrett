@@ -1,7 +1,9 @@
+import 'package:equatable/equatable.dart';
+
 // Core statistics models: seasons, leaderboards, tests
 
 /// Season model for organizing activities and statistics per time period
-class Season {
+class Season extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -9,7 +11,6 @@ class Season {
   final DateTime? endDate;
   final bool isActive;
   final DateTime createdAt;
-
   Season({
     required this.id,
     required this.teamId,
@@ -21,7 +22,8 @@ class Season {
   });
 
   factory Season.fromJson(Map<String, dynamic> json) {
-    return Season(
+    return
+  Season(
       id: json['id'],
       teamId: json['team_id'],
       name: json['name'],
@@ -45,10 +47,14 @@ class Season {
         'is_active': isActive,
         'created_at': createdAt.toIso8601String(),
       };
+
+
+  @override
+  List<Object?> get props => [id, teamId, name, startDate, endDate, isActive, createdAt];
 }
 
 /// Leaderboard model for tracking different competition types
-class Leaderboard {
+class Leaderboard extends Equatable {
   final String id;
   final String teamId;
   final String? seasonId;
@@ -58,7 +64,6 @@ class Leaderboard {
   final int sortOrder;
   final DateTime createdAt;
   final List<NewLeaderboardEntry>? entries;
-
   Leaderboard({
     required this.id,
     required this.teamId,
@@ -72,7 +77,8 @@ class Leaderboard {
   });
 
   factory Leaderboard.fromJson(Map<String, dynamic> json) {
-    return Leaderboard(
+    return
+  Leaderboard(
       id: json['id'],
       teamId: json['team_id'],
       seasonId: json['season_id'],
@@ -100,10 +106,14 @@ class Leaderboard {
         'created_at': createdAt.toIso8601String(),
         if (entries != null) 'entries': entries!.map((e) => e.toJson()).toList(),
       };
+
+
+  @override
+  List<Object?> get props => [id, teamId, seasonId, name, description, isMain, sortOrder, createdAt, entries];
 }
 
 /// New leaderboard entry model for the new leaderboard system
-class NewLeaderboardEntry {
+class NewLeaderboardEntry extends Equatable {
   final String id;
   final String leaderboardId;
   final String userId;
@@ -112,7 +122,6 @@ class NewLeaderboardEntry {
   final String? userName;
   final String? userAvatarUrl;
   final int? rank;
-
   NewLeaderboardEntry({
     required this.id,
     required this.leaderboardId,
@@ -125,7 +134,8 @@ class NewLeaderboardEntry {
   });
 
   factory NewLeaderboardEntry.fromJson(Map<String, dynamic> json) {
-    return NewLeaderboardEntry(
+    return
+  NewLeaderboardEntry(
       id: json['id'],
       leaderboardId: json['leaderboard_id'],
       userId: json['user_id'],
@@ -147,10 +157,14 @@ class NewLeaderboardEntry {
         'user_avatar_url': userAvatarUrl,
         'rank': rank,
       };
+
+
+  @override
+  List<Object?> get props => [id, leaderboardId, userId, points, updatedAt, userName, userAvatarUrl, rank];
 }
 
 /// Test template model
-class TestTemplate {
+class TestTemplate extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -158,7 +172,6 @@ class TestTemplate {
   final String unit;
   final bool higherIsBetter;
   final DateTime createdAt;
-
   TestTemplate({
     required this.id,
     required this.teamId,
@@ -170,7 +183,8 @@ class TestTemplate {
   });
 
   factory TestTemplate.fromJson(Map<String, dynamic> json) {
-    return TestTemplate(
+    return
+  TestTemplate(
       id: json['id'],
       teamId: json['team_id'],
       name: json['name'],
@@ -190,10 +204,14 @@ class TestTemplate {
         'higher_is_better': higherIsBetter,
         'created_at': createdAt.toIso8601String(),
       };
+
+
+  @override
+  List<Object?> get props => [id, teamId, name, description, unit, higherIsBetter, createdAt];
 }
 
 /// Test result model
-class TestResult {
+class TestResult extends Equatable {
   final String id;
   final String testTemplateId;
   final String userId;
@@ -205,7 +223,6 @@ class TestResult {
   final String? userAvatarUrl;
   final String? testName;
   final String? testUnit;
-
   TestResult({
     required this.id,
     required this.testTemplateId,
@@ -221,7 +238,8 @@ class TestResult {
   });
 
   factory TestResult.fromJson(Map<String, dynamic> json) {
-    return TestResult(
+    return
+  TestResult(
       id: json['id'],
       testTemplateId: json['test_template_id'],
       userId: json['user_id'],
@@ -249,4 +267,8 @@ class TestResult {
         'test_name': testName,
         'test_unit': testUnit,
       };
+
+
+  @override
+  List<Object?> get props => [id, testTemplateId, userId, instanceId, value, recordedAt, notes, userName, userAvatarUrl, testName, testUnit];
 }

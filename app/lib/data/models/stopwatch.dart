@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 // Stopwatch models for timing mini-activities
 // Supports both stopwatch (count up) and countdown modes
 
@@ -101,7 +103,7 @@ enum StopwatchSessionStatus {
 }
 
 /// Main stopwatch session class
-class StopwatchSession {
+class StopwatchSession extends Equatable {
   final String id;
   final String? miniActivityId;
   final String? teamId;
@@ -117,7 +119,6 @@ class StopwatchSession {
   // Nested data
   final List<StopwatchTime>? times;
   final String? creatorName;
-
   StopwatchSession({
     required this.id,
     this.miniActivityId,
@@ -135,7 +136,8 @@ class StopwatchSession {
   });
 
   factory StopwatchSession.fromJson(Map<String, dynamic> json) {
-    return StopwatchSession(
+    return
+  StopwatchSession(
       id: json['id'] as String,
       miniActivityId: json['mini_activity_id'] as String?,
       teamId: json['team_id'] as String?,
@@ -187,7 +189,8 @@ class StopwatchSession {
     List<StopwatchTime>? times,
     String? creatorName,
   }) {
-    return StopwatchSession(
+    return
+  StopwatchSession(
       id: id ?? this.id,
       miniActivityId: miniActivityId ?? this.miniActivityId,
       teamId: teamId ?? this.teamId,
@@ -251,10 +254,14 @@ class StopwatchSession {
     final millis = ms % 1000;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}.${(millis ~/ 10).toString().padLeft(2, '0')}';
   }
+
+
+  @override
+  List<Object?> get props => [id, miniActivityId, teamId, name, sessionType, countdownDurationMs, status, startedAt, completedAt, createdAt, createdBy, times, creatorName];
 }
 
 /// Individual recorded time for a user
-class StopwatchTime {
+class StopwatchTime extends Equatable {
   final String id;
   final String sessionId;
   final String userId;
@@ -266,7 +273,6 @@ class StopwatchTime {
   // Joined data
   final String? userName;
   final String? userProfileImageUrl;
-
   StopwatchTime({
     required this.id,
     required this.sessionId,
@@ -280,7 +286,8 @@ class StopwatchTime {
   });
 
   factory StopwatchTime.fromJson(Map<String, dynamic> json) {
-    return StopwatchTime(
+    return
+  StopwatchTime(
       id: json['id'] as String,
       sessionId: json['session_id'] as String,
       userId: json['user_id'] as String,
@@ -318,7 +325,8 @@ class StopwatchTime {
     String? userName,
     String? userProfileImageUrl,
   }) {
-    return StopwatchTime(
+    return
+  StopwatchTime(
       id: id ?? this.id,
       sessionId: sessionId ?? this.sessionId,
       userId: userId ?? this.userId,
@@ -354,16 +362,19 @@ class StopwatchTime {
 
   /// Get split label (e.g., "Split 1", "Split 2")
   String get splitLabel => isSplit ? 'Split ${splitNumber ?? 1}' : 'Slutt';
+
+
+  @override
+  List<Object?> get props => [id, sessionId, userId, timeMs, isSplit, splitNumber, recordedAt, userName, userProfileImageUrl];
 }
 
 /// Aggregated session with times (for display)
-class StopwatchSessionWithTimes {
+class StopwatchSessionWithTimes extends Equatable {
   final StopwatchSession session;
   final List<StopwatchTime> times;
   final StopwatchTime? fastestTime;
   final StopwatchTime? slowestTime;
   final double? averageTimeMs;
-
   StopwatchSessionWithTimes({
     required this.session,
     required this.times,
@@ -389,7 +400,8 @@ class StopwatchSessionWithTimes {
       average = times.map((t) => t.timeMs).reduce((a, b) => a + b) / times.length;
     }
 
-    return StopwatchSessionWithTimes(
+    return
+  StopwatchSessionWithTimes(
       session: StopwatchSession.fromJson(json['session'] as Map<String, dynamic>? ?? json),
       times: times,
       fastestTime: fastest,
@@ -413,7 +425,8 @@ class StopwatchSessionWithTimes {
       average = times.map((t) => t.timeMs).reduce((a, b) => a + b) / times.length;
     }
 
-    return StopwatchSessionWithTimes(
+    return
+  StopwatchSessionWithTimes(
       session: session,
       times: times,
       fastestTime: fastest,
@@ -455,4 +468,8 @@ class StopwatchSessionWithTimes {
     }
     return bestTimes.values.toList()..sort((a, b) => a.timeMs.compareTo(b.timeMs));
   }
+
+
+  @override
+  List<Object?> get props => [session, times, fastestTime, slowestTime, averageTimeMs];
 }

@@ -1,8 +1,10 @@
+import 'package:equatable/equatable.dart';
+
 // Core statistics models for mini-activity tracking
 // Player stats, head-to-head records, and team history
 
 /// Player statistics across mini-activities
-class MiniActivityPlayerStats {
+class MiniActivityPlayerStats extends Equatable {
   final String id;
   final String userId;
   final String teamId;
@@ -21,7 +23,6 @@ class MiniActivityPlayerStats {
   final String? userName;
   final String? userProfileImageUrl;
   final String? seasonName;
-
   MiniActivityPlayerStats({
     required this.id,
     required this.userId,
@@ -42,7 +43,8 @@ class MiniActivityPlayerStats {
   });
 
   factory MiniActivityPlayerStats.fromJson(Map<String, dynamic> json) {
-    return MiniActivityPlayerStats(
+    return
+  MiniActivityPlayerStats(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       teamId: json['team_id'] as String,
@@ -101,7 +103,8 @@ class MiniActivityPlayerStats {
     String? userProfileImageUrl,
     String? seasonName,
   }) {
-    return MiniActivityPlayerStats(
+    return
+  MiniActivityPlayerStats(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       teamId: teamId ?? this.teamId,
@@ -144,10 +147,14 @@ class MiniActivityPlayerStats {
 
   /// Formatted average points
   String get formattedAveragePoints => averagePoints.toStringAsFixed(1);
+
+
+  @override
+  List<Object?> get props => [id, userId, teamId, seasonId, totalParticipations, totalWins, totalLosses, totalDraws, totalPoints, firstPlaceCount, secondPlaceCount, thirdPlaceCount, updatedAt, userName, userProfileImageUrl, seasonName];
 }
 
 /// Head-to-head statistics between two players
-class HeadToHeadStats {
+class HeadToHeadStats extends Equatable {
   final String id;
   final String teamId;
   final String user1Id;
@@ -164,7 +171,6 @@ class HeadToHeadStats {
   final String? user2Name;
   final String? user1ProfileImageUrl;
   final String? user2ProfileImageUrl;
-
   HeadToHeadStats({
     required this.id,
     required this.teamId,
@@ -183,7 +189,8 @@ class HeadToHeadStats {
   });
 
   factory HeadToHeadStats.fromJson(Map<String, dynamic> json) {
-    return HeadToHeadStats(
+    return
+  HeadToHeadStats(
       id: json['id'] as String,
       teamId: json['team_id'] as String,
       user1Id: json['user1_id'] as String,
@@ -236,7 +243,8 @@ class HeadToHeadStats {
     String? user1ProfileImageUrl,
     String? user2ProfileImageUrl,
   }) {
-    return HeadToHeadStats(
+    return
+  HeadToHeadStats(
       id: id ?? this.id,
       teamId: teamId ?? this.teamId,
       user1Id: user1Id ?? this.user1Id,
@@ -294,10 +302,14 @@ class HeadToHeadStats {
   String? opponentNameOf(String userId) {
     return userId == user1Id ? user2Name : user1Name;
   }
+
+
+  @override
+  List<Object?> get props => [id, teamId, user1Id, user2Id, user1Wins, user2Wins, draws, totalMatchups, lastMatchupAt, updatedAt, user1Name, user2Name, user1ProfileImageUrl, user2ProfileImageUrl];
 }
 
 /// History of a user's team assignments in mini-activities
-class MiniActivityTeamHistory {
+class MiniActivityTeamHistory extends Equatable {
   final String id;
   final String userId;
   final String miniActivityId;
@@ -311,7 +323,6 @@ class MiniActivityTeamHistory {
   // Joined data
   final String? userName;
   final String? miniActivityName;
-
   MiniActivityTeamHistory({
     required this.id,
     required this.userId,
@@ -327,7 +338,8 @@ class MiniActivityTeamHistory {
   });
 
   factory MiniActivityTeamHistory.fromJson(Map<String, dynamic> json) {
-    return MiniActivityTeamHistory(
+    return
+  MiniActivityTeamHistory(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       miniActivityId: json['mini_activity_id'] as String,
@@ -371,7 +383,8 @@ class MiniActivityTeamHistory {
     String? userName,
     String? miniActivityName,
   }) {
-    return MiniActivityTeamHistory(
+    return
+  MiniActivityTeamHistory(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       miniActivityId: miniActivityId ?? this.miniActivityId,
@@ -414,4 +427,8 @@ class MiniActivityTeamHistory {
         return null;
     }
   }
+
+
+  @override
+  List<Object?> get props => [id, userId, miniActivityId, miniTeamId, teamName, placement, pointsEarned, wasWinner, recordedAt, userName, miniActivityName];
 }

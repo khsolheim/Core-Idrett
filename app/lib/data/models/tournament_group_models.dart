@@ -2,9 +2,10 @@
 // TournamentGroup, GroupStanding, GroupMatch, QualificationRound, QualificationResult
 
 import 'tournament_enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// Group within a group-stage tournament
-class TournamentGroup {
+class TournamentGroup extends Equatable {
   final String id;
   final String tournamentId;
   final String name;
@@ -15,7 +16,6 @@ class TournamentGroup {
   // Nested data
   final List<GroupStanding>? standings;
   final List<GroupMatch>? matches;
-
   TournamentGroup({
     required this.id,
     required this.tournamentId,
@@ -28,7 +28,8 @@ class TournamentGroup {
   });
 
   factory TournamentGroup.fromJson(Map<String, dynamic> json) {
-    return TournamentGroup(
+    return
+  TournamentGroup(
       id: json['id'] as String,
       tournamentId: json['tournament_id'] as String,
       name: json['name'] as String,
@@ -67,7 +68,8 @@ class TournamentGroup {
     List<GroupStanding>? standings,
     List<GroupMatch>? matches,
   }) {
-    return TournamentGroup(
+    return
+  TournamentGroup(
       id: id ?? this.id,
       tournamentId: tournamentId ?? this.tournamentId,
       name: name ?? this.name,
@@ -86,10 +88,14 @@ class TournamentGroup {
     sorted.sort((a, b) => a.position.compareTo(b.position));
     return sorted;
   }
+
+
+  @override
+  List<Object?> get props => [id, tournamentId, name, advanceCount, sortOrder, createdAt, standings, matches];
 }
 
 /// Team standing within a group
-class GroupStanding {
+class GroupStanding extends Equatable {
   final String id;
   final String groupId;
   final String teamId;
@@ -105,7 +111,6 @@ class GroupStanding {
 
   // Joined data
   final String? teamName;
-
   GroupStanding({
     required this.id,
     required this.groupId,
@@ -123,7 +128,8 @@ class GroupStanding {
   });
 
   factory GroupStanding.fromJson(Map<String, dynamic> json) {
-    return GroupStanding(
+    return
+  GroupStanding(
       id: json['id'] as String,
       groupId: json['group_id'] as String,
       teamId: json['team_id'] as String,
@@ -173,7 +179,8 @@ class GroupStanding {
     DateTime? updatedAt,
     String? teamName,
   }) {
-    return GroupStanding(
+    return
+  GroupStanding(
       id: id ?? this.id,
       groupId: groupId ?? this.groupId,
       teamId: teamId ?? this.teamId,
@@ -193,10 +200,14 @@ class GroupStanding {
   int get goalDifference => goalsFor - goalsAgainst;
   String get goalDifferenceDisplay => goalDifference >= 0 ? '+$goalDifference' : '$goalDifference';
   String get record => '$won-$drawn-$lost';
+
+
+  @override
+  List<Object?> get props => [id, groupId, teamId, played, won, drawn, lost, goalsFor, goalsAgainst, points, position, updatedAt, teamName];
 }
 
 /// Match within a group stage
-class GroupMatch {
+class GroupMatch extends Equatable {
   final String id;
   final String groupId;
   final String? teamAId;
@@ -211,7 +222,6 @@ class GroupMatch {
   // Joined data
   final String? teamAName;
   final String? teamBName;
-
   GroupMatch({
     required this.id,
     required this.groupId,
@@ -228,7 +238,8 @@ class GroupMatch {
   });
 
   factory GroupMatch.fromJson(Map<String, dynamic> json) {
-    return GroupMatch(
+    return
+  GroupMatch(
       id: json['id'] as String,
       groupId: json['group_id'] as String,
       teamAId: json['team_a_id'] as String?,
@@ -275,7 +286,8 @@ class GroupMatch {
     String? teamAName,
     String? teamBName,
   }) {
-    return GroupMatch(
+    return
+  GroupMatch(
       id: id ?? this.id,
       groupId: groupId ?? this.groupId,
       teamAId: teamAId ?? this.teamAId,
@@ -294,10 +306,14 @@ class GroupMatch {
   bool get hasTeams => teamAId != null && teamBId != null;
   bool get isComplete => status == MatchStatus.completed;
   String get scoreDisplay => '$teamAScore - $teamBScore';
+
+
+  @override
+  List<Object?> get props => [id, groupId, teamAId, teamBId, teamAScore, teamBScore, status, scheduledTime, matchOrder, createdAt, teamAName, teamBName];
 }
 
 /// Qualification round for time/score-based tournaments
-class QualificationRound {
+class QualificationRound extends Equatable {
   final String id;
   final String tournamentId;
   final String name;
@@ -308,7 +324,6 @@ class QualificationRound {
 
   // Nested data
   final List<QualificationResult>? results;
-
   QualificationRound({
     required this.id,
     required this.tournamentId,
@@ -321,7 +336,8 @@ class QualificationRound {
   });
 
   factory QualificationRound.fromJson(Map<String, dynamic> json) {
-    return QualificationRound(
+    return
+  QualificationRound(
       id: json['id'] as String,
       tournamentId: json['tournament_id'] as String,
       name: json['name'] as String,
@@ -358,7 +374,8 @@ class QualificationRound {
     DateTime? createdAt,
     List<QualificationResult>? results,
   }) {
-    return QualificationRound(
+    return
+  QualificationRound(
       id: id ?? this.id,
       tournamentId: tournamentId ?? this.tournamentId,
       name: name ?? this.name,
@@ -380,10 +397,14 @@ class QualificationRound {
     sorted.sort((a, b) => a.rank.compareTo(b.rank));
     return sorted;
   }
+
+
+  @override
+  List<Object?> get props => [id, tournamentId, name, advanceCount, sortDirection, status, createdAt, results];
 }
 
 /// Individual result in a qualification round
-class QualificationResult {
+class QualificationResult extends Equatable {
   final String id;
   final String qualificationRoundId;
   final String userId;
@@ -394,7 +415,6 @@ class QualificationResult {
 
   // Joined data
   final String? userName;
-
   QualificationResult({
     required this.id,
     required this.qualificationRoundId,
@@ -407,7 +427,8 @@ class QualificationResult {
   });
 
   factory QualificationResult.fromJson(Map<String, dynamic> json) {
-    return QualificationResult(
+    return
+  QualificationResult(
       id: json['id'] as String,
       qualificationRoundId: json['qualification_round_id'] as String,
       userId: json['user_id'] as String,
@@ -442,7 +463,8 @@ class QualificationResult {
     DateTime? createdAt,
     String? userName,
   }) {
-    return QualificationResult(
+    return
+  QualificationResult(
       id: id ?? this.id,
       qualificationRoundId: qualificationRoundId ?? this.qualificationRoundId,
       userId: userId ?? this.userId,
@@ -467,4 +489,8 @@ class QualificationResult {
     // Format as score
     return resultValue.toStringAsFixed(resultValue.truncateToDouble() == resultValue ? 0 : 2);
   }
+
+
+  @override
+  List<Object?> get props => [id, qualificationRoundId, userId, resultValue, advanced, rank, createdAt, userName];
 }

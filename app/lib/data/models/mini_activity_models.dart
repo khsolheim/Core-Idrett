@@ -1,9 +1,11 @@
 // Core Mini-Activity Models
 
 import 'mini_activity_enums.dart';
+import 'package:equatable/equatable.dart';
 import 'mini_activity_support.dart';
+import 'package:equatable/equatable.dart';
 
-class ActivityTemplate {
+class ActivityTemplate extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -20,7 +22,6 @@ class ActivityTemplate {
   final int drawPoints;
   final int lossPoints;
   final String? leaderboardId;
-
   ActivityTemplate({
     required this.id,
     required this.teamId,
@@ -40,7 +41,8 @@ class ActivityTemplate {
   });
 
   factory ActivityTemplate.fromJson(Map<String, dynamic> json) {
-    return ActivityTemplate(
+    return
+  ActivityTemplate(
       id: json['id'] as String,
       teamId: json['team_id'] as String,
       name: json['name'] as String,
@@ -96,7 +98,8 @@ class ActivityTemplate {
     int? lossPoints,
     String? leaderboardId,
   }) {
-    return ActivityTemplate(
+    return
+  ActivityTemplate(
       id: id ?? this.id,
       teamId: teamId ?? this.teamId,
       name: name ?? this.name,
@@ -114,9 +117,13 @@ class ActivityTemplate {
       leaderboardId: leaderboardId ?? this.leaderboardId,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, teamId, name, type, defaultPoints, createdAt, description, instructions, sportType, suggestedRules, isFavorite, winPoints, drawPoints, lossPoints, leaderboardId];
 }
 
-class MiniActivity {
+class MiniActivity extends Equatable {
   final String id;
   final String? instanceId; // Nullable for standalone activities
   final String? templateId;
@@ -141,7 +148,6 @@ class MiniActivity {
   final bool handicapEnabled;
   final DateTime? archivedAt;
   final String? winnerTeamId; // Manually set winner (null = draw or no result yet)
-
   MiniActivity({
     required this.id,
     this.instanceId,
@@ -185,7 +191,8 @@ class MiniActivity {
           .toList();
     }
 
-    return MiniActivity(
+    return
+  MiniActivity(
       id: json['id'] as String,
       instanceId: json['instance_id'] as String?,
       templateId: json['template_id'] as String?,
@@ -301,7 +308,8 @@ class MiniActivity {
     DateTime? archivedAt,
     String? winnerTeamId,
   }) {
-    return MiniActivity(
+    return
+  MiniActivity(
       id: id ?? this.id,
       instanceId: instanceId ?? this.instanceId,
       templateId: templateId ?? this.templateId,
@@ -327,4 +335,8 @@ class MiniActivity {
       winnerTeamId: winnerTeamId ?? this.winnerTeamId,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, instanceId, templateId, name, type, divisionMethod, numTeams, createdAt, teamCount, participantCount, teams, participants, teamId, leaderboardId, enableLeaderboard, winPoints, drawPoints, lossPoints, description, maxParticipants, handicapEnabled, archivedAt, winnerTeamId];
 }

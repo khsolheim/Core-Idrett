@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Custom trainer type defined by each team
-class TrainerType {
+class TrainerType extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -33,9 +35,12 @@ class TrainerType {
       'created_at': createdAt.toIso8601String(),
     };
   }
+
+  @override
+  List<Object?> get props => [id, teamId, name, displayOrder, createdAt];
 }
 
-class Team {
+class Team extends Equatable {
   final String id;
   final String name;
   final String? sport;
@@ -54,7 +59,7 @@ class Team {
   /// Current user's trainer type (if any)
   final TrainerType? userTrainerType;
 
-  Team({
+  const Team({
     required this.id,
     required this.name,
     this.sport,
@@ -129,9 +134,12 @@ class Team {
     if (userIsFineBoss) return 'fineBoss';
     return 'member';
   }
+
+  @override
+  List<Object?> get props => [id, name, sport, inviteCode, createdAt, userIsAdmin, userIsFineBoss, userIsCoach, userTrainerType];
 }
 
-class TeamMember {
+class TeamMember extends Equatable {
   final String id;
   final String userId;
   final String teamId;
@@ -159,7 +167,7 @@ class TeamMember {
 
   final DateTime joinedAt;
 
-  TeamMember({
+  const TeamMember({
     required this.id,
     required this.userId,
     required this.teamId,
@@ -283,9 +291,12 @@ class TeamMember {
       joinedAt: joinedAt,
     );
   }
+
+  @override
+  List<Object?> get props => [id, userId, teamId, userName, userAvatarUrl, userBirthDate, isAdmin, isFineBoss, isCoach, trainerType, isActive, isInjured, joinedAt];
 }
 
-class TeamSettings {
+class TeamSettings extends Equatable {
   final String teamId;
   final int attendancePoints;
   final int winPoints;
@@ -294,7 +305,7 @@ class TeamSettings {
   final double appealFee;
   final double gameDayMultiplier;
 
-  TeamSettings({
+  const TeamSettings({
     required this.teamId,
     required this.attendancePoints,
     required this.winPoints,
@@ -346,4 +357,7 @@ class TeamSettings {
       gameDayMultiplier: gameDayMultiplier ?? this.gameDayMultiplier,
     );
   }
+
+  @override
+  List<Object?> get props => [teamId, attendancePoints, winPoints, drawPoints, lossPoints, appealFee, gameDayMultiplier];
 }

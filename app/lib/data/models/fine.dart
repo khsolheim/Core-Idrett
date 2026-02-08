@@ -1,4 +1,6 @@
-class FineRule {
+import 'package:equatable/equatable.dart';
+
+class FineRule extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -7,7 +9,7 @@ class FineRule {
   final bool active;
   final DateTime createdAt;
 
-  FineRule({
+  const FineRule({
     required this.id,
     required this.teamId,
     required this.name,
@@ -38,9 +40,12 @@ class FineRule {
         'active': active,
         'created_at': createdAt.toIso8601String(),
       };
+
+  @override
+  List<Object?> get props => [id, teamId, name, amount, description, active, createdAt];
 }
 
-class Fine {
+class Fine extends Equatable {
   final String id;
   final String? ruleId;
   final String teamId;
@@ -63,7 +68,7 @@ class Fine {
   final FineAppeal? appeal;
   final double? paidAmount;
 
-  Fine({
+  const Fine({
     required this.id,
     this.ruleId,
     required this.teamId,
@@ -137,9 +142,16 @@ class Fine {
         'appeal': appeal?.toJson(),
         'paid_amount': paidAmount,
       };
+
+  @override
+  List<Object?> get props => [
+    id, ruleId, teamId, offenderId, reporterId, approvedBy, status, amount,
+    description, evidenceUrl, isGameDay, createdAt, resolvedAt, offenderName,
+    offenderAvatarUrl, reporterName, ruleName, appeal, paidAmount
+  ];
 }
 
-class FineAppeal {
+class FineAppeal extends Equatable {
   final String id;
   final String fineId;
   final String reason;
@@ -150,7 +162,7 @@ class FineAppeal {
   final DateTime? decidedAt;
   final Fine? fine;
 
-  FineAppeal({
+  const FineAppeal({
     required this.id,
     required this.fineId,
     required this.reason,
@@ -191,16 +203,19 @@ class FineAppeal {
         'decided_at': decidedAt?.toIso8601String(),
         'fine': fine?.toJson(),
       };
+
+  @override
+  List<Object?> get props => [id, fineId, reason, status, extraFee, decidedBy, createdAt, decidedAt, fine];
 }
 
-class FinePayment {
+class FinePayment extends Equatable {
   final String id;
   final String fineId;
   final double amount;
   final DateTime paidAt;
   final String registeredBy;
 
-  FinePayment({
+  const FinePayment({
     required this.id,
     required this.fineId,
     required this.amount,
@@ -225,9 +240,12 @@ class FinePayment {
         'paid_at': paidAt.toIso8601String(),
         'registered_by': registeredBy,
       };
+
+  @override
+  List<Object?> get props => [id, fineId, amount, paidAt, registeredBy];
 }
 
-class TeamFinesSummary {
+class TeamFinesSummary extends Equatable {
   final String teamId;
   final double totalFines;
   final double totalPaid;
@@ -236,7 +254,7 @@ class TeamFinesSummary {
   final int pendingCount;
   final int paidCount;
 
-  TeamFinesSummary({
+  const TeamFinesSummary({
     required this.teamId,
     this.totalFines = 0,
     this.totalPaid = 0,
@@ -270,9 +288,12 @@ class TeamFinesSummary {
         'pending_count': pendingCount,
         'paid_count': paidCount,
       };
+
+  @override
+  List<Object?> get props => [teamId, totalFines, totalPaid, totalPending, fineCount, pendingCount, paidCount];
 }
 
-class UserFinesSummary {
+class UserFinesSummary extends Equatable {
   final String userId;
   final String userName;
   final String? userAvatarUrl;
@@ -280,7 +301,7 @@ class UserFinesSummary {
   final double totalPaid;
   final int fineCount;
 
-  UserFinesSummary({
+  const UserFinesSummary({
     required this.userId,
     required this.userName,
     this.userAvatarUrl,
@@ -311,4 +332,7 @@ class UserFinesSummary {
         'outstanding_balance': outstandingBalance,
         'fine_count': fineCount,
       };
+
+  @override
+  List<Object?> get props => [userId, userName, userAvatarUrl, totalFines, totalPaid, fineCount];
 }

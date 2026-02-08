@@ -1,4 +1,6 @@
-class NotificationPreferences {
+import 'package:equatable/equatable.dart';
+
+class NotificationPreferences extends Equatable {
   final String id;
   final String userId;
   final String? teamId;
@@ -8,7 +10,6 @@ class NotificationPreferences {
   final bool newFine;
   final bool fineDecision;
   final bool teamMessage;
-
   NotificationPreferences({
     required this.id,
     required this.userId,
@@ -22,7 +23,8 @@ class NotificationPreferences {
   });
 
   factory NotificationPreferences.fromJson(Map<String, dynamic> json) {
-    return NotificationPreferences(
+    return
+  NotificationPreferences(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       teamId: json['team_id'] as String?,
@@ -55,7 +57,8 @@ class NotificationPreferences {
     bool? fineDecision,
     bool? teamMessage,
   }) {
-    return NotificationPreferences(
+    return
+  NotificationPreferences(
       id: id,
       userId: userId,
       teamId: teamId,
@@ -67,16 +70,19 @@ class NotificationPreferences {
       teamMessage: teamMessage ?? this.teamMessage,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, userId, teamId, newActivity, activityReminder, activityCancelled, newFine, fineDecision, teamMessage];
 }
 
-class DeviceToken {
+class DeviceToken extends Equatable {
   final String id;
   final String userId;
   final String token;
   final String platform;
   final DateTime createdAt;
   final DateTime lastUsedAt;
-
   DeviceToken({
     required this.id,
     required this.userId,
@@ -87,7 +93,8 @@ class DeviceToken {
   });
 
   factory DeviceToken.fromJson(Map<String, dynamic> json) {
-    return DeviceToken(
+    return
+  DeviceToken(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       token: json['token'] as String,
@@ -96,4 +103,8 @@ class DeviceToken {
       lastUsedAt: DateTime.parse(json['last_used_at'] as String),
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, userId, token, platform, createdAt, lastUsedAt];
 }

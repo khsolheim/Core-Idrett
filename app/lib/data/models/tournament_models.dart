@@ -2,10 +2,12 @@
 // Tournament, TournamentRound, TournamentMatch, MatchGame
 
 import 'tournament_enums.dart';
+import 'package:equatable/equatable.dart';
 import 'tournament_group_models.dart';
+import 'package:equatable/equatable.dart';
 
 /// Main Tournament class
-class Tournament {
+class Tournament extends Equatable {
   final String id;
   final String miniActivityId;
   final TournamentType tournamentType;
@@ -20,7 +22,6 @@ class Tournament {
   // Nested data (loaded separately)
   final List<TournamentRound>? rounds;
   final List<TournamentGroup>? groups;
-
   Tournament({
     required this.id,
     required this.miniActivityId,
@@ -37,7 +38,8 @@ class Tournament {
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
-    return Tournament(
+    return
+  Tournament(
       id: json['id'] as String,
       miniActivityId: json['mini_activity_id'] as String,
       tournamentType: TournamentType.fromString(json['tournament_type'] as String? ?? 'single_elimination'),
@@ -88,7 +90,8 @@ class Tournament {
     List<TournamentRound>? rounds,
     List<TournamentGroup>? groups,
   }) {
-    return Tournament(
+    return
+  Tournament(
       id: id ?? this.id,
       miniActivityId: miniActivityId ?? this.miniActivityId,
       tournamentType: tournamentType ?? this.tournamentType,
@@ -111,10 +114,14 @@ class Tournament {
   bool get hasGroups =>
       tournamentType == TournamentType.groupPlay ||
       tournamentType == TournamentType.groupKnockout;
+
+
+  @override
+  List<Object?> get props => [id, miniActivityId, tournamentType, status, bestOf, bronzeFinal, seedingMethod, maxParticipants, createdAt, updatedAt, rounds, groups];
 }
 
 /// Tournament round within a bracket
-class TournamentRound {
+class TournamentRound extends Equatable {
   final String id;
   final String tournamentId;
   final int roundNumber;
@@ -126,7 +133,6 @@ class TournamentRound {
 
   // Nested data
   final List<TournamentMatch>? matches;
-
   TournamentRound({
     required this.id,
     required this.tournamentId,
@@ -140,7 +146,8 @@ class TournamentRound {
   });
 
   factory TournamentRound.fromJson(Map<String, dynamic> json) {
-    return TournamentRound(
+    return
+  TournamentRound(
       id: json['id'] as String,
       tournamentId: json['tournament_id'] as String,
       roundNumber: json['round_number'] as int,
@@ -180,7 +187,8 @@ class TournamentRound {
     DateTime? createdAt,
     List<TournamentMatch>? matches,
   }) {
-    return TournamentRound(
+    return
+  TournamentRound(
       id: id ?? this.id,
       tournamentId: tournamentId ?? this.tournamentId,
       roundNumber: roundNumber ?? this.roundNumber,
@@ -192,10 +200,14 @@ class TournamentRound {
       matches: matches ?? this.matches,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, tournamentId, roundNumber, roundName, roundType, status, scheduledTime, createdAt, matches];
 }
 
 /// A single match in a tournament
-class TournamentMatch {
+class TournamentMatch extends Equatable {
   final String id;
   final String tournamentId;
   final String? roundId;
@@ -218,7 +230,6 @@ class TournamentMatch {
   final List<MatchGame>? games;
   final String? teamAName;
   final String? teamBName;
-
   TournamentMatch({
     required this.id,
     required this.tournamentId,
@@ -243,7 +254,8 @@ class TournamentMatch {
   });
 
   factory TournamentMatch.fromJson(Map<String, dynamic> json) {
-    return TournamentMatch(
+    return
+  TournamentMatch(
       id: json['id'] as String,
       tournamentId: json['tournament_id'] as String,
       roundId: json['round_id'] as String?,
@@ -316,7 +328,8 @@ class TournamentMatch {
     String? teamAName,
     String? teamBName,
   }) {
-    return TournamentMatch(
+    return
+  TournamentMatch(
       id: id ?? this.id,
       tournamentId: tournamentId ?? this.tournamentId,
       roundId: roundId ?? this.roundId,
@@ -343,10 +356,14 @@ class TournamentMatch {
   bool get hasTeams => teamAId != null && teamBId != null;
   bool get isComplete => status == MatchStatus.completed || status == MatchStatus.walkover;
   String get scoreDisplay => '$teamAScore - $teamBScore';
+
+
+  @override
+  List<Object?> get props => [id, tournamentId, roundId, bracketPosition, teamAId, teamBId, winnerId, teamAScore, teamBScore, status, scheduledTime, matchOrder, winnerGoesToMatchId, loserGoesToMatchId, isWalkover, walkoverReason, createdAt, games, teamAName, teamBName];
 }
 
 /// Individual game within a best-of series match
-class MatchGame {
+class MatchGame extends Equatable {
   final String id;
   final String matchId;
   final int gameNumber;
@@ -355,7 +372,6 @@ class MatchGame {
   final String? winnerId;
   final MatchStatus status;
   final DateTime createdAt;
-
   MatchGame({
     required this.id,
     required this.matchId,
@@ -368,7 +384,8 @@ class MatchGame {
   });
 
   factory MatchGame.fromJson(Map<String, dynamic> json) {
-    return MatchGame(
+    return
+  MatchGame(
       id: json['id'] as String,
       matchId: json['match_id'] as String,
       gameNumber: json['game_number'] as int,
@@ -403,7 +420,8 @@ class MatchGame {
     MatchStatus? status,
     DateTime? createdAt,
   }) {
-    return MatchGame(
+    return
+  MatchGame(
       id: id ?? this.id,
       matchId: matchId ?? this.matchId,
       gameNumber: gameNumber ?? this.gameNumber,
@@ -417,4 +435,8 @@ class MatchGame {
 
   bool get isComplete => status == MatchStatus.completed;
   String get scoreDisplay => '$teamAScore - $teamBScore';
+
+
+  @override
+  List<Object?> get props => [id, matchId, gameNumber, teamAScore, teamBScore, winnerId, status, createdAt];
 }

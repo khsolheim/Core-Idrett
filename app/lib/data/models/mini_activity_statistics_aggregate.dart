@@ -2,10 +2,12 @@
 // Leaderboard point sources, player aggregates, and team stats
 
 import 'mini_activity_statistics_enums.dart';
+import 'package:equatable/equatable.dart';
 import 'mini_activity_statistics_core.dart';
+import 'package:equatable/equatable.dart';
 
 /// Source of points for a leaderboard entry
-class LeaderboardPointSource {
+class LeaderboardPointSource extends Equatable {
   final String id;
   final String leaderboardEntryId;
   final String userId;
@@ -17,7 +19,6 @@ class LeaderboardPointSource {
 
   // Joined data
   final String? sourceName;
-
   LeaderboardPointSource({
     required this.id,
     required this.leaderboardEntryId,
@@ -31,7 +32,8 @@ class LeaderboardPointSource {
   });
 
   factory LeaderboardPointSource.fromJson(Map<String, dynamic> json) {
-    return LeaderboardPointSource(
+    return
+  LeaderboardPointSource(
       id: json['id'] as String,
       leaderboardEntryId: json['leaderboard_entry_id'] as String,
       userId: json['user_id'] as String,
@@ -69,7 +71,8 @@ class LeaderboardPointSource {
     DateTime? recordedAt,
     String? sourceName,
   }) {
-    return LeaderboardPointSource(
+    return
+  LeaderboardPointSource(
       id: id ?? this.id,
       leaderboardEntryId: leaderboardEntryId ?? this.leaderboardEntryId,
       userId: userId ?? this.userId,
@@ -90,16 +93,19 @@ class LeaderboardPointSource {
 
   /// Check if this is a penalty (negative points)
   bool get isPenalty => points < 0;
+
+
+  @override
+  List<Object?> get props => [id, leaderboardEntryId, userId, sourceType, sourceId, points, description, recordedAt, sourceName];
 }
 
 /// Aggregated player stats with multiple stat types
-class PlayerStatsAggregate {
+class PlayerStatsAggregate extends Equatable {
   final MiniActivityPlayerStats? overallStats;
   final MiniActivityPlayerStats? seasonStats;
   final List<HeadToHeadStats> headToHeadRecords;
   final List<MiniActivityTeamHistory> recentHistory;
   final List<LeaderboardPointSource> recentPointSources;
-
   PlayerStatsAggregate({
     this.overallStats,
     this.seasonStats,
@@ -109,7 +115,8 @@ class PlayerStatsAggregate {
   });
 
   factory PlayerStatsAggregate.fromJson(Map<String, dynamic> json) {
-    return PlayerStatsAggregate(
+    return
+  PlayerStatsAggregate(
       overallStats: json['overall_stats'] != null
           ? MiniActivityPlayerStats.fromJson(json['overall_stats'] as Map<String, dynamic>)
           : null,
@@ -161,10 +168,14 @@ class PlayerStatsAggregate {
     return headToHeadRecords.reduce((a, b) =>
         a.totalMatchups > b.totalMatchups ? a : b);
   }
+
+
+  @override
+  List<Object?> get props => [overallStats, seasonStats, headToHeadRecords, recentHistory, recentPointSources];
 }
 
 /// Mini-activity stats summary for a team
-class TeamMiniActivityStats {
+class TeamMiniActivityStats extends Equatable {
   final String teamId;
   final int totalMiniActivities;
   final int totalParticipations;
@@ -172,7 +183,6 @@ class TeamMiniActivityStats {
   final int activeMiniActivities;
   final DateTime? lastActivityAt;
   final List<MiniActivityPlayerStats> topPlayers;
-
   TeamMiniActivityStats({
     required this.teamId,
     this.totalMiniActivities = 0,
@@ -184,7 +194,8 @@ class TeamMiniActivityStats {
   });
 
   factory TeamMiniActivityStats.fromJson(Map<String, dynamic> json) {
-    return TeamMiniActivityStats(
+    return
+  TeamMiniActivityStats(
       teamId: json['team_id'] as String,
       totalMiniActivities: json['total_mini_activities'] as int? ?? 0,
       totalParticipations: json['total_participations'] as int? ?? 0,
@@ -222,7 +233,8 @@ class TeamMiniActivityStats {
     DateTime? lastActivityAt,
     List<MiniActivityPlayerStats>? topPlayers,
   }) {
-    return TeamMiniActivityStats(
+    return
+  TeamMiniActivityStats(
       teamId: teamId ?? this.teamId,
       totalMiniActivities: totalMiniActivities ?? this.totalMiniActivities,
       totalParticipations: totalParticipations ?? this.totalParticipations,
@@ -247,4 +259,8 @@ class TeamMiniActivityStats {
     if (totalMiniActivities == 0) return 0.0;
     return totalParticipations / totalMiniActivities;
   }
+
+
+  @override
+  List<Object?> get props => [teamId, totalMiniActivities, totalParticipations, completedMiniActivities, activeMiniActivities, lastActivityAt, topPlayers];
 }

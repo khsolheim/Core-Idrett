@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 /// Type of conversation
 enum ConversationType {
   team,
@@ -5,7 +7,7 @@ enum ConversationType {
 }
 
 /// Unified conversation model for both team chat and direct messages
-class ChatConversation {
+class ChatConversation extends Equatable {
   final ConversationType type;
   final String? teamId;
   final String? recipientId;
@@ -15,7 +17,7 @@ class ChatConversation {
   final DateTime? lastMessageAt;
   final int unreadCount;
 
-  ChatConversation({
+  const ChatConversation({
     required this.type,
     this.teamId,
     this.recipientId,
@@ -50,4 +52,6 @@ class ChatConversation {
     );
   }
 
+  @override
+  List<Object?> get props => [type, teamId, recipientId, name, avatarUrl, lastMessage, lastMessageAt, unreadCount];
 }

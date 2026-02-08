@@ -1,4 +1,6 @@
-class ExportLog {
+import 'package:equatable/equatable.dart';
+
+class ExportLog extends Equatable {
   final String id;
   final String teamId;
   final String userId;
@@ -7,7 +9,6 @@ class ExportLog {
   final Map<String, dynamic>? parameters;
   final DateTime createdAt;
   final String? userName;
-
   ExportLog({
     required this.id,
     required this.teamId,
@@ -20,7 +21,8 @@ class ExportLog {
   });
 
   factory ExportLog.fromJson(Map<String, dynamic> json) {
-    return ExportLog(
+    return
+  ExportLog(
       id: json['id'] as String,
       teamId: json['team_id'] as String,
       userId: json['user_id'] as String,
@@ -31,6 +33,10 @@ class ExportLog {
       userName: json['user_name'] as String?,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, teamId, userId, exportType, fileFormat, parameters, createdAt, userName];
 }
 
 /// Export types
@@ -110,12 +116,11 @@ enum ExportFormat {
 }
 
 /// Export data result
-class ExportData {
+class ExportData extends Equatable {
   final String type;
   final List<String> columns;
   final List<Map<String, dynamic>> data;
   final Map<String, dynamic>? summary;
-
   ExportData({
     required this.type,
     required this.columns,
@@ -124,11 +129,16 @@ class ExportData {
   });
 
   factory ExportData.fromJson(Map<String, dynamic> json) {
-    return ExportData(
+    return
+  ExportData(
       type: json['type'] as String,
       columns: (json['columns'] as List).cast<String>(),
       data: (json['data'] as List).cast<Map<String, dynamic>>(),
       summary: json['summary'] as Map<String, dynamic>?,
     );
   }
+
+
+  @override
+  List<Object?> get props => [type, columns, data, summary];
 }

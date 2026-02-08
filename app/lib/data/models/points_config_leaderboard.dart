@@ -1,9 +1,10 @@
 // Leaderboard, monthly stats, and manual adjustment models for points system
 
 import 'points_config_enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// Ranked leaderboard entry with extended fields
-class RankedLeaderboardEntry {
+class RankedLeaderboardEntry extends Equatable {
   final String id;
   final String leaderboardId;
   final String userId;
@@ -19,7 +20,6 @@ class RankedLeaderboardEntry {
   // Joined fields
   final String? userName;
   final String? userAvatarUrl;
-
   RankedLeaderboardEntry({
     required this.id,
     required this.leaderboardId,
@@ -41,7 +41,8 @@ class RankedLeaderboardEntry {
   bool get isStable => trend == 'stable' || trend == null;
 
   factory RankedLeaderboardEntry.fromJson(Map<String, dynamic> json) {
-    return RankedLeaderboardEntry(
+    return
+  RankedLeaderboardEntry(
       id: json['id'],
       leaderboardId: json['leaderboard_id'],
       userId: json['user_id'],
@@ -73,10 +74,14 @@ class RankedLeaderboardEntry {
         'user_name': userName,
         'user_avatar_url': userAvatarUrl,
       };
+
+
+  @override
+  List<Object?> get props => [id, leaderboardId, userId, points, rank, attendanceRate, currentStreak, optedOut, trend, rankChange, updatedAt, userName, userAvatarUrl];
 }
 
 /// Monthly statistics for a user
-class MonthlyUserStats {
+class MonthlyUserStats extends Equatable {
   final String id;
   final String teamId;
   final String userId;
@@ -94,7 +99,6 @@ class MonthlyUserStats {
   final int penaltyPoints;
   final double? attendanceRate;
   final DateTime updatedAt;
-
   MonthlyUserStats({
     required this.id,
     required this.teamId,
@@ -119,7 +123,8 @@ class MonthlyUserStats {
       attendancePoints + competitionPoints + bonusPoints - penaltyPoints;
 
   factory MonthlyUserStats.fromJson(Map<String, dynamic> json) {
-    return MonthlyUserStats(
+    return
+  MonthlyUserStats(
       id: json['id'],
       teamId: json['team_id'],
       userId: json['user_id'],
@@ -159,10 +164,14 @@ class MonthlyUserStats {
         'attendance_rate': attendanceRate,
         'updated_at': updatedAt.toIso8601String(),
       };
+
+
+  @override
+  List<Object?> get props => [id, teamId, userId, year, month, trainingAttended, trainingPossible, matchAttended, matchPossible, socialAttended, socialPossible, attendancePoints, competitionPoints, bonusPoints, penaltyPoints, attendanceRate, updatedAt];
 }
 
 /// Manual point adjustment by admin (bonus, penalty, correction)
-class ManualPointAdjustment {
+class ManualPointAdjustment extends Equatable {
   final String id;
   final String teamId;
   final String userId;
@@ -177,7 +186,6 @@ class ManualPointAdjustment {
   final String? userName;
   final String? userAvatarUrl;
   final String? createdByName;
-
   ManualPointAdjustment({
     required this.id,
     required this.teamId,
@@ -194,7 +202,8 @@ class ManualPointAdjustment {
   });
 
   factory ManualPointAdjustment.fromJson(Map<String, dynamic> json) {
-    return ManualPointAdjustment(
+    return
+  ManualPointAdjustment(
       id: json['id'],
       teamId: json['team_id'],
       userId: json['user_id'],
@@ -227,4 +236,8 @@ class ManualPointAdjustment {
 
   /// Whether this adjustment adds or removes points
   bool get isPositive => points >= 0;
+
+
+  @override
+  List<Object?> get props => [id, teamId, userId, seasonId, points, adjustmentType, reason, createdBy, createdAt, userName, userAvatarUrl, createdByName];
 }

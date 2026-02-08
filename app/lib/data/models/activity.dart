@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 enum ActivityType {
   training,
   match,
@@ -223,13 +225,13 @@ enum EditScope {
 }
 
 /// Information about an instance's position in a series
-class SeriesInfo {
+class SeriesInfo extends Equatable {
   final String activityId;
   final int totalInstances;
   final int instanceNumber;
   final RecurrenceType recurrenceType;
 
-  SeriesInfo({
+  const SeriesInfo({
     required this.activityId,
     required this.totalInstances,
     required this.instanceNumber,
@@ -250,9 +252,12 @@ class SeriesInfo {
 
   /// Display string like "3 av 10"
   String get positionText => '$instanceNumber av $totalInstances';
+
+  @override
+  List<Object?> get props => [activityId, totalInstances, instanceNumber, recurrenceType];
 }
 
-class Activity {
+class Activity extends Equatable {
   final String id;
   final String teamId;
   final String title;
@@ -266,7 +271,7 @@ class Activity {
   final DateTime createdAt;
   final int? instanceCount;
 
-  Activity({
+  const Activity({
     required this.id,
     required this.teamId,
     required this.title,
@@ -299,9 +304,12 @@ class Activity {
       instanceCount: json['instance_count'] as int?,
     );
   }
+
+  @override
+  List<Object?> get props => [id, teamId, title, type, location, description, recurrenceType, recurrenceEndDate, responseType, responseDeadlineHours, createdAt, instanceCount];
 }
 
-class ActivityInstance {
+class ActivityInstance extends Equatable {
   final String id;
   final String activityId;
   final String? teamId;
@@ -335,7 +343,7 @@ class ActivityInstance {
   final String? endTimeOverride;
   final String? dateOverride;
 
-  ActivityInstance({
+  const ActivityInstance({
     required this.id,
     required this.activityId,
     this.teamId,
@@ -430,9 +438,18 @@ class ActivityInstance {
       startTimeOverride != null ||
       endTimeOverride != null ||
       dateOverride != null;
+
+  @override
+  List<Object?> get props => [
+    id, activityId, teamId, date, startTime, endTime, status, cancelledReason,
+    title, type, location, description, responseType, responseDeadlineHours,
+    responses, userResponse, yesCount, noCount, maybeCount, isDetached,
+    seriesInfo, createdBy, titleOverride, locationOverride, descriptionOverride,
+    startTimeOverride, endTimeOverride, dateOverride
+  ];
 }
 
-class ActivityResponseItem {
+class ActivityResponseItem extends Equatable {
   final String id;
   final String userId;
   final UserResponse? response;
@@ -441,7 +458,7 @@ class ActivityResponseItem {
   final String? userName;
   final String? userAvatarUrl;
 
-  ActivityResponseItem({
+  const ActivityResponseItem({
     required this.id,
     required this.userId,
     this.response,
@@ -462,15 +479,18 @@ class ActivityResponseItem {
       userAvatarUrl: json['user_avatar_url'] as String?,
     );
   }
+
+  @override
+  List<Object?> get props => [id, userId, response, comment, respondedAt, userName, userAvatarUrl];
 }
 
 /// Result of an instance edit or delete operation
-class InstanceOperationResult {
+class InstanceOperationResult extends Equatable {
   final int affectedCount;
   final List<String> affectedInstanceIds;
   final String activityId;
 
-  InstanceOperationResult({
+  const InstanceOperationResult({
     required this.affectedCount,
     required this.affectedInstanceIds,
     required this.activityId,
@@ -483,4 +503,7 @@ class InstanceOperationResult {
       activityId: json['activity_id'] as String,
     );
   }
+
+  @override
+  List<Object?> get props => [affectedCount, affectedInstanceIds, activityId];
 }

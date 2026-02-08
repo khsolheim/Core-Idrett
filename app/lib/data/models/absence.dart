@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 /// Status of an absence record
 enum AbsenceStatus {
   pending,
@@ -48,7 +50,7 @@ enum AbsenceStatus {
 }
 
 /// Category for absence (e.g., sickness, work, family)
-class AbsenceCategory {
+class AbsenceCategory extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -56,7 +58,6 @@ class AbsenceCategory {
   final bool countsAsValid;
   final int sortOrder;
   final DateTime createdAt;
-
   AbsenceCategory({
     required this.id,
     required this.teamId,
@@ -68,7 +69,8 @@ class AbsenceCategory {
   });
 
   factory AbsenceCategory.fromJson(Map<String, dynamic> json) {
-    return AbsenceCategory(
+    return
+  AbsenceCategory(
       id: json['id'],
       teamId: json['team_id'],
       name: json['name'],
@@ -98,7 +100,8 @@ class AbsenceCategory {
     int? sortOrder,
     DateTime? createdAt,
   }) {
-    return AbsenceCategory(
+    return
+  AbsenceCategory(
       id: id ?? this.id,
       teamId: teamId ?? this.teamId,
       name: name ?? this.name,
@@ -108,10 +111,14 @@ class AbsenceCategory {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, teamId, name, requiresApproval, countsAsValid, sortOrder, createdAt];
 }
 
 /// Individual absence record for a specific activity instance
-class AbsenceRecord {
+class AbsenceRecord extends Equatable {
   final String id;
   final String userId;
   final String instanceId;
@@ -130,7 +137,6 @@ class AbsenceRecord {
   final String? activityName;
   final DateTime? activityDate;
   final String? approvedByName;
-
   AbsenceRecord({
     required this.id,
     required this.userId,
@@ -157,7 +163,8 @@ class AbsenceRecord {
   bool get countsAsValid => categoryCountsAsValid ?? true;
 
   factory AbsenceRecord.fromJson(Map<String, dynamic> json) {
-    return AbsenceRecord(
+    return
+  AbsenceRecord(
       id: json['id'],
       userId: json['user_id'],
       instanceId: json['instance_id'],
@@ -218,7 +225,8 @@ class AbsenceRecord {
     DateTime? activityDate,
     String? approvedByName,
   }) {
-    return AbsenceRecord(
+    return
+  AbsenceRecord(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       instanceId: instanceId ?? this.instanceId,
@@ -238,16 +246,19 @@ class AbsenceRecord {
       approvedByName: approvedByName ?? this.approvedByName,
     );
   }
+
+
+  @override
+  List<Object?> get props => [id, userId, instanceId, categoryId, reason, status, approvedBy, approvedAt, createdAt, userName, userAvatarUrl, categoryName, categoryCountsAsValid, activityName, activityDate, approvedByName];
 }
 
 /// Summary of pending absences for admin view
-class AbsenceSummary {
+class AbsenceSummary extends Equatable {
   final String teamId;
   final int pendingCount;
   final int approvedCount;
   final int rejectedCount;
   final List<AbsenceRecord> pendingAbsences;
-
   AbsenceSummary({
     required this.teamId,
     this.pendingCount = 0,
@@ -259,7 +270,8 @@ class AbsenceSummary {
   int get totalCount => pendingCount + approvedCount + rejectedCount;
 
   factory AbsenceSummary.fromJson(Map<String, dynamic> json) {
-    return AbsenceSummary(
+    return
+  AbsenceSummary(
       teamId: json['team_id'],
       pendingCount: json['pending_count'] ?? 0,
       approvedCount: json['approved_count'] ?? 0,
@@ -279,4 +291,8 @@ class AbsenceSummary {
         'rejected_count': rejectedCount,
         'pending_absences': pendingAbsences.map((e) => e.toJson()).toList(),
       };
+
+
+  @override
+  List<Object?> get props => [teamId, pendingCount, approvedCount, rejectedCount, pendingAbsences];
 }
