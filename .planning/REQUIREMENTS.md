@@ -115,58 +115,58 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TYPE-01 | — | Pending |
-| TYPE-02 | — | Pending |
-| TYPE-03 | — | Pending |
-| TYPE-04 | — | Pending |
-| TYPE-05 | — | Pending |
-| TYPE-06 | — | Pending |
-| BSPLIT-01 | — | Pending |
-| BSPLIT-02 | — | Pending |
-| BSPLIT-03 | — | Pending |
-| BSPLIT-04 | — | Pending |
-| BSPLIT-05 | — | Pending |
-| BSPLIT-06 | — | Pending |
-| BSPLIT-07 | — | Pending |
-| BSPLIT-08 | — | Pending |
-| FSPLIT-01 | — | Pending |
-| FSPLIT-02 | — | Pending |
-| FSPLIT-03 | — | Pending |
-| FSPLIT-04 | — | Pending |
-| FSPLIT-05 | — | Pending |
-| FSPLIT-06 | — | Pending |
-| FSPLIT-07 | — | Pending |
-| FSPLIT-08 | — | Pending |
-| TEST-01 | — | Pending |
-| TEST-02 | — | Pending |
-| TEST-03 | — | Pending |
-| TEST-04 | — | Pending |
-| TEST-05 | — | Pending |
-| TEST-06 | — | Pending |
-| TEST-07 | — | Pending |
-| TEST-08 | — | Pending |
-| SEC-01 | — | Pending |
-| SEC-02 | — | Pending |
-| SEC-03 | — | Pending |
-| SEC-04 | — | Pending |
-| SEC-05 | — | Pending |
-| SEC-06 | — | Pending |
-| SEC-07 | — | Pending |
-| CONS-01 | — | Pending |
-| CONS-02 | — | Pending |
-| CONS-03 | — | Pending |
-| CONS-04 | — | Pending |
-| CONS-05 | — | Pending |
-| CONS-06 | — | Pending |
-| I18N-01 | — | Pending |
-| I18N-02 | — | Pending |
-| I18N-03 | — | Pending |
+| TEST-01 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Pending |
+| TYPE-01 | Phase 2 | Pending |
+| TYPE-02 | Phase 2 | Pending |
+| TYPE-03 | Phase 2 | Pending |
+| TYPE-04 | Phase 2 | Pending |
+| TYPE-05 | Phase 2 | Pending |
+| TYPE-06 | Phase 2 | Pending |
+| BSPLIT-01 | Phase 3 | Pending |
+| BSPLIT-02 | Phase 3 | Pending |
+| BSPLIT-03 | Phase 3 | Pending |
+| BSPLIT-04 | Phase 3 | Pending |
+| BSPLIT-05 | Phase 3 | Pending |
+| BSPLIT-06 | Phase 3 | Pending |
+| BSPLIT-07 | Phase 3 | Pending |
+| BSPLIT-08 | Phase 3 | Pending |
+| SEC-01 | Phase 4 | Pending |
+| SEC-02 | Phase 4 | Pending |
+| SEC-03 | Phase 4 | Pending |
+| SEC-07 | Phase 4 | Pending |
+| FSPLIT-01 | Phase 5 | Pending |
+| FSPLIT-02 | Phase 5 | Pending |
+| FSPLIT-03 | Phase 5 | Pending |
+| FSPLIT-04 | Phase 5 | Pending |
+| FSPLIT-05 | Phase 5 | Pending |
+| FSPLIT-06 | Phase 5 | Pending |
+| FSPLIT-07 | Phase 5 | Pending |
+| FSPLIT-08 | Phase 5 | Pending |
+| TEST-03 | Phase 6 | Pending |
+| TEST-04 | Phase 6 | Pending |
+| TEST-05 | Phase 6 | Pending |
+| TEST-06 | Phase 6 | Pending |
+| TEST-07 | Phase 6 | Pending |
+| TEST-08 | Phase 6 | Pending |
+| CONS-01 | Phase 7 | Pending |
+| CONS-02 | Phase 7 | Pending |
+| CONS-03 | Phase 7 | Pending |
+| CONS-04 | Phase 7 | Pending |
+| CONS-05 | Phase 7 | Pending |
+| CONS-06 | Phase 7 | Pending |
+| SEC-04 | Phase 8 | Pending |
+| SEC-05 | Phase 8 | Pending |
+| SEC-06 | Phase 8 | Pending |
+| I18N-01 | Phase 9 | Pending |
+| I18N-02 | Phase 9 | Pending |
+| I18N-03 | Phase 9 | Pending |
 
 **Coverage:**
 - v1 requirements: 45 total
-- Mapped to phases: 0
-- Unmapped: 45 ⚠️
+- Mapped to phases: 45
+- Unmapped: 0 (100% coverage)
 
 ---
 *Requirements defined: 2026-02-08*
-*Last updated: 2026-02-08 after initial definition*
+*Last updated: 2026-02-08 after roadmap creation*
