@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 enum MatchStatus {
   pending,
   inProgress,
@@ -39,7 +41,7 @@ enum MatchStatus {
 }
 
 // BM-027: Tournament match model
-class TournamentMatch {
+class TournamentMatch extends Equatable {
   final String id;
   final String tournamentId;
   final String roundId;
@@ -58,7 +60,7 @@ class TournamentMatch {
   final String? walkoverReason;
   final DateTime createdAt;
 
-  TournamentMatch({
+  const TournamentMatch({
     required this.id,
     required this.tournamentId,
     required this.roundId,
@@ -77,6 +79,27 @@ class TournamentMatch {
     this.walkoverReason,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        tournamentId,
+        roundId,
+        bracketPosition,
+        teamAId,
+        teamBId,
+        winnerId,
+        teamAScore,
+        teamBScore,
+        status,
+        scheduledTime,
+        matchOrder,
+        winnerGoesToMatchId,
+        loserGoesToMatchId,
+        isWalkover,
+        walkoverReason,
+        createdAt,
+      ];
 
   factory TournamentMatch.fromJson(Map<String, dynamic> row) {
     return TournamentMatch(
@@ -128,7 +151,7 @@ class TournamentMatch {
 }
 
 // BM-028: Match game model for best-of series
-class MatchGame {
+class MatchGame extends Equatable {
   final String id;
   final String matchId;
   final int gameNumber;
@@ -138,7 +161,7 @@ class MatchGame {
   final MatchStatus status;
   final DateTime createdAt;
 
-  MatchGame({
+  const MatchGame({
     required this.id,
     required this.matchId,
     required this.gameNumber,
@@ -148,6 +171,18 @@ class MatchGame {
     this.status = MatchStatus.pending,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        matchId,
+        gameNumber,
+        teamAScore,
+        teamBScore,
+        winnerId,
+        status,
+        createdAt,
+      ];
 
   factory MatchGame.fromJson(Map<String, dynamic> row) {
     return MatchGame(

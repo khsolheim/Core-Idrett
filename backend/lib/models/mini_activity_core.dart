@@ -1,6 +1,8 @@
 // Mini-Activity Models
 // Tasks: BM-001 to BM-023
 
+import 'package:equatable/equatable.dart';
+
 // Helper to parse DateTime from database (may come as String or DateTime)
 DateTime _parseDateTime(dynamic value) {
   if (value is DateTime) return value;
@@ -15,7 +17,7 @@ DateTime? _parseDateTimeNullable(dynamic value) {
   return null;
 }
 
-class ActivityTemplate {
+class ActivityTemplate extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -33,7 +35,7 @@ class ActivityTemplate {
   final int lossPoints;
   final String? leaderboardId;
 
-  ActivityTemplate({
+  const ActivityTemplate({
     required this.id,
     required this.teamId,
     required this.name,
@@ -50,6 +52,25 @@ class ActivityTemplate {
     this.lossPoints = 0,
     this.leaderboardId,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        name,
+        type,
+        defaultPoints,
+        createdAt,
+        description,
+        instructions,
+        sportType,
+        suggestedRules,
+        isFavorite,
+        winPoints,
+        drawPoints,
+        lossPoints,
+        leaderboardId,
+      ];
 
   factory ActivityTemplate.fromJson(Map<String, dynamic> row) {
     return ActivityTemplate(
@@ -128,7 +149,7 @@ class ActivityTemplate {
   }
 }
 
-class MiniActivity {
+class MiniActivity extends Equatable {
   final String id;
   final String? instanceId; // Now nullable for standalone activities (BM-011)
   final String? templateId;
@@ -150,7 +171,7 @@ class MiniActivity {
   final DateTime? archivedAt;
   final String? winnerTeamId; // Manually set winner (null = draw or no result)
 
-  MiniActivity({
+  const MiniActivity({
     required this.id,
     this.instanceId,
     this.templateId,
@@ -171,6 +192,29 @@ class MiniActivity {
     this.archivedAt,
     this.winnerTeamId,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        instanceId,
+        templateId,
+        name,
+        type,
+        divisionMethod,
+        numTeams,
+        createdAt,
+        teamId,
+        leaderboardId,
+        enableLeaderboard,
+        winPoints,
+        drawPoints,
+        lossPoints,
+        description,
+        maxParticipants,
+        handicapEnabled,
+        archivedAt,
+        winnerTeamId,
+      ];
 
   factory MiniActivity.fromJson(Map<String, dynamic> row) {
     return MiniActivity(

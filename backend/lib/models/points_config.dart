@@ -1,8 +1,10 @@
 /// Team Points Configuration models
 /// For configuring point values, weights, and visibility per team/season
 
+import 'package:equatable/equatable.dart';
+
 /// Configuration for team point system
-class TeamPointsConfig {
+class TeamPointsConfig extends Equatable {
   final String id;
   final String teamId;
   final String? seasonId;
@@ -37,7 +39,7 @@ class TeamPointsConfig {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  TeamPointsConfig({
+  const TeamPointsConfig({
     required this.id,
     required this.teamId,
     this.seasonId,
@@ -59,6 +61,30 @@ class TeamPointsConfig {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        seasonId,
+        trainingPoints,
+        matchPoints,
+        socialPoints,
+        trainingWeight,
+        matchWeight,
+        socialWeight,
+        competitionWeight,
+        miniActivityDistribution,
+        autoAwardAttendance,
+        visibility,
+        allowOptOut,
+        requireAbsenceReason,
+        requireAbsenceApproval,
+        excludeValidAbsenceFromPercentage,
+        newPlayerStartMode,
+        createdAt,
+        updatedAt,
+      ];
 
   static double _parseDouble(dynamic value, double defaultValue) {
     if (value == null) return defaultValue;
@@ -198,7 +224,7 @@ class TeamPointsConfig {
 }
 
 /// Tracked attendance points per activity instance
-class AttendancePoints {
+class AttendancePoints extends Equatable {
   final String id;
   final String teamId;
   final String userId;
@@ -209,7 +235,7 @@ class AttendancePoints {
   final double weightedPoints;
   final DateTime awardedAt;
 
-  AttendancePoints({
+  const AttendancePoints({
     required this.id,
     required this.teamId,
     required this.userId,
@@ -220,6 +246,19 @@ class AttendancePoints {
     required this.weightedPoints,
     required this.awardedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        userId,
+        instanceId,
+        seasonId,
+        activityType,
+        basePoints,
+        weightedPoints,
+        awardedAt,
+      ];
 
   factory AttendancePoints.fromJson(Map<String, dynamic> row) {
     return AttendancePoints(
@@ -251,7 +290,7 @@ class AttendancePoints {
 }
 
 /// Manual point adjustment by admin (bonus, penalty, correction)
-class ManualPointAdjustment {
+class ManualPointAdjustment extends Equatable {
   final String id;
   final String teamId;
   final String userId;
@@ -267,7 +306,7 @@ class ManualPointAdjustment {
   final String? userAvatarUrl;
   final String? createdByName;
 
-  ManualPointAdjustment({
+  const ManualPointAdjustment({
     required this.id,
     required this.teamId,
     required this.userId,
@@ -281,6 +320,22 @@ class ManualPointAdjustment {
     this.userAvatarUrl,
     this.createdByName,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        userId,
+        seasonId,
+        points,
+        adjustmentType,
+        reason,
+        createdBy,
+        createdAt,
+        userName,
+        userAvatarUrl,
+        createdByName,
+      ];
 
   factory ManualPointAdjustment.fromJson(Map<String, dynamic> row) {
     return ManualPointAdjustment(

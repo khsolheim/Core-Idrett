@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Test template model for reusable test definitions
-class TestTemplate {
+class TestTemplate extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -8,7 +10,7 @@ class TestTemplate {
   final bool higherIsBetter;
   final DateTime createdAt;
 
-  TestTemplate({
+  const TestTemplate({
     required this.id,
     required this.teamId,
     required this.name,
@@ -17,6 +19,17 @@ class TestTemplate {
     required this.higherIsBetter,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        name,
+        description,
+        unit,
+        higherIsBetter,
+        createdAt,
+      ];
 
   factory TestTemplate.fromJson(Map<String, dynamic> row) {
     return TestTemplate(
@@ -44,7 +57,7 @@ class TestTemplate {
 }
 
 /// Test result model for individual test scores
-class TestResult {
+class TestResult extends Equatable {
   final String id;
   final String testTemplateId;
   final String userId;
@@ -59,7 +72,7 @@ class TestResult {
   final String? testName;
   final String? testUnit;
 
-  TestResult({
+  const TestResult({
     required this.id,
     required this.testTemplateId,
     required this.userId,
@@ -72,6 +85,21 @@ class TestResult {
     this.testName,
     this.testUnit,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        testTemplateId,
+        userId,
+        instanceId,
+        value,
+        recordedAt,
+        notes,
+        userName,
+        userAvatarUrl,
+        testName,
+        testUnit,
+      ];
 
   factory TestResult.fromJson(Map<String, dynamic> row) {
     return TestResult(

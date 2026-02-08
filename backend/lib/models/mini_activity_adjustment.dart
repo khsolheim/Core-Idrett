@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 // Helper to parse DateTime from database (may come as String or DateTime)
 DateTime _parseDateTime(dynamic value) {
   if (value is DateTime) return value;
@@ -6,7 +8,7 @@ DateTime _parseDateTime(dynamic value) {
 }
 
 // Adjustment model (BM-013 to BM-015)
-class MiniActivityAdjustment {
+class MiniActivityAdjustment extends Equatable {
   final String id;
   final String miniActivityId;
   final String? teamId;
@@ -16,7 +18,7 @@ class MiniActivityAdjustment {
   final String createdBy;
   final DateTime createdAt;
 
-  MiniActivityAdjustment({
+  const MiniActivityAdjustment({
     required this.id,
     required this.miniActivityId,
     this.teamId,
@@ -26,6 +28,18 @@ class MiniActivityAdjustment {
     required this.createdBy,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        miniActivityId,
+        teamId,
+        userId,
+        points,
+        reason,
+        createdBy,
+        createdAt,
+      ];
 
   factory MiniActivityAdjustment.fromJson(Map<String, dynamic> row) {
     return MiniActivityAdjustment(
@@ -60,7 +74,7 @@ class MiniActivityAdjustment {
 }
 
 // Handicap model (BM-016)
-class MiniActivityHandicap {
+class MiniActivityHandicap extends Equatable {
   final String id;
   final String miniActivityId;
   final String userId;
@@ -68,7 +82,7 @@ class MiniActivityHandicap {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  MiniActivityHandicap({
+  const MiniActivityHandicap({
     required this.id,
     required this.miniActivityId,
     required this.userId,
@@ -76,6 +90,16 @@ class MiniActivityHandicap {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        miniActivityId,
+        userId,
+        handicapValue,
+        createdAt,
+        updatedAt,
+      ];
 
   factory MiniActivityHandicap.fromJson(Map<String, dynamic> row) {
     return MiniActivityHandicap(

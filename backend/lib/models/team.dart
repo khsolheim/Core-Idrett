@@ -1,17 +1,22 @@
-class Team {
+import 'package:equatable/equatable.dart';
+
+class Team extends Equatable {
   final String id;
   final String name;
   final String? sport;
   final String? inviteCode;
   final DateTime createdAt;
 
-  Team({
+  const Team({
     required this.id,
     required this.name,
     this.sport,
     this.inviteCode,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [id, name, sport, inviteCode, createdAt];
 
   factory Team.fromJson(Map<String, dynamic> row) {
     return Team(
@@ -35,20 +40,23 @@ class Team {
 }
 
 /// Custom trainer type defined by each team
-class TrainerType {
+class TrainerType extends Equatable {
   final String id;
   final String teamId;
   final String name;
   final int displayOrder;
   final DateTime createdAt;
 
-  TrainerType({
+  const TrainerType({
     required this.id,
     required this.teamId,
     required this.name,
     required this.displayOrder,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [id, teamId, name, displayOrder, createdAt];
 
   factory TrainerType.fromJson(Map<String, dynamic> row) {
     return TrainerType(
@@ -71,7 +79,7 @@ class TrainerType {
   }
 }
 
-class TeamMember {
+class TeamMember extends Equatable {
   final String id;
   final String userId;
   final String teamId;
@@ -102,7 +110,7 @@ class TeamMember {
 
   final DateTime joinedAt;
 
-  TeamMember({
+  const TeamMember({
     required this.id,
     required this.userId,
     required this.teamId,
@@ -116,6 +124,22 @@ class TeamMember {
     required this.isInjured,
     required this.joinedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        teamId,
+        role,
+        isAdmin,
+        isFineBoss,
+        isCoach,
+        trainerTypeId,
+        trainerTypeName,
+        isActive,
+        isInjured,
+        joinedAt,
+      ];
 
   factory TeamMember.fromJson(Map<String, dynamic> row) {
     return TeamMember(

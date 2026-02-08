@@ -1,8 +1,10 @@
 /// Absence tracking models
 /// Categories and records for tracking valid absences
 
+import 'package:equatable/equatable.dart';
+
 /// Absence category (team-specific)
-class AbsenceCategory {
+class AbsenceCategory extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -13,7 +15,7 @@ class AbsenceCategory {
   final int sortOrder;
   final DateTime createdAt;
 
-  AbsenceCategory({
+  const AbsenceCategory({
     required this.id,
     required this.teamId,
     required this.name,
@@ -24,6 +26,19 @@ class AbsenceCategory {
     this.sortOrder = 0,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        name,
+        description,
+        requiresApproval,
+        countsAsValid,
+        isActive,
+        sortOrder,
+        createdAt,
+      ];
 
   factory AbsenceCategory.fromJson(Map<String, dynamic> row) {
     return AbsenceCategory(
@@ -107,7 +122,7 @@ enum AbsenceStatus {
 }
 
 /// Absence record
-class AbsenceRecord {
+class AbsenceRecord extends Equatable {
   final String id;
   final String userId;
   final String instanceId;
@@ -130,7 +145,7 @@ class AbsenceRecord {
   final String? activityType;
   final String? teamId;
 
-  AbsenceRecord({
+  const AbsenceRecord({
     required this.id,
     required this.userId,
     required this.instanceId,
@@ -151,6 +166,29 @@ class AbsenceRecord {
     this.activityType,
     this.teamId,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        instanceId,
+        categoryId,
+        reason,
+        status,
+        approvedBy,
+        approvedAt,
+        rejectionReason,
+        createdAt,
+        updatedAt,
+        userName,
+        categoryName,
+        countsAsValid,
+        approverName,
+        activityTitle,
+        activityDate,
+        activityType,
+        teamId,
+      ];
 
   factory AbsenceRecord.fromJson(Map<String, dynamic> row) {
     return AbsenceRecord(

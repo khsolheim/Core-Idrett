@@ -1,4 +1,6 @@
-class FineRule {
+import 'package:equatable/equatable.dart';
+
+class FineRule extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -7,7 +9,7 @@ class FineRule {
   final bool active;
   final DateTime createdAt;
 
-  FineRule({
+  const FineRule({
     required this.id,
     required this.teamId,
     required this.name,
@@ -16,6 +18,17 @@ class FineRule {
     this.active = true,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        name,
+        amount,
+        description,
+        active,
+        createdAt,
+      ];
 
   factory FineRule.fromJson(Map<String, dynamic> json) {
     return FineRule(
@@ -40,7 +53,7 @@ class FineRule {
       };
 }
 
-class Fine {
+class Fine extends Equatable {
   final String id;
   final String? ruleId;
   final String teamId;
@@ -63,7 +76,7 @@ class Fine {
   final FineAppeal? appeal;
   final double? paidAmount;
 
-  Fine({
+  const Fine({
     required this.id,
     this.ruleId,
     required this.teamId,
@@ -84,6 +97,29 @@ class Fine {
     this.appeal,
     this.paidAmount,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        ruleId,
+        teamId,
+        offenderId,
+        reporterId,
+        approvedBy,
+        status,
+        amount,
+        description,
+        evidenceUrl,
+        isGameDay,
+        createdAt,
+        resolvedAt,
+        offenderName,
+        offenderAvatarUrl,
+        reporterName,
+        ruleName,
+        appeal,
+        paidAmount,
+      ];
 
   bool get isPending => status == 'pending';
   bool get isApproved => status == 'approved';
@@ -139,7 +175,7 @@ class Fine {
       };
 }
 
-class FineAppeal {
+class FineAppeal extends Equatable {
   final String id;
   final String fineId;
   final String reason;
@@ -150,7 +186,7 @@ class FineAppeal {
   final DateTime? decidedAt;
   final Fine? fine;
 
-  FineAppeal({
+  const FineAppeal({
     required this.id,
     required this.fineId,
     required this.reason,
@@ -161,6 +197,19 @@ class FineAppeal {
     this.decidedAt,
     this.fine,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        fineId,
+        reason,
+        status,
+        extraFee,
+        decidedBy,
+        createdAt,
+        decidedAt,
+        fine,
+      ];
 
   bool get isPending => status == 'pending';
   bool get isAccepted => status == 'accepted';
@@ -193,20 +242,29 @@ class FineAppeal {
       };
 }
 
-class FinePayment {
+class FinePayment extends Equatable {
   final String id;
   final String fineId;
   final double amount;
   final DateTime paidAt;
   final String registeredBy;
 
-  FinePayment({
+  const FinePayment({
     required this.id,
     required this.fineId,
     required this.amount,
     required this.paidAt,
     required this.registeredBy,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        fineId,
+        amount,
+        paidAt,
+        registeredBy,
+      ];
 
   factory FinePayment.fromJson(Map<String, dynamic> json) {
     return FinePayment(
@@ -227,7 +285,7 @@ class FinePayment {
       };
 }
 
-class TeamFinesSummary {
+class TeamFinesSummary extends Equatable {
   final String teamId;
   final double totalFines;
   final double totalPaid;
@@ -236,7 +294,7 @@ class TeamFinesSummary {
   final int pendingCount;
   final int paidCount;
 
-  TeamFinesSummary({
+  const TeamFinesSummary({
     required this.teamId,
     this.totalFines = 0,
     this.totalPaid = 0,
@@ -245,6 +303,17 @@ class TeamFinesSummary {
     this.pendingCount = 0,
     this.paidCount = 0,
   });
+
+  @override
+  List<Object?> get props => [
+        teamId,
+        totalFines,
+        totalPaid,
+        totalPending,
+        fineCount,
+        pendingCount,
+        paidCount,
+      ];
 
   double get outstandingBalance => totalFines - totalPaid;
 
@@ -260,7 +329,7 @@ class TeamFinesSummary {
       };
 }
 
-class UserFinesSummary {
+class UserFinesSummary extends Equatable {
   final String userId;
   final String userName;
   final String? userAvatarUrl;
@@ -268,7 +337,7 @@ class UserFinesSummary {
   final double totalPaid;
   final int fineCount;
 
-  UserFinesSummary({
+  const UserFinesSummary({
     required this.userId,
     required this.userName,
     this.userAvatarUrl,
@@ -276,6 +345,16 @@ class UserFinesSummary {
     this.totalPaid = 0,
     this.fineCount = 0,
   });
+
+  @override
+  List<Object?> get props => [
+        userId,
+        userName,
+        userAvatarUrl,
+        totalFines,
+        totalPaid,
+        fineCount,
+      ];
 
   double get outstandingBalance => totalFines - totalPaid;
 

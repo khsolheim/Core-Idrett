@@ -1,4 +1,6 @@
-class DeviceToken {
+import 'package:equatable/equatable.dart';
+
+class DeviceToken extends Equatable {
   final String id;
   final String userId;
   final String token;
@@ -6,7 +8,7 @@ class DeviceToken {
   final DateTime createdAt;
   final DateTime lastUsedAt;
 
-  DeviceToken({
+  const DeviceToken({
     required this.id,
     required this.userId,
     required this.token,
@@ -14,6 +16,16 @@ class DeviceToken {
     required this.createdAt,
     required this.lastUsedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        token,
+        platform,
+        createdAt,
+        lastUsedAt,
+      ];
 
   factory DeviceToken.fromJson(Map<String, dynamic> row) {
     return DeviceToken(
@@ -36,7 +48,7 @@ class DeviceToken {
       };
 }
 
-class NotificationPreferences {
+class NotificationPreferences extends Equatable {
   final String id;
   final String userId;
   final String? teamId;
@@ -48,7 +60,7 @@ class NotificationPreferences {
   final bool fineDecision;
   final bool teamMessage;
 
-  NotificationPreferences({
+  const NotificationPreferences({
     required this.id,
     required this.userId,
     this.teamId,
@@ -60,6 +72,20 @@ class NotificationPreferences {
     required this.fineDecision,
     required this.teamMessage,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        teamId,
+        newActivity,
+        activityReminder,
+        activityCancelled,
+        activityUpdated,
+        newFine,
+        fineDecision,
+        teamMessage,
+      ];
 
   factory NotificationPreferences.fromJson(Map<String, dynamic> row) {
     return NotificationPreferences(

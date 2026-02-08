@@ -1,6 +1,8 @@
 // Tournament Models
 // Tasks: BM-024 to BM-035
 
+import 'package:equatable/equatable.dart';
+
 // BM-025: Tournament type enum
 enum TournamentType {
   singleElimination,
@@ -107,7 +109,7 @@ enum SeedingMethod {
 }
 
 // BM-024: Tournament model
-class Tournament {
+class Tournament extends Equatable {
   final String id;
   final String miniActivityId;
   final TournamentType tournamentType;
@@ -118,7 +120,7 @@ class Tournament {
   final TournamentStatus status;
   final DateTime createdAt;
 
-  Tournament({
+  const Tournament({
     required this.id,
     required this.miniActivityId,
     required this.tournamentType,
@@ -129,6 +131,19 @@ class Tournament {
     this.status = TournamentStatus.setup,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        miniActivityId,
+        tournamentType,
+        bestOf,
+        bronzeFinal,
+        seedingMethod,
+        maxParticipants,
+        status,
+        createdAt,
+      ];
 
   factory Tournament.fromJson(Map<String, dynamic> row) {
     return Tournament(

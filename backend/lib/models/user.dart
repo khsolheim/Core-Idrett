@@ -1,17 +1,22 @@
-class User {
+import 'package:equatable/equatable.dart';
+
+class User extends Equatable {
   final String id;
   final String email;
   final String name;
   final String? avatarUrl;
   final DateTime createdAt;
 
-  User({
+  const User({
     required this.id,
     required this.email,
     required this.name,
     this.avatarUrl,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [id, email, name, avatarUrl, createdAt];
 
   factory User.fromJson(Map<String, dynamic> row) {
     final createdAt = row['created_at'];

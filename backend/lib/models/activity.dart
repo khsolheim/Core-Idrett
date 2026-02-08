@@ -1,4 +1,6 @@
-class Activity {
+import 'package:equatable/equatable.dart';
+
+class Activity extends Equatable {
   final String id;
   final String teamId;
   final String title;
@@ -12,7 +14,7 @@ class Activity {
   final String? createdBy;
   final DateTime createdAt;
 
-  Activity({
+  const Activity({
     required this.id,
     required this.teamId,
     required this.title,
@@ -26,6 +28,22 @@ class Activity {
     this.createdBy,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        title,
+        type,
+        location,
+        description,
+        recurrenceType,
+        recurrenceEndDate,
+        responseType,
+        responseDeadlineHours,
+        createdBy,
+        createdAt,
+      ];
 
   factory Activity.fromJson(Map<String, dynamic> row) {
     return Activity(
@@ -62,7 +80,7 @@ class Activity {
   }
 }
 
-class ActivityInstance {
+class ActivityInstance extends Equatable {
   final String id;
   final String activityId;
   final DateTime date;
@@ -71,7 +89,7 @@ class ActivityInstance {
   final String status;
   final String? cancelledReason;
 
-  ActivityInstance({
+  const ActivityInstance({
     required this.id,
     required this.activityId,
     required this.date,
@@ -80,6 +98,17 @@ class ActivityInstance {
     required this.status,
     this.cancelledReason,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        activityId,
+        date,
+        startTime,
+        endTime,
+        status,
+        cancelledReason,
+      ];
 
   factory ActivityInstance.fromJson(Map<String, dynamic> row) {
     return ActivityInstance(
@@ -106,7 +135,7 @@ class ActivityInstance {
   }
 }
 
-class ActivityResponse {
+class ActivityResponse extends Equatable {
   final String id;
   final String instanceId;
   final String userId;
@@ -114,7 +143,7 @@ class ActivityResponse {
   final String? comment;
   final DateTime respondedAt;
 
-  ActivityResponse({
+  const ActivityResponse({
     required this.id,
     required this.instanceId,
     required this.userId,
@@ -122,6 +151,16 @@ class ActivityResponse {
     this.comment,
     required this.respondedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        instanceId,
+        userId,
+        response,
+        comment,
+        respondedAt,
+      ];
 
   factory ActivityResponse.fromJson(Map<String, dynamic> row) {
     return ActivityResponse(

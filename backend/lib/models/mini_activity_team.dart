@@ -1,15 +1,20 @@
-class MiniActivityTeam {
+import 'package:equatable/equatable.dart';
+
+class MiniActivityTeam extends Equatable {
   final String id;
   final String miniActivityId;
   final String? name;
   final int? finalScore;
 
-  MiniActivityTeam({
+  const MiniActivityTeam({
     required this.id,
     required this.miniActivityId,
     this.name,
     this.finalScore,
   });
+
+  @override
+  List<Object?> get props => [id, miniActivityId, name, finalScore];
 
   factory MiniActivityTeam.fromJson(Map<String, dynamic> row) {
     return MiniActivityTeam(
@@ -44,20 +49,23 @@ class MiniActivityTeam {
   }
 }
 
-class MiniActivityParticipant {
+class MiniActivityParticipant extends Equatable {
   final String id;
   final String? miniTeamId;
   final String miniActivityId;
   final String userId;
   final int points;
 
-  MiniActivityParticipant({
+  const MiniActivityParticipant({
     required this.id,
     this.miniTeamId,
     required this.miniActivityId,
     required this.userId,
     required this.points,
   });
+
+  @override
+  List<Object?> get props => [id, miniTeamId, miniActivityId, userId, points];
 
   factory MiniActivityParticipant.fromJson(Map<String, dynamic> row) {
     return MiniActivityParticipant(

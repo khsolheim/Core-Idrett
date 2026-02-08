@@ -1,4 +1,6 @@
-class ExportLog {
+import 'package:equatable/equatable.dart';
+
+class ExportLog extends Equatable {
   final String id;
   final String teamId;
   final String userId;
@@ -10,7 +12,7 @@ class ExportLog {
   // Joined data
   final String? userName;
 
-  ExportLog({
+  const ExportLog({
     required this.id,
     required this.teamId,
     required this.userId,
@@ -20,6 +22,18 @@ class ExportLog {
     required this.createdAt,
     this.userName,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        userId,
+        exportType,
+        fileFormat,
+        parameters,
+        createdAt,
+        userName,
+      ];
 
   factory ExportLog.fromMap(Map<String, dynamic> map) {
     return ExportLog(

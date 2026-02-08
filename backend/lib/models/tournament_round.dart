@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 import 'tournament_match.dart';
 
 enum RoundType {
@@ -36,7 +38,7 @@ enum RoundType {
 }
 
 // BM-026: Tournament round model
-class TournamentRound {
+class TournamentRound extends Equatable {
   final String id;
   final String tournamentId;
   final int roundNumber;
@@ -46,7 +48,7 @@ class TournamentRound {
   final DateTime? scheduledTime;
   final DateTime createdAt;
 
-  TournamentRound({
+  const TournamentRound({
     required this.id,
     required this.tournamentId,
     required this.roundNumber,
@@ -56,6 +58,18 @@ class TournamentRound {
     this.scheduledTime,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        tournamentId,
+        roundNumber,
+        roundName,
+        roundType,
+        status,
+        scheduledTime,
+        createdAt,
+      ];
 
   factory TournamentRound.fromJson(Map<String, dynamic> row) {
     return TournamentRound(

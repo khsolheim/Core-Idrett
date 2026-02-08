@@ -1,7 +1,9 @@
+import 'package:equatable/equatable.dart';
+
 import 'achievement_definition.dart';
 
 /// User achievement (awarded achievement)
-class UserAchievement {
+class UserAchievement extends Equatable {
   final String id;
   final String userId;
   final String achievementId;
@@ -23,7 +25,7 @@ class UserAchievement {
   final String? userName;
   final String? teamName;
 
-  UserAchievement({
+  const UserAchievement({
     required this.id,
     required this.userId,
     required this.achievementId,
@@ -43,6 +45,28 @@ class UserAchievement {
     this.userName,
     this.teamName,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        achievementId,
+        teamId,
+        seasonId,
+        pointsAwarded,
+        awardedAt,
+        timesEarned,
+        lastEarnedAt,
+        triggerReference,
+        achievementCode,
+        achievementName,
+        achievementDescription,
+        achievementIcon,
+        achievementTier,
+        achievementCategory,
+        userName,
+        teamName,
+      ];
 
   factory UserAchievement.fromJson(Map<String, dynamic> row) {
     return UserAchievement(
@@ -98,7 +122,7 @@ class UserAchievement {
 }
 
 /// Achievement progress (towards earning an achievement)
-class AchievementProgress {
+class AchievementProgress extends Equatable {
   final String id;
   final String userId;
   final String achievementId;
@@ -116,7 +140,7 @@ class AchievementProgress {
   final String? achievementIcon;
   final AchievementTier? achievementTier;
 
-  AchievementProgress({
+  const AchievementProgress({
     required this.id,
     required this.userId,
     required this.achievementId,
@@ -132,6 +156,24 @@ class AchievementProgress {
     this.achievementIcon,
     this.achievementTier,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        achievementId,
+        teamId,
+        seasonId,
+        currentValue,
+        targetValue,
+        progressPercent,
+        lastContributionAt,
+        updatedAt,
+        achievementCode,
+        achievementName,
+        achievementIcon,
+        achievementTier,
+      ];
 
   factory AchievementProgress.fromJson(Map<String, dynamic> row) {
     return AchievementProgress(

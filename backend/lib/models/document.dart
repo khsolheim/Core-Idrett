@@ -1,4 +1,6 @@
-class Document {
+import 'package:equatable/equatable.dart';
+
+class Document extends Equatable {
   final String id;
   final String teamId;
   final String uploadedBy;
@@ -16,7 +18,7 @@ class Document {
   final String? uploaderName;
   final String? uploaderAvatarUrl;
 
-  Document({
+  const Document({
     required this.id,
     required this.teamId,
     required this.uploadedBy,
@@ -32,6 +34,24 @@ class Document {
     this.uploaderName,
     this.uploaderAvatarUrl,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        uploadedBy,
+        name,
+        description,
+        filePath,
+        fileSize,
+        mimeType,
+        category,
+        isDeleted,
+        createdAt,
+        updatedAt,
+        uploaderName,
+        uploaderAvatarUrl,
+      ];
 
   factory Document.fromMap(Map<String, dynamic> map) {
     return Document(

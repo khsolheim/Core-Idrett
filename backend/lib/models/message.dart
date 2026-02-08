@@ -1,4 +1,6 @@
-class Message {
+import 'package:equatable/equatable.dart';
+
+class Message extends Equatable {
   final String id;
   final String? teamId;
   final String? recipientId;
@@ -15,7 +17,7 @@ class Message {
   final String? recipientAvatarUrl;
   final Message? replyTo;
 
-  Message({
+  const Message({
     required this.id,
     this.teamId,
     this.recipientId,
@@ -32,6 +34,25 @@ class Message {
     this.recipientAvatarUrl,
     this.replyTo,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        recipientId,
+        userId,
+        content,
+        replyToId,
+        isEdited,
+        isDeleted,
+        createdAt,
+        updatedAt,
+        userName,
+        userAvatarUrl,
+        recipientName,
+        recipientAvatarUrl,
+        replyTo,
+      ];
 
   factory Message.fromJson(Map<String, dynamic> row) {
     return Message(

@@ -1,7 +1,9 @@
+import 'package:equatable/equatable.dart';
+
 import 'tournament_match.dart';
 
 // BM-029: Tournament group model
-class TournamentGroup {
+class TournamentGroup extends Equatable {
   final String id;
   final String tournamentId;
   final String name;
@@ -9,7 +11,7 @@ class TournamentGroup {
   final int sortOrder;
   final DateTime createdAt;
 
-  TournamentGroup({
+  const TournamentGroup({
     required this.id,
     required this.tournamentId,
     required this.name,
@@ -17,6 +19,9 @@ class TournamentGroup {
     this.sortOrder = 0,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [id, tournamentId, name, advanceCount, sortOrder, createdAt];
 
   factory TournamentGroup.fromJson(Map<String, dynamic> row) {
     return TournamentGroup(
@@ -42,7 +47,7 @@ class TournamentGroup {
 }
 
 // BM-030: Group standing model
-class GroupStanding {
+class GroupStanding extends Equatable {
   final String id;
   final String groupId;
   final String teamId;
@@ -56,7 +61,7 @@ class GroupStanding {
   final int? position;
   final DateTime updatedAt;
 
-  GroupStanding({
+  const GroupStanding({
     required this.id,
     required this.groupId,
     required this.teamId,
@@ -70,6 +75,22 @@ class GroupStanding {
     this.position,
     required this.updatedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        groupId,
+        teamId,
+        played,
+        won,
+        drawn,
+        lost,
+        goalsFor,
+        goalsAgainst,
+        points,
+        position,
+        updatedAt,
+      ];
 
   int get goalDifference => goalsFor - goalsAgainst;
 
@@ -110,7 +131,7 @@ class GroupStanding {
 }
 
 // BM-031: Group match model
-class GroupMatch {
+class GroupMatch extends Equatable {
   final String id;
   final String groupId;
   final String teamAId;
@@ -122,7 +143,7 @@ class GroupMatch {
   final int matchOrder;
   final DateTime createdAt;
 
-  GroupMatch({
+  const GroupMatch({
     required this.id,
     required this.groupId,
     required this.teamAId,
@@ -134,6 +155,20 @@ class GroupMatch {
     this.matchOrder = 0,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        groupId,
+        teamAId,
+        teamBId,
+        teamAScore,
+        teamBScore,
+        status,
+        scheduledTime,
+        matchOrder,
+        createdAt,
+      ];
 
   factory GroupMatch.fromJson(Map<String, dynamic> row) {
     return GroupMatch(
@@ -170,7 +205,7 @@ class GroupMatch {
 }
 
 // BM-032: Qualification round model
-class QualificationRound {
+class QualificationRound extends Equatable {
   final String id;
   final String tournamentId;
   final String name;
@@ -178,7 +213,7 @@ class QualificationRound {
   final String sortDirection; // 'asc' or 'desc'
   final DateTime createdAt;
 
-  QualificationRound({
+  const QualificationRound({
     required this.id,
     required this.tournamentId,
     required this.name,
@@ -186,6 +221,9 @@ class QualificationRound {
     this.sortDirection = 'desc',
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [id, tournamentId, name, advanceCount, sortDirection, createdAt];
 
   factory QualificationRound.fromJson(Map<String, dynamic> row) {
     return QualificationRound(
@@ -213,7 +251,7 @@ class QualificationRound {
 }
 
 // BM-033: Qualification result model
-class QualificationResult {
+class QualificationResult extends Equatable {
   final String id;
   final String qualificationRoundId;
   final String userId;
@@ -222,7 +260,7 @@ class QualificationResult {
   final int? rank;
   final DateTime createdAt;
 
-  QualificationResult({
+  const QualificationResult({
     required this.id,
     required this.qualificationRoundId,
     required this.userId,
@@ -231,6 +269,17 @@ class QualificationResult {
     this.rank,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        qualificationRoundId,
+        userId,
+        resultValue,
+        advanced,
+        rank,
+        createdAt,
+      ];
 
   factory QualificationResult.fromJson(Map<String, dynamic> row) {
     return QualificationResult(

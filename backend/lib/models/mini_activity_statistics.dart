@@ -1,8 +1,10 @@
 // Mini-Activity Statistics Models
 // Tasks: BM-046 to BM-050
 
+import 'package:equatable/equatable.dart';
+
 // BM-046: Player stats model
-class MiniActivityPlayerStats {
+class MiniActivityPlayerStats extends Equatable {
   final String id;
   final String userId;
   final String teamId;
@@ -20,7 +22,7 @@ class MiniActivityPlayerStats {
   final double? averagePlacement;
   final DateTime updatedAt;
 
-  MiniActivityPlayerStats({
+  const MiniActivityPlayerStats({
     required this.id,
     required this.userId,
     required this.teamId,
@@ -38,6 +40,26 @@ class MiniActivityPlayerStats {
     this.averagePlacement,
     required this.updatedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        teamId,
+        seasonId,
+        totalParticipations,
+        totalWins,
+        totalLosses,
+        totalDraws,
+        totalPoints,
+        firstPlaceCount,
+        secondPlaceCount,
+        thirdPlaceCount,
+        bestStreak,
+        currentStreak,
+        averagePlacement,
+        updatedAt,
+      ];
 
   factory MiniActivityPlayerStats.fromJson(Map<String, dynamic> row) {
     return MiniActivityPlayerStats(
@@ -101,7 +123,7 @@ class MiniActivityPlayerStats {
 }
 
 // BM-048: Head-to-head stats model
-class HeadToHeadStats {
+class HeadToHeadStats extends Equatable {
   final String id;
   final String teamId;
   final String user1Id;
@@ -113,7 +135,7 @@ class HeadToHeadStats {
   final DateTime? lastMatchupAt;
   final DateTime updatedAt;
 
-  HeadToHeadStats({
+  const HeadToHeadStats({
     required this.id,
     required this.teamId,
     required this.user1Id,
@@ -125,6 +147,20 @@ class HeadToHeadStats {
     this.lastMatchupAt,
     required this.updatedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        user1Id,
+        user2Id,
+        user1Wins,
+        user2Wins,
+        draws,
+        totalMatchups,
+        lastMatchupAt,
+        updatedAt,
+      ];
 
   factory HeadToHeadStats.fromJson(Map<String, dynamic> row) {
     return HeadToHeadStats(
@@ -176,7 +212,7 @@ class HeadToHeadStats {
 }
 
 // Team history model
-class MiniActivityTeamHistory {
+class MiniActivityTeamHistory extends Equatable {
   final String id;
   final String userId;
   final String miniActivityId;
@@ -188,7 +224,7 @@ class MiniActivityTeamHistory {
   final bool wasWinner;
   final DateTime recordedAt;
 
-  MiniActivityTeamHistory({
+  const MiniActivityTeamHistory({
     required this.id,
     required this.userId,
     required this.miniActivityId,
@@ -200,6 +236,20 @@ class MiniActivityTeamHistory {
     this.wasWinner = false,
     required this.recordedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        miniActivityId,
+        miniTeamId,
+        teamName,
+        teammates,
+        placement,
+        pointsEarned,
+        wasWinner,
+        recordedAt,
+      ];
 
   factory MiniActivityTeamHistory.fromJson(Map<String, dynamic> row) {
     return MiniActivityTeamHistory(
@@ -304,7 +354,7 @@ enum PointSourceType {
   }
 }
 
-class LeaderboardPointSource {
+class LeaderboardPointSource extends Equatable {
   final String id;
   final String leaderboardEntryId;
   final String userId;
@@ -314,7 +364,7 @@ class LeaderboardPointSource {
   final String? description;
   final DateTime recordedAt;
 
-  LeaderboardPointSource({
+  const LeaderboardPointSource({
     required this.id,
     required this.leaderboardEntryId,
     required this.userId,
@@ -324,6 +374,18 @@ class LeaderboardPointSource {
     this.description,
     required this.recordedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        leaderboardEntryId,
+        userId,
+        sourceType,
+        sourceId,
+        points,
+        description,
+        recordedAt,
+      ];
 
   factory LeaderboardPointSource.fromJson(Map<String, dynamic> row) {
     return LeaderboardPointSource(
@@ -357,18 +419,21 @@ class LeaderboardPointSource {
 }
 
 // Aggregated stats for display
-class PlayerStatsAggregate {
+class PlayerStatsAggregate extends Equatable {
   final MiniActivityPlayerStats stats;
   final List<HeadToHeadStats> headToHead;
   final List<MiniActivityTeamHistory> recentHistory;
   final List<LeaderboardPointSource> pointSources;
 
-  PlayerStatsAggregate({
+  const PlayerStatsAggregate({
     required this.stats,
     this.headToHead = const [],
     this.recentHistory = const [],
     this.pointSources = const [],
   });
+
+  @override
+  List<Object?> get props => [stats, headToHead, recentHistory, pointSources];
 
   int get totalPointsFromSources => pointSources.fold(0, (sum, s) => sum + s.points);
 

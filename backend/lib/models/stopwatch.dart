@@ -1,6 +1,8 @@
 // Stopwatch and Timer Models
 // Tasks: BM-040 to BM-045
 
+import 'package:equatable/equatable.dart';
+
 // BM-041: Session type enum
 enum StopwatchSessionType {
   stopwatch,
@@ -58,7 +60,7 @@ enum StopwatchSessionStatus {
 }
 
 // BM-040: Stopwatch session model
-class StopwatchSession {
+class StopwatchSession extends Equatable {
   final String id;
   final String? miniActivityId;
   final String? teamId;
@@ -73,7 +75,7 @@ class StopwatchSession {
   final DateTime createdAt;
   final String createdBy;
 
-  StopwatchSession({
+  const StopwatchSession({
     required this.id,
     this.miniActivityId,
     this.teamId,
@@ -88,6 +90,23 @@ class StopwatchSession {
     required this.createdAt,
     required this.createdBy,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        miniActivityId,
+        teamId,
+        name,
+        sessionType,
+        countdownDurationMs,
+        status,
+        startedAt,
+        pausedAt,
+        completedAt,
+        elapsedMsAtPause,
+        createdAt,
+        createdBy,
+      ];
 
   factory StopwatchSession.fromJson(Map<String, dynamic> row) {
     return StopwatchSession(
@@ -160,7 +179,7 @@ class StopwatchSession {
 }
 
 // BM-043: Stopwatch time model
-class StopwatchTime {
+class StopwatchTime extends Equatable {
   final String id;
   final String sessionId;
   final String userId;
@@ -171,7 +190,7 @@ class StopwatchTime {
   final String? notes;
   final DateTime recordedAt;
 
-  StopwatchTime({
+  const StopwatchTime({
     required this.id,
     required this.sessionId,
     required this.userId,
@@ -182,6 +201,19 @@ class StopwatchTime {
     this.notes,
     required this.recordedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        sessionId,
+        userId,
+        timeMs,
+        isSplit,
+        splitNumber,
+        lapNumber,
+        notes,
+        recordedAt,
+      ];
 
   factory StopwatchTime.fromJson(Map<String, dynamic> row) {
     return StopwatchTime(
@@ -242,14 +274,17 @@ class StopwatchTime {
 }
 
 // Helper class for session with times
-class StopwatchSessionWithTimes {
+class StopwatchSessionWithTimes extends Equatable {
   final StopwatchSession session;
   final List<StopwatchTime> times;
 
-  StopwatchSessionWithTimes({
+  const StopwatchSessionWithTimes({
     required this.session,
     required this.times,
   });
+
+  @override
+  List<Object?> get props => [session, times];
 
   List<StopwatchTime> get sortedByTime => List.from(times)..sort((a, b) => a.timeMs.compareTo(b.timeMs));
   List<StopwatchTime> get sortedByRecordedAt => List.from(times)..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));

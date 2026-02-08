@@ -3,6 +3,8 @@
 
 import 'dart:convert';
 
+import 'package:equatable/equatable.dart';
+
 /// Achievement tier
 enum AchievementTier {
   bronze,
@@ -172,16 +174,19 @@ enum AchievementCriteriaType {
 }
 
 /// Achievement criteria
-class AchievementCriteria {
+class AchievementCriteria extends Equatable {
   final AchievementCriteriaType type;
   final int? threshold;
   final String? period; // 'season', 'month', 'all_time'
 
-  AchievementCriteria({
+  const AchievementCriteria({
     required this.type,
     this.threshold,
     this.period,
   });
+
+  @override
+  List<Object?> get props => [type, threshold, period];
 
   factory AchievementCriteria.fromJson(Map<String, dynamic> json) {
     return AchievementCriteria(
@@ -201,7 +206,7 @@ class AchievementCriteria {
 }
 
 /// Achievement definition
-class AchievementDefinition {
+class AchievementDefinition extends Equatable {
   final String id;
   final String? teamId; // null = global
   final String code;
@@ -220,7 +225,7 @@ class AchievementDefinition {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  AchievementDefinition({
+  const AchievementDefinition({
     required this.id,
     this.teamId,
     required this.code,
@@ -239,6 +244,27 @@ class AchievementDefinition {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        code,
+        name,
+        description,
+        icon,
+        color,
+        tier,
+        category,
+        criteria,
+        bonusPoints,
+        isActive,
+        isSecret,
+        isRepeatable,
+        repeatCooldownDays,
+        createdAt,
+        updatedAt,
+      ];
 
   factory AchievementDefinition.fromJson(Map<String, dynamic> row) {
     final criteriaJson = row['criteria'];

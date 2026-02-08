@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Season model for organizing activities and statistics per time period
-class Season {
+class Season extends Equatable {
   final String id;
   final String teamId;
   final String name;
@@ -8,7 +10,7 @@ class Season {
   final bool isActive;
   final DateTime createdAt;
 
-  Season({
+  const Season({
     required this.id,
     required this.teamId,
     required this.name,
@@ -17,6 +19,17 @@ class Season {
     required this.isActive,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        name,
+        startDate,
+        endDate,
+        isActive,
+        createdAt,
+      ];
 
   factory Season.fromJson(Map<String, dynamic> row) {
     return Season(
@@ -111,7 +124,7 @@ enum LeaderboardCategory {
 }
 
 /// Leaderboard model for tracking different competition types
-class Leaderboard {
+class Leaderboard extends Equatable {
   final String id;
   final String teamId;
   final String? seasonId;
@@ -122,7 +135,7 @@ class Leaderboard {
   final LeaderboardCategory category;
   final DateTime createdAt;
 
-  Leaderboard({
+  const Leaderboard({
     required this.id,
     required this.teamId,
     this.seasonId,
@@ -133,6 +146,19 @@ class Leaderboard {
     this.category = LeaderboardCategory.total,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        teamId,
+        seasonId,
+        name,
+        description,
+        isMain,
+        sortOrder,
+        category,
+        createdAt,
+      ];
 
   factory Leaderboard.fromJson(Map<String, dynamic> row) {
     return Leaderboard(
@@ -166,7 +192,7 @@ class Leaderboard {
 }
 
 /// Leaderboard entry model for user points in a leaderboard
-class LeaderboardEntry {
+class LeaderboardEntry extends Equatable {
   final String id;
   final String leaderboardId;
   final String userId;
@@ -185,7 +211,7 @@ class LeaderboardEntry {
   final String? trend; // 'up', 'down', 'same'
   final int? rankChange;
 
-  LeaderboardEntry({
+  const LeaderboardEntry({
     required this.id,
     required this.leaderboardId,
     required this.userId,
@@ -200,6 +226,23 @@ class LeaderboardEntry {
     this.trend,
     this.rankChange,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        leaderboardId,
+        userId,
+        points,
+        updatedAt,
+        userName,
+        userAvatarUrl,
+        rank,
+        attendanceRate,
+        currentStreak,
+        optedOut,
+        trend,
+        rankChange,
+      ];
 
   factory LeaderboardEntry.fromJson(Map<String, dynamic> row, {int? rank}) {
     return LeaderboardEntry(
@@ -239,7 +282,7 @@ class LeaderboardEntry {
 }
 
 /// Configuration for how points are distributed from mini-activities to leaderboards
-class MiniActivityPointConfig {
+class MiniActivityPointConfig extends Equatable {
   final String id;
   final String miniActivityId;
   final String leaderboardId;
@@ -249,7 +292,7 @@ class MiniActivityPointConfig {
   final int pointsThird;
   final int pointsParticipation;
 
-  MiniActivityPointConfig({
+  const MiniActivityPointConfig({
     required this.id,
     required this.miniActivityId,
     required this.leaderboardId,
@@ -259,6 +302,18 @@ class MiniActivityPointConfig {
     required this.pointsThird,
     required this.pointsParticipation,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        miniActivityId,
+        leaderboardId,
+        distributionType,
+        pointsFirst,
+        pointsSecond,
+        pointsThird,
+        pointsParticipation,
+      ];
 
   factory MiniActivityPointConfig.fromJson(Map<String, dynamic> row) {
     return MiniActivityPointConfig(

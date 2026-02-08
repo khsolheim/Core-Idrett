@@ -1,4 +1,6 @@
-class MatchStats {
+import 'package:equatable/equatable.dart';
+
+class MatchStats extends Equatable {
   final String id;
   final String instanceId;
   final String userId;
@@ -12,7 +14,7 @@ class MatchStats {
   final String? userName;
   final String? userAvatarUrl;
 
-  MatchStats({
+  const MatchStats({
     required this.id,
     required this.instanceId,
     required this.userId,
@@ -24,6 +26,20 @@ class MatchStats {
     this.userName,
     this.userAvatarUrl,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        instanceId,
+        userId,
+        goals,
+        assists,
+        minutesPlayed,
+        yellowCards,
+        redCards,
+        userName,
+        userAvatarUrl,
+      ];
 
   factory MatchStats.fromJson(Map<String, dynamic> json) {
     return MatchStats(
@@ -54,7 +70,7 @@ class MatchStats {
       };
 }
 
-class PlayerRating {
+class PlayerRating extends Equatable {
   final String id;
   final String userId;
   final String teamId;
@@ -68,7 +84,7 @@ class PlayerRating {
   final String? userName;
   final String? userAvatarUrl;
 
-  PlayerRating({
+  const PlayerRating({
     required this.id,
     required this.userId,
     required this.teamId,
@@ -80,6 +96,20 @@ class PlayerRating {
     this.userName,
     this.userAvatarUrl,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        teamId,
+        rating,
+        wins,
+        losses,
+        draws,
+        updatedAt,
+        userName,
+        userAvatarUrl,
+      ];
 
   factory PlayerRating.fromJson(Map<String, dynamic> json) {
     return PlayerRating(
@@ -110,7 +140,7 @@ class PlayerRating {
       };
 }
 
-class SeasonStats {
+class SeasonStats extends Equatable {
   final String id;
   final String userId;
   final String teamId;
@@ -127,7 +157,7 @@ class SeasonStats {
   final String? userName;
   final String? userAvatarUrl;
 
-  SeasonStats({
+  const SeasonStats({
     required this.id,
     required this.userId,
     required this.teamId,
@@ -142,6 +172,23 @@ class SeasonStats {
     this.userName,
     this.userAvatarUrl,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        teamId,
+        seasonYear,
+        attendanceCount,
+        totalPoints,
+        totalGoals,
+        totalAssists,
+        totalWins,
+        totalLosses,
+        totalDraws,
+        userName,
+        userAvatarUrl,
+      ];
 
   factory SeasonStats.fromJson(Map<String, dynamic> json) {
     return SeasonStats(
@@ -178,7 +225,7 @@ class SeasonStats {
       };
 }
 
-class PlayerStatistics {
+class PlayerStatistics extends Equatable {
   final String userId;
   final String teamId;
   final String userName;
@@ -189,7 +236,7 @@ class PlayerStatistics {
   final int attendedActivities;
   final double attendancePercentage;
 
-  PlayerStatistics({
+  const PlayerStatistics({
     required this.userId,
     required this.teamId,
     required this.userName,
@@ -200,6 +247,19 @@ class PlayerStatistics {
     this.attendedActivities = 0,
     this.attendancePercentage = 0.0,
   });
+
+  @override
+  List<Object?> get props => [
+        userId,
+        teamId,
+        userName,
+        userAvatarUrl,
+        rating,
+        currentSeason,
+        totalActivities,
+        attendedActivities,
+        attendancePercentage,
+      ];
 
   Map<String, dynamic> toJson() => {
         'user_id': userId,
@@ -214,7 +274,7 @@ class PlayerStatistics {
       };
 }
 
-class LeaderboardEntry {
+class LeaderboardEntry extends Equatable {
   final int rank;
   final String userId;
   final String userName;
@@ -225,7 +285,7 @@ class LeaderboardEntry {
   final int losses;
   final int draws;
 
-  LeaderboardEntry({
+  const LeaderboardEntry({
     required this.rank,
     required this.userId,
     required this.userName,
@@ -236,6 +296,19 @@ class LeaderboardEntry {
     this.losses = 0,
     this.draws = 0,
   });
+
+  @override
+  List<Object?> get props => [
+        rank,
+        userId,
+        userName,
+        userAvatarUrl,
+        totalPoints,
+        rating,
+        wins,
+        losses,
+        draws,
+      ];
 
   Map<String, dynamic> toJson() => {
         'rank': rank,
@@ -250,7 +323,7 @@ class LeaderboardEntry {
       };
 }
 
-class AttendanceRecord {
+class AttendanceRecord extends Equatable {
   final String userId;
   final String userName;
   final String? userAvatarUrl;
@@ -259,7 +332,7 @@ class AttendanceRecord {
   final int missed;
   final double percentage;
 
-  AttendanceRecord({
+  const AttendanceRecord({
     required this.userId,
     required this.userName,
     this.userAvatarUrl,
@@ -268,6 +341,17 @@ class AttendanceRecord {
     this.missed = 0,
     this.percentage = 0.0,
   });
+
+  @override
+  List<Object?> get props => [
+        userId,
+        userName,
+        userAvatarUrl,
+        totalActivities,
+        attended,
+        missed,
+        percentage,
+      ];
 
   Map<String, dynamic> toJson() => {
         'user_id': userId,
