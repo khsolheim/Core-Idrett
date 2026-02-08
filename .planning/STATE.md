@@ -5,38 +5,38 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Koden skal være lett å forstå, endre, og utvide — uten å krasje på uventede data.
-**Current focus:** Phase 1 - Test Infrastructure
+**Current focus:** Phase 1 - Test Infrastructure (execution complete, pending verification)
 
 ## Current Position
 
 Phase: 1 of 10 (Test Infrastructure)
-Plan: 4 of 4 (in progress - partial completion)
-Status: In progress
-Last activity: 2026-02-08 — Plan 01-04 partially complete (Task 1 done: 30 classes, 60 tests)
+Plan: 4 of 4 (all complete)
+Status: Phase execution complete — awaiting verification
+Last activity: 2026-02-09 — All 4 plans executed, 339 total model tests passing
 
-Progress: [██░░░░░░░░] 14.06% (2.25 of 16 total plans across all phases)
+Progress: [██████░░░░] 25% (4 of 16 total plans across all phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Plans partially complete: 1 (01-04: ~54% complete)
-- Average duration: 10 minutes
-- Total execution time: 3 hours 15 minutes
+- Total plans completed: 4
+- Average duration: ~50 minutes
+- Total execution time: ~3.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total Time | Avg/Plan |
 |-------|-------|------------|----------|
-| 01    | 2.25  | 3h 15m     | 1h 27m   |
+| 01    | 4/4   | ~3.5h      | ~50m     |
 
 **Recent Trend:**
-- Plan 01-01: Backend test infrastructure (3 hours)
-- Plan 01-02: Frontend Equatable + test data (9 minutes)
-- Plan 01-04: Frontend roundtrip tests (5 minutes so far, ~54% complete)
-- Trend: Rapid progress on model testing infrastructure
+- Plan 01-01: Backend Equatable + test infra (30 min)
+- Plan 01-02: Frontend Equatable + test factories (11 min)
+- Plan 01-03: Backend roundtrip tests — 191 tests (9 min + orchestrator fixes)
+- Plan 01-04: Frontend roundtrip tests — 148 tests (25 min across 2 agents)
+- Trend: Steady execution with minor fixes needed for agent-generated tests
 
-*Updated 2026-02-08 after partial 01-04 completion*
+*Updated 2026-02-09 after all plans complete*
 
 ## Accumulated Context
 
@@ -51,36 +51,22 @@ Recent decisions affecting current work:
 - Equatable for all backend models — enables structural equality testing (01-01)
 - Manual mock instead of code generation — Supabase incompatible with mockito, manual provides better control (01-01)
 - Norwegian test data — realistic Norwegian names (16+16 combinations) for test factories (01-01)
-- Simplified test factories — focus on core models initially, extensible design (01-01)
 - Equatable for all frontend models — enables roundtrip equality assertions (01-02)
-- Deterministic test timestamps — use fixed base time instead of DateTime.now() for predictable tests (01-02)
-- Two-variant roundtrip tests — test each model with all fields populated AND all optional fields null (01-04)
+- Deterministic test timestamps — use fixed UTC timestamps instead of DateTime.now() (01-02)
+- Date-only fields use local DateTime in tests — toJson outputs date-only strings, fromJson parses to local (01-03)
+- LeaderboardEntry optedOut key mismatch flagged for Phase 2 — toJson writes 'opted_out', fromJson reads 'leaderboard_opt_out' (01-03)
 
 ### Pending Todos
 
-**Plan 01-04 continuation needed:**
-- Complete Task 2: 11 remaining model files with ~44 classes
-  - statistics_core.dart (5 classes)
-  - statistics_player.dart (6 classes)
-  - points_config_models.dart (3 classes)
-  - points_config_leaderboard.dart (3 classes)
-  - tournament_models.dart (4 classes)
-  - tournament_group_models.dart (5 classes)
-  - achievement_models.dart (4 classes)
-  - mini_activity_models.dart (2 classes)
-  - mini_activity_support.dart (6 classes)
-  - mini_activity_statistics_core.dart (3 classes)
-  - mini_activity_statistics_aggregate.dart (3 classes)
-- Run final verification across all model tests
-- Update SUMMARY.md to reflect full completion
+None.
 
 ### Blockers/Concerns
 
-None.
+- 8 pre-existing frontend widget test failures (error state tests) — not caused by Phase 1 changes
 
 ## Session Continuity
 
-Last session: 2026-02-08 (plan 01-04 partial execution)
-Stopped at: Plan 01-04 partially complete - Task 1 done (30 classes, 60 tests), Task 2 needs 11 more files
-Resume file: .planning/phases/01-test-infrastructure/01-04-SUMMARY.md
-Next: Complete plan 01-04 Task 2 (11 remaining complex model test files)
+Last session: 2026-02-09 (phase 1 execution complete)
+Stopped at: All 4 plans complete, pending phase verification
+Resume file: None
+Next: Phase verification → then Phase 2 planning
