@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class DeviceToken extends Equatable {
   final String id;
   final String userId;
@@ -29,12 +31,12 @@ class DeviceToken extends Equatable {
 
   factory DeviceToken.fromJson(Map<String, dynamic> row) {
     return DeviceToken(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      token: row['token'] as String,
-      platform: row['platform'] as String,
-      createdAt: DateTime.parse(row['created_at'] as String),
-      lastUsedAt: DateTime.parse(row['last_used_at'] as String),
+      id: safeString(row, 'id'),
+      userId: safeString(row, 'user_id'),
+      token: safeString(row, 'token'),
+      platform: safeString(row, 'platform'),
+      createdAt: requireDateTime(row, 'created_at'),
+      lastUsedAt: requireDateTime(row, 'last_used_at'),
     );
   }
 
@@ -89,16 +91,16 @@ class NotificationPreferences extends Equatable {
 
   factory NotificationPreferences.fromJson(Map<String, dynamic> row) {
     return NotificationPreferences(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      teamId: row['team_id'] as String?,
-      newActivity: row['new_activity'] as bool? ?? true,
-      activityReminder: row['activity_reminder'] as bool? ?? true,
-      activityCancelled: row['activity_cancelled'] as bool? ?? true,
-      activityUpdated: row['activity_updated'] as bool? ?? true,
-      newFine: row['new_fine'] as bool? ?? true,
-      fineDecision: row['fine_decision'] as bool? ?? true,
-      teamMessage: row['team_message'] as bool? ?? true,
+      id: safeString(row, 'id'),
+      userId: safeString(row, 'user_id'),
+      teamId: safeStringNullable(row, 'team_id'),
+      newActivity: safeBool(row, 'new_activity', defaultValue: true),
+      activityReminder: safeBool(row, 'activity_reminder', defaultValue: true),
+      activityCancelled: safeBool(row, 'activity_cancelled', defaultValue: true),
+      activityUpdated: safeBool(row, 'activity_updated', defaultValue: true),
+      newFine: safeBool(row, 'new_fine', defaultValue: true),
+      fineDecision: safeBool(row, 'fine_decision', defaultValue: true),
+      teamMessage: safeBool(row, 'team_message', defaultValue: true),
     );
   }
 

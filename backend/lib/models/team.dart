@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class Team extends Equatable {
   final String id;
   final String name;
@@ -20,11 +22,11 @@ class Team extends Equatable {
 
   factory Team.fromJson(Map<String, dynamic> row) {
     return Team(
-      id: row['id'] as String,
-      name: row['name'] as String,
-      sport: row['sport'] as String?,
-      inviteCode: row['invite_code'] as String?,
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      name: safeString(row, 'name'),
+      sport: safeStringNullable(row, 'sport'),
+      inviteCode: safeStringNullable(row, 'invite_code'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -60,11 +62,11 @@ class TrainerType extends Equatable {
 
   factory TrainerType.fromJson(Map<String, dynamic> row) {
     return TrainerType(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      name: row['name'] as String,
-      displayOrder: row['display_order'] as int? ?? 0,
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      name: safeString(row, 'name'),
+      displayOrder: safeInt(row, 'display_order', defaultValue: 0),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -143,18 +145,18 @@ class TeamMember extends Equatable {
 
   factory TeamMember.fromJson(Map<String, dynamic> row) {
     return TeamMember(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      teamId: row['team_id'] as String,
-      role: row['role'] as String? ?? 'player',
-      isAdmin: row['is_admin'] as bool? ?? false,
-      isFineBoss: row['is_fine_boss'] as bool? ?? false,
-      isCoach: row['is_coach'] as bool? ?? false,
-      trainerTypeId: row['trainer_type_id'] as String?,
-      trainerTypeName: row['trainer_type_name'] as String?,
-      isActive: row['is_active'] as bool? ?? true,
-      isInjured: row['is_injured'] as bool? ?? false,
-      joinedAt: row['joined_at'] as DateTime,
+      id: safeString(row, 'id'),
+      userId: safeString(row, 'user_id'),
+      teamId: safeString(row, 'team_id'),
+      role: safeString(row, 'role', defaultValue: 'player'),
+      isAdmin: safeBool(row, 'is_admin', defaultValue: false),
+      isFineBoss: safeBool(row, 'is_fine_boss', defaultValue: false),
+      isCoach: safeBool(row, 'is_coach', defaultValue: false),
+      trainerTypeId: safeStringNullable(row, 'trainer_type_id'),
+      trainerTypeName: safeStringNullable(row, 'trainer_type_name'),
+      isActive: safeBool(row, 'is_active', defaultValue: true),
+      isInjured: safeBool(row, 'is_injured', defaultValue: false),
+      joinedAt: requireDateTime(row, 'joined_at'),
     );
   }
 

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class User extends Equatable {
   final String id;
   final String email;
@@ -19,13 +21,12 @@ class User extends Equatable {
   List<Object?> get props => [id, email, name, avatarUrl, createdAt];
 
   factory User.fromJson(Map<String, dynamic> row) {
-    final createdAt = row['created_at'];
     return User(
-      id: row['id'] as String,
-      email: row['email'] as String,
-      name: row['name'] as String,
-      avatarUrl: row['avatar_url'] as String?,
-      createdAt: createdAt is DateTime ? createdAt : DateTime.parse(createdAt.toString()),
+      id: safeString(row, 'id'),
+      email: safeString(row, 'email'),
+      name: safeString(row, 'name'),
+      avatarUrl: safeStringNullable(row, 'avatar_url'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 

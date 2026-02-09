@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class ExportLog extends Equatable {
   final String id;
   final String teamId;
@@ -37,14 +39,14 @@ class ExportLog extends Equatable {
 
   factory ExportLog.fromMap(Map<String, dynamic> map) {
     return ExportLog(
-      id: map['id'] as String,
-      teamId: map['team_id'] as String,
-      userId: map['user_id'] as String,
-      exportType: map['export_type'] as String,
-      fileFormat: map['file_format'] as String,
-      parameters: map['parameters'] as Map<String, dynamic>?,
-      createdAt: DateTime.parse(map['created_at'] as String),
-      userName: map['user_name'] as String?,
+      id: safeString(map, 'id'),
+      teamId: safeString(map, 'team_id'),
+      userId: safeString(map, 'user_id'),
+      exportType: safeString(map, 'export_type'),
+      fileFormat: safeString(map, 'file_format'),
+      parameters: safeMapNullable(map, 'parameters'),
+      createdAt: requireDateTime(map, 'created_at'),
+      userName: safeStringNullable(map, 'user_name'),
     );
   }
 

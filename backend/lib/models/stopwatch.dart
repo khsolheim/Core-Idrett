@@ -3,6 +3,8 @@
 
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 // BM-041: Session type enum
 enum StopwatchSessionType {
   stopwatch,
@@ -110,19 +112,19 @@ class StopwatchSession extends Equatable {
 
   factory StopwatchSession.fromJson(Map<String, dynamic> row) {
     return StopwatchSession(
-      id: row['id'] as String,
-      miniActivityId: row['mini_activity_id'] as String?,
-      teamId: row['team_id'] as String?,
-      name: row['name'] as String?,
-      sessionType: StopwatchSessionType.fromString(row['session_type'] as String),
-      countdownDurationMs: row['countdown_duration_ms'] as int?,
-      status: StopwatchSessionStatus.fromString(row['status'] as String? ?? 'pending'),
-      startedAt: row['started_at'] as DateTime?,
-      pausedAt: row['paused_at'] as DateTime?,
-      completedAt: row['completed_at'] as DateTime?,
-      elapsedMsAtPause: row['elapsed_ms_at_pause'] as int? ?? 0,
-      createdAt: row['created_at'] as DateTime,
-      createdBy: row['created_by'] as String,
+      id: safeString(row, 'id'),
+      miniActivityId: safeStringNullable(row, 'mini_activity_id'),
+      teamId: safeStringNullable(row, 'team_id'),
+      name: safeStringNullable(row, 'name'),
+      sessionType: StopwatchSessionType.fromString(safeString(row, 'session_type')),
+      countdownDurationMs: safeIntNullable(row, 'countdown_duration_ms'),
+      status: StopwatchSessionStatus.fromString(safeString(row, 'status', defaultValue: 'pending')),
+      startedAt: safeDateTimeNullable(row, 'started_at'),
+      pausedAt: safeDateTimeNullable(row, 'paused_at'),
+      completedAt: safeDateTimeNullable(row, 'completed_at'),
+      elapsedMsAtPause: safeInt(row, 'elapsed_ms_at_pause', defaultValue: 0),
+      createdAt: requireDateTime(row, 'created_at'),
+      createdBy: safeString(row, 'created_by'),
     );
   }
 
@@ -217,15 +219,15 @@ class StopwatchTime extends Equatable {
 
   factory StopwatchTime.fromJson(Map<String, dynamic> row) {
     return StopwatchTime(
-      id: row['id'] as String,
-      sessionId: row['session_id'] as String,
-      userId: row['user_id'] as String,
-      timeMs: row['time_ms'] as int,
-      isSplit: row['is_split'] as bool? ?? false,
-      splitNumber: row['split_number'] as int?,
-      lapNumber: row['lap_number'] as int?,
-      notes: row['notes'] as String?,
-      recordedAt: row['recorded_at'] as DateTime,
+      id: safeString(row, 'id'),
+      sessionId: safeString(row, 'session_id'),
+      userId: safeString(row, 'user_id'),
+      timeMs: safeInt(row, 'time_ms'),
+      isSplit: safeBool(row, 'is_split', defaultValue: false),
+      splitNumber: safeIntNullable(row, 'split_number'),
+      lapNumber: safeIntNullable(row, 'lap_number'),
+      notes: safeStringNullable(row, 'notes'),
+      recordedAt: requireDateTime(row, 'recorded_at'),
     );
   }
 

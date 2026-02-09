@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 /// Test template model for reusable test definitions
 class TestTemplate extends Equatable {
   final String id;
@@ -33,13 +35,13 @@ class TestTemplate extends Equatable {
 
   factory TestTemplate.fromJson(Map<String, dynamic> row) {
     return TestTemplate(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      name: row['name'] as String,
-      description: row['description'] as String?,
-      unit: row['unit'] as String,
-      higherIsBetter: row['higher_is_better'] as bool? ?? false,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      name: safeString(row, 'name'),
+      description: safeStringNullable(row, 'description'),
+      unit: safeString(row, 'unit'),
+      higherIsBetter: safeBool(row, 'higher_is_better', defaultValue: false),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -103,17 +105,17 @@ class TestResult extends Equatable {
 
   factory TestResult.fromJson(Map<String, dynamic> row) {
     return TestResult(
-      id: row['id'] as String,
-      testTemplateId: row['test_template_id'] as String,
-      userId: row['user_id'] as String,
-      instanceId: row['instance_id'] as String?,
-      value: (row['value'] as num).toDouble(),
-      recordedAt: DateTime.parse(row['recorded_at'] as String),
-      notes: row['notes'] as String?,
-      userName: row['user_name'] as String?,
-      userAvatarUrl: row['user_avatar_url'] as String?,
-      testName: row['test_name'] as String?,
-      testUnit: row['test_unit'] as String?,
+      id: safeString(row, 'id'),
+      testTemplateId: safeString(row, 'test_template_id'),
+      userId: safeString(row, 'user_id'),
+      instanceId: safeStringNullable(row, 'instance_id'),
+      value: safeDouble(row, 'value'),
+      recordedAt: requireDateTime(row, 'recorded_at'),
+      notes: safeStringNullable(row, 'notes'),
+      userName: safeStringNullable(row, 'user_name'),
+      userAvatarUrl: safeStringNullable(row, 'user_avatar_url'),
+      testName: safeStringNullable(row, 'test_name'),
+      testUnit: safeStringNullable(row, 'test_unit'),
     );
   }
 

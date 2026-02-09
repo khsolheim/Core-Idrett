@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 /// Season model for organizing activities and statistics per time period
 class Season extends Equatable {
   final String id;
@@ -33,17 +35,13 @@ class Season extends Equatable {
 
   factory Season.fromJson(Map<String, dynamic> row) {
     return Season(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      name: row['name'] as String,
-      startDate: row['start_date'] != null
-          ? DateTime.parse(row['start_date'] as String)
-          : null,
-      endDate: row['end_date'] != null
-          ? DateTime.parse(row['end_date'] as String)
-          : null,
-      isActive: row['is_active'] as bool? ?? false,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      name: safeString(row, 'name'),
+      startDate: safeDateTimeNullable(row, 'start_date'),
+      endDate: safeDateTimeNullable(row, 'end_date'),
+      isActive: safeBool(row, 'is_active', defaultValue: false),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -162,16 +160,16 @@ class Leaderboard extends Equatable {
 
   factory Leaderboard.fromJson(Map<String, dynamic> row) {
     return Leaderboard(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      seasonId: row['season_id'] as String?,
-      name: row['name'] as String,
-      description: row['description'] as String?,
-      isMain: row['is_main'] as bool? ?? false,
-      sortOrder: row['sort_order'] as int? ?? 0,
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      seasonId: safeStringNullable(row, 'season_id'),
+      name: safeString(row, 'name'),
+      description: safeStringNullable(row, 'description'),
+      isMain: safeBool(row, 'is_main', defaultValue: false),
+      sortOrder: safeInt(row, 'sort_order', defaultValue: 0),
       category: LeaderboardCategory.fromString(
-          row['category'] as String? ?? 'total'),
-      createdAt: DateTime.parse(row['created_at'] as String),
+          safeString(row, 'category', defaultValue: 'total')),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -246,19 +244,19 @@ class LeaderboardEntry extends Equatable {
 
   factory LeaderboardEntry.fromJson(Map<String, dynamic> row, {int? rank}) {
     return LeaderboardEntry(
-      id: row['id'] as String,
-      leaderboardId: row['leaderboard_id'] as String,
-      userId: row['user_id'] as String,
-      points: row['points'] as int? ?? 0,
-      updatedAt: DateTime.parse(row['updated_at'] as String),
-      userName: row['user_name'] as String?,
-      userAvatarUrl: row['user_avatar_url'] as String?,
-      rank: rank ?? row['rank'] as int?,
-      attendanceRate: (row['attendance_rate'] as num?)?.toDouble(),
-      currentStreak: row['current_streak'] as int?,
-      optedOut: row['opted_out'] as bool?,
-      trend: row['trend'] as String?,
-      rankChange: row['rank_change'] as int?,
+      id: safeString(row, 'id'),
+      leaderboardId: safeString(row, 'leaderboard_id'),
+      userId: safeString(row, 'user_id'),
+      points: safeInt(row, 'points', defaultValue: 0),
+      updatedAt: requireDateTime(row, 'updated_at'),
+      userName: safeStringNullable(row, 'user_name'),
+      userAvatarUrl: safeStringNullable(row, 'user_avatar_url'),
+      rank: rank ?? safeIntNullable(row, 'rank'),
+      attendanceRate: safeDoubleNullable(row, 'attendance_rate'),
+      currentStreak: safeIntNullable(row, 'current_streak'),
+      optedOut: safeBoolNullable(row, 'opted_out'),
+      trend: safeStringNullable(row, 'trend'),
+      rankChange: safeIntNullable(row, 'rank_change'),
     );
   }
 
@@ -317,14 +315,14 @@ class MiniActivityPointConfig extends Equatable {
 
   factory MiniActivityPointConfig.fromJson(Map<String, dynamic> row) {
     return MiniActivityPointConfig(
-      id: row['id'] as String,
-      miniActivityId: row['mini_activity_id'] as String,
-      leaderboardId: row['leaderboard_id'] as String,
-      distributionType: row['distribution_type'] as String? ?? 'winner_only',
-      pointsFirst: row['points_first'] as int? ?? 5,
-      pointsSecond: row['points_second'] as int? ?? 3,
-      pointsThird: row['points_third'] as int? ?? 1,
-      pointsParticipation: row['points_participation'] as int? ?? 0,
+      id: safeString(row, 'id'),
+      miniActivityId: safeString(row, 'mini_activity_id'),
+      leaderboardId: safeString(row, 'leaderboard_id'),
+      distributionType: safeString(row, 'distribution_type', defaultValue: 'winner_only'),
+      pointsFirst: safeInt(row, 'points_first', defaultValue: 5),
+      pointsSecond: safeInt(row, 'points_second', defaultValue: 3),
+      pointsThird: safeInt(row, 'points_third', defaultValue: 1),
+      pointsParticipation: safeInt(row, 'points_participation', defaultValue: 0),
     );
   }
 

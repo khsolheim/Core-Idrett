@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class Message extends Equatable {
   final String id;
   final String? teamId;
@@ -56,20 +58,20 @@ class Message extends Equatable {
 
   factory Message.fromJson(Map<String, dynamic> row) {
     return Message(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String?,
-      recipientId: row['recipient_id'] as String?,
-      userId: row['user_id'] as String,
-      content: row['content'] as String,
-      replyToId: row['reply_to_id'] as String?,
-      isEdited: row['is_edited'] as bool? ?? false,
-      isDeleted: row['is_deleted'] as bool? ?? false,
-      createdAt: DateTime.parse(row['created_at'] as String),
-      updatedAt: DateTime.parse(row['updated_at'] as String),
-      userName: row['user_name'] as String?,
-      userAvatarUrl: row['user_avatar_url'] as String?,
-      recipientName: row['recipient_name'] as String?,
-      recipientAvatarUrl: row['recipient_avatar_url'] as String?,
+      id: safeString(row, 'id'),
+      teamId: safeStringNullable(row, 'team_id'),
+      recipientId: safeStringNullable(row, 'recipient_id'),
+      userId: safeString(row, 'user_id'),
+      content: safeString(row, 'content'),
+      replyToId: safeStringNullable(row, 'reply_to_id'),
+      isEdited: safeBool(row, 'is_edited', defaultValue: false),
+      isDeleted: safeBool(row, 'is_deleted', defaultValue: false),
+      createdAt: requireDateTime(row, 'created_at'),
+      updatedAt: requireDateTime(row, 'updated_at'),
+      userName: safeStringNullable(row, 'user_name'),
+      userAvatarUrl: safeStringNullable(row, 'user_avatar_url'),
+      recipientName: safeStringNullable(row, 'recipient_name'),
+      recipientAvatarUrl: safeStringNullable(row, 'recipient_avatar_url'),
     );
   }
 

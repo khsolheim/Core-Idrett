@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class Document extends Equatable {
   final String id;
   final String teamId;
@@ -55,20 +57,20 @@ class Document extends Equatable {
 
   factory Document.fromMap(Map<String, dynamic> map) {
     return Document(
-      id: map['id'] as String,
-      teamId: map['team_id'] as String,
-      uploadedBy: map['uploaded_by'] as String,
-      name: map['name'] as String,
-      description: map['description'] as String?,
-      filePath: map['file_path'] as String,
-      fileSize: map['file_size'] as int,
-      mimeType: map['mime_type'] as String,
-      category: map['category'] as String?,
-      isDeleted: map['is_deleted'] as bool? ?? false,
-      createdAt: DateTime.parse(map['created_at'] as String),
-      updatedAt: DateTime.parse(map['updated_at'] as String),
-      uploaderName: map['uploader_name'] as String?,
-      uploaderAvatarUrl: map['uploader_avatar_url'] as String?,
+      id: safeString(map, 'id'),
+      teamId: safeString(map, 'team_id'),
+      uploadedBy: safeString(map, 'uploaded_by'),
+      name: safeString(map, 'name'),
+      description: safeStringNullable(map, 'description'),
+      filePath: safeString(map, 'file_path'),
+      fileSize: safeInt(map, 'file_size'),
+      mimeType: safeString(map, 'mime_type'),
+      category: safeStringNullable(map, 'category'),
+      isDeleted: safeBool(map, 'is_deleted', defaultValue: false),
+      createdAt: requireDateTime(map, 'created_at'),
+      updatedAt: requireDateTime(map, 'updated_at'),
+      uploaderName: safeStringNullable(map, 'uploader_name'),
+      uploaderAvatarUrl: safeStringNullable(map, 'uploader_avatar_url'),
     );
   }
 

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class Activity extends Equatable {
   final String id;
   final String teamId;
@@ -47,18 +49,18 @@ class Activity extends Equatable {
 
   factory Activity.fromJson(Map<String, dynamic> row) {
     return Activity(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      title: row['title'] as String,
-      type: row['type'] as String,
-      location: row['location'] as String?,
-      description: row['description'] as String?,
-      recurrenceType: row['recurrence_type'] as String? ?? 'once',
-      recurrenceEndDate: row['recurrence_end_date'] as DateTime?,
-      responseType: row['response_type'] as String? ?? 'yes_no',
-      responseDeadlineHours: row['response_deadline_hours'] as int?,
-      createdBy: row['created_by'] as String?,
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      title: safeString(row, 'title'),
+      type: safeString(row, 'type'),
+      location: safeStringNullable(row, 'location'),
+      description: safeStringNullable(row, 'description'),
+      recurrenceType: safeString(row, 'recurrence_type', defaultValue: 'once'),
+      recurrenceEndDate: safeDateTimeNullable(row, 'recurrence_end_date'),
+      responseType: safeString(row, 'response_type', defaultValue: 'yes_no'),
+      responseDeadlineHours: safeIntNullable(row, 'response_deadline_hours'),
+      createdBy: safeStringNullable(row, 'created_by'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -112,13 +114,13 @@ class ActivityInstance extends Equatable {
 
   factory ActivityInstance.fromJson(Map<String, dynamic> row) {
     return ActivityInstance(
-      id: row['id'] as String,
-      activityId: row['activity_id'] as String,
-      date: row['date'] as DateTime,
+      id: safeString(row, 'id'),
+      activityId: safeString(row, 'activity_id'),
+      date: requireDateTime(row, 'date'),
       startTime: row['start_time']?.toString(),
       endTime: row['end_time']?.toString(),
-      status: row['status'] as String? ?? 'scheduled',
-      cancelledReason: row['cancelled_reason'] as String?,
+      status: safeString(row, 'status', defaultValue: 'scheduled'),
+      cancelledReason: safeStringNullable(row, 'cancelled_reason'),
     );
   }
 
@@ -164,12 +166,12 @@ class ActivityResponse extends Equatable {
 
   factory ActivityResponse.fromJson(Map<String, dynamic> row) {
     return ActivityResponse(
-      id: row['id'] as String,
-      instanceId: row['instance_id'] as String,
-      userId: row['user_id'] as String,
-      response: row['response'] as String?,
-      comment: row['comment'] as String?,
-      respondedAt: row['responded_at'] as DateTime,
+      id: safeString(row, 'id'),
+      instanceId: safeString(row, 'instance_id'),
+      userId: safeString(row, 'user_id'),
+      response: safeStringNullable(row, 'response'),
+      comment: safeStringNullable(row, 'comment'),
+      respondedAt: requireDateTime(row, 'responded_at'),
     );
   }
 

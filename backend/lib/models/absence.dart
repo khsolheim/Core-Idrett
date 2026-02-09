@@ -3,6 +3,8 @@
 
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 /// Absence category (team-specific)
 class AbsenceCategory extends Equatable {
   final String id;
@@ -42,15 +44,15 @@ class AbsenceCategory extends Equatable {
 
   factory AbsenceCategory.fromJson(Map<String, dynamic> row) {
     return AbsenceCategory(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      name: row['name'] as String,
-      description: row['description'] as String?,
-      requiresApproval: row['requires_approval'] as bool? ?? false,
-      countsAsValid: row['counts_as_valid'] as bool? ?? true,
-      isActive: row['is_active'] as bool? ?? true,
-      sortOrder: row['sort_order'] as int? ?? 0,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      name: safeString(row, 'name'),
+      description: safeStringNullable(row, 'description'),
+      requiresApproval: safeBool(row, 'requires_approval', defaultValue: false),
+      countsAsValid: safeBool(row, 'counts_as_valid', defaultValue: true),
+      isActive: safeBool(row, 'is_active', defaultValue: true),
+      sortOrder: safeInt(row, 'sort_order', defaultValue: 0),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -192,30 +194,26 @@ class AbsenceRecord extends Equatable {
 
   factory AbsenceRecord.fromJson(Map<String, dynamic> row) {
     return AbsenceRecord(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      instanceId: row['instance_id'] as String,
-      categoryId: row['category_id'] as String?,
-      reason: row['reason'] as String?,
-      status: AbsenceStatus.fromString(row['status'] as String? ?? 'pending'),
-      approvedBy: row['approved_by'] as String?,
-      approvedAt: row['approved_at'] != null
-          ? DateTime.parse(row['approved_at'] as String)
-          : null,
-      rejectionReason: row['rejection_reason'] as String?,
-      createdAt: DateTime.parse(row['created_at'] as String),
-      updatedAt: DateTime.parse(row['updated_at'] as String),
+      id: safeString(row, 'id'),
+      userId: safeString(row, 'user_id'),
+      instanceId: safeString(row, 'instance_id'),
+      categoryId: safeStringNullable(row, 'category_id'),
+      reason: safeStringNullable(row, 'reason'),
+      status: AbsenceStatus.fromString(safeString(row, 'status', defaultValue: 'pending')),
+      approvedBy: safeStringNullable(row, 'approved_by'),
+      approvedAt: safeDateTimeNullable(row, 'approved_at'),
+      rejectionReason: safeStringNullable(row, 'rejection_reason'),
+      createdAt: requireDateTime(row, 'created_at'),
+      updatedAt: requireDateTime(row, 'updated_at'),
       // Joined fields from view
-      userName: row['user_name'] as String?,
-      categoryName: row['category_name'] as String?,
-      countsAsValid: row['counts_as_valid'] as bool?,
-      approverName: row['approver_name'] as String?,
-      activityTitle: row['activity_title'] as String?,
-      activityDate: row['activity_date'] != null
-          ? DateTime.parse(row['activity_date'] as String)
-          : null,
-      activityType: row['activity_type'] as String?,
-      teamId: row['team_id'] as String?,
+      userName: safeStringNullable(row, 'user_name'),
+      categoryName: safeStringNullable(row, 'category_name'),
+      countsAsValid: safeBoolNullable(row, 'counts_as_valid'),
+      approverName: safeStringNullable(row, 'approver_name'),
+      activityTitle: safeStringNullable(row, 'activity_title'),
+      activityDate: safeDateTimeNullable(row, 'activity_date'),
+      activityType: safeStringNullable(row, 'activity_type'),
+      teamId: safeStringNullable(row, 'team_id'),
     );
   }
 

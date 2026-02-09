@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class FineRule extends Equatable {
   final String id;
   final String teamId;
@@ -32,13 +34,13 @@ class FineRule extends Equatable {
 
   factory FineRule.fromJson(Map<String, dynamic> json) {
     return FineRule(
-      id: json['id'],
-      teamId: json['team_id'],
-      name: json['name'],
-      amount: (json['amount'] as num).toDouble(),
-      description: json['description'],
-      active: json['active'] ?? true,
-      createdAt: DateTime.parse(json['created_at']),
+      id: safeString(json, 'id'),
+      teamId: safeString(json, 'team_id'),
+      name: safeString(json, 'name'),
+      amount: safeDouble(json, 'amount'),
+      description: safeStringNullable(json, 'description'),
+      active: safeBool(json, 'active', defaultValue: true),
+      createdAt: requireDateTime(json, 'created_at'),
     );
   }
 
@@ -130,25 +132,25 @@ class Fine extends Equatable {
 
   factory Fine.fromJson(Map<String, dynamic> json) {
     return Fine(
-      id: json['id'],
-      ruleId: json['rule_id'],
-      teamId: json['team_id'],
-      offenderId: json['offender_id'],
-      reporterId: json['reporter_id'],
-      approvedBy: json['approved_by'],
-      status: json['status'] ?? 'pending',
-      amount: (json['amount'] as num).toDouble(),
-      description: json['description'],
-      evidenceUrl: json['evidence_url'],
-      isGameDay: json['is_game_day'] ?? false,
-      createdAt: DateTime.parse(json['created_at']),
-      resolvedAt: json['resolved_at'] != null ? DateTime.parse(json['resolved_at']) : null,
-      offenderName: json['offender_name'],
-      offenderAvatarUrl: json['offender_avatar_url'],
-      reporterName: json['reporter_name'],
-      ruleName: json['rule_name'],
-      appeal: json['appeal'] != null ? FineAppeal.fromJson(json['appeal']) : null,
-      paidAmount: json['paid_amount'] != null ? (json['paid_amount'] as num).toDouble() : null,
+      id: safeString(json, 'id'),
+      ruleId: safeStringNullable(json, 'rule_id'),
+      teamId: safeString(json, 'team_id'),
+      offenderId: safeString(json, 'offender_id'),
+      reporterId: safeString(json, 'reporter_id'),
+      approvedBy: safeStringNullable(json, 'approved_by'),
+      status: safeString(json, 'status', defaultValue: 'pending'),
+      amount: safeDouble(json, 'amount'),
+      description: safeStringNullable(json, 'description'),
+      evidenceUrl: safeStringNullable(json, 'evidence_url'),
+      isGameDay: safeBool(json, 'is_game_day', defaultValue: false),
+      createdAt: requireDateTime(json, 'created_at'),
+      resolvedAt: safeDateTimeNullable(json, 'resolved_at'),
+      offenderName: safeStringNullable(json, 'offender_name'),
+      offenderAvatarUrl: safeStringNullable(json, 'offender_avatar_url'),
+      reporterName: safeStringNullable(json, 'reporter_name'),
+      ruleName: safeStringNullable(json, 'rule_name'),
+      appeal: json['appeal'] != null ? FineAppeal.fromJson(safeMap(json, 'appeal')) : null,
+      paidAmount: safeDoubleNullable(json, 'paid_amount'),
     );
   }
 
@@ -217,15 +219,15 @@ class FineAppeal extends Equatable {
 
   factory FineAppeal.fromJson(Map<String, dynamic> json) {
     return FineAppeal(
-      id: json['id'],
-      fineId: json['fine_id'],
-      reason: json['reason'],
-      status: json['status'] ?? 'pending',
-      extraFee: json['extra_fee'] != null ? (json['extra_fee'] as num).toDouble() : null,
-      decidedBy: json['decided_by'],
-      createdAt: DateTime.parse(json['created_at']),
-      decidedAt: json['decided_at'] != null ? DateTime.parse(json['decided_at']) : null,
-      fine: json['fine'] != null ? Fine.fromJson(json['fine']) : null,
+      id: safeString(json, 'id'),
+      fineId: safeString(json, 'fine_id'),
+      reason: safeString(json, 'reason'),
+      status: safeString(json, 'status', defaultValue: 'pending'),
+      extraFee: safeDoubleNullable(json, 'extra_fee'),
+      decidedBy: safeStringNullable(json, 'decided_by'),
+      createdAt: requireDateTime(json, 'created_at'),
+      decidedAt: safeDateTimeNullable(json, 'decided_at'),
+      fine: json['fine'] != null ? Fine.fromJson(safeMap(json, 'fine')) : null,
     );
   }
 
@@ -268,11 +270,11 @@ class FinePayment extends Equatable {
 
   factory FinePayment.fromJson(Map<String, dynamic> json) {
     return FinePayment(
-      id: json['id'],
-      fineId: json['fine_id'],
-      amount: (json['amount'] as num).toDouble(),
-      paidAt: DateTime.parse(json['paid_at']),
-      registeredBy: json['registered_by'],
+      id: safeString(json, 'id'),
+      fineId: safeString(json, 'fine_id'),
+      amount: safeDouble(json, 'amount'),
+      paidAt: requireDateTime(json, 'paid_at'),
+      registeredBy: safeString(json, 'registered_by'),
     );
   }
 
