@@ -120,16 +120,18 @@ Plans:
 **Depends on**: Phase 5 (widgets stable for UI testing)
 **Requirements**: TEST-03, TEST-04, TEST-05, TEST-06, TEST-07, TEST-08
 **Success Criteria** (what must be TRUE):
-  1. Export service has tests for all 7 export types with data validation
+  1. Export service has tests for all 5 export types with data validation
   2. Tournament service has tests for bracket generation (single-elim, round-robin, 3/5/8/16 participants)
   3. Fine service has tests for payment reconciliation, idempotency, balance calculations
   4. Statistics service has tests for edge cases (zero attendance, empty scores, season boundaries)
   5. Frontend export and tournament screens have widget tests covering key interactions
   6. Coverage report shows 70%+ backend, 80%+ frontend test coverage
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 06-01: [Plan details TBD during planning]
+- [ ] 06-01-PLAN.md -- Backend export service + statistics service tests (TDD)
+- [ ] 06-02-PLAN.md -- Backend tournament bracket + fine service tests (TDD)
+- [ ] 06-03-PLAN.md -- Frontend export screen + tournament screen widget tests
 
 ### Phase 7: Code Consistency Patterns
 **Goal**: Enforce consistent patterns across all handlers, error responses, and UI components
