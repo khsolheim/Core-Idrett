@@ -36,6 +36,7 @@ import '../services/user_service.dart';
 import '../services/dashboard_service.dart';
 import '../services/player_rating_service.dart';
 import 'middleware/auth_middleware.dart';
+import 'middleware/rate_limit_middleware.dart';
 import 'auth_handler.dart';
 import 'teams_handler.dart';
 import 'activities_handler.dart';
@@ -121,9 +122,14 @@ Router createRouter(Database db) {
 
   final router = Router();
 
-  // Auth routes (no middleware - handles its own auth)
+  // Auth routes (rate limited to prevent brute-force)
   final authHandler = AuthHandler(authService);
-  router.mount('/auth', authHandler.router.call);
+  router.mount('/auth',
+    const Pipeline()
+      .addMiddleware(authRateLimiter)
+      .addHandler(authHandler.router.call)
+      .call
+  );
 
   // Protected routes - wrapped with auth middleware
   final teamsHandler = TeamsHandler(teamService, teamMemberService, dashboardService);
@@ -164,7 +170,7 @@ Router createRouter(Database db) {
   router.mount('/statistics', const Pipeline().addMiddleware(auth).addHandler(statisticsHandler.router.call).call);
 
   final finesHandler = FinesHandler(fineRuleService, fineCrudService, fineSummaryService, teamService);
-  router.mount('/fines', const Pipeline().addMiddleware(auth).addHandler(finesHandler.router.call).call);
+  router.mount('/fines', const Pipeline().addMiddleware(auth).addMiddleware(mutationRateLimiter).addHandler(finesHandler.router.call).call);
 
   final seasonsHandler = SeasonsHandler(seasonService, teamService);
   router.mount('/seasons', const Pipeline().addMiddleware(auth).addHandler(seasonsHandler.router.call).call);
@@ -197,13 +203,13 @@ Router createRouter(Database db) {
   router.mount('/notifications', const Pipeline().addMiddleware(auth).addHandler(notificationsHandler.router.call).call);
 
   final messagesHandler = MessagesHandler(messageService, teamChatService, directMessageService, teamService);
-  router.mount('/messages', const Pipeline().addMiddleware(auth).addHandler(messagesHandler.router.call).call);
+  router.mount('/messages', const Pipeline().addMiddleware(auth).addMiddleware(mutationRateLimiter).addHandler(messagesHandler.router.call).call);
 
   final documentsHandler = DocumentsHandler(documentService, teamService);
   router.mount('/documents', const Pipeline().addMiddleware(auth).addHandler(documentsHandler.router.call).call);
 
   final exportsHandler = ExportsHandler(exportDataService, exportUtilityService, teamService);
-  router.mount('/exports', const Pipeline().addMiddleware(auth).addHandler(exportsHandler.router.call).call);
+  router.mount('/exports', const Pipeline().addMiddleware(auth).addMiddleware(exportRateLimiter).addHandler(exportsHandler.router.call).call);
 
   // Health check (no auth)
   router.get('/health', (request) {
