@@ -98,7 +98,11 @@ Router createRouter(Database db) {
     db, tournamentCrudService, tournamentRoundsService, tournamentMatchesService, tournamentGroupService,
   );
   final stopwatchService = StopwatchService(db, userService);
-  final miniActivityStatisticsService = MiniActivityStatisticsService(db, userService);
+  final miniActivityPlayerStatsService = MiniActivityPlayerStatsService(db);
+  final miniActivityHeadToHeadService = MiniActivityHeadToHeadService(db);
+  final miniActivityStatsAggregationService = MiniActivityStatsAggregationService(
+    db, miniActivityPlayerStatsService, miniActivityHeadToHeadService, userService,
+  );
   final pointsConfigService = PointsConfigService(db);
   final absenceService = AbsenceService(db);
   final achievementDefinitionService = AchievementDefinitionService(db);
@@ -131,7 +135,7 @@ Router createRouter(Database db) {
     miniActivityDivisionService,
     miniActivityResultService,
     teamService,
-    miniActivityStatisticsService,
+    miniActivityStatsAggregationService,
   );
   router.mount('/mini-activities', const Pipeline().addMiddleware(auth).addHandler(miniActivitiesHandler.router.call).call);
 
@@ -145,7 +149,9 @@ Router createRouter(Database db) {
   router.mount('/stopwatch', const Pipeline().addMiddleware(auth).addHandler(stopwatchHandler.router.call).call);
 
   final miniActivityStatsHandler = MiniActivityStatisticsHandler(
-    miniActivityStatisticsService,
+    miniActivityPlayerStatsService,
+    miniActivityHeadToHeadService,
+    miniActivityStatsAggregationService,
     teamService,
   );
   router.mount('/mini-activity-stats', const Pipeline().addMiddleware(auth).addHandler(miniActivityStatsHandler.router.call).call);

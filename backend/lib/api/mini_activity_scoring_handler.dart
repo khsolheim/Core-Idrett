@@ -11,9 +11,9 @@ import '../helpers/parsing_helpers.dart';
 class MiniActivityScoringHandler {
   final MiniActivityService _miniActivityService;
   final MiniActivityResultService _resultService;
-  final MiniActivityStatisticsService? _statsService;
+  final MiniActivityStatsAggregationService? _aggregationService;
 
-  MiniActivityScoringHandler(this._miniActivityService, this._resultService, [this._statsService]);
+  MiniActivityScoringHandler(this._miniActivityService, this._resultService, [this._aggregationService]);
 
   Router get router {
     final router = Router();
@@ -160,7 +160,8 @@ class MiniActivityScoringHandler {
         return resp.unauthorized();
       }
 
-      if (_statsService == null) {
+      final aggregationService = _aggregationService;
+      if (aggregationService == null) {
         return resp.serverError('Statistikktjeneste ikke tilgjengelig');
       }
 
@@ -183,7 +184,7 @@ class MiniActivityScoringHandler {
         return resp.badRequest('Mini-aktivitet mangler team_id');
       }
 
-      final leaderboard = await _statsService.getMiniActivityLeaderboard(teamId: teamId);
+      final leaderboard = await aggregationService.getMiniActivityLeaderboard(teamId: teamId);
       return resp.ok(leaderboard);
     } catch (e) {
       return resp.serverError('En feil oppstod');

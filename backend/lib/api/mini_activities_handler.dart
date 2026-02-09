@@ -19,7 +19,7 @@ class MiniActivitiesHandler {
   final MiniActivityDivisionService _divisionService;
   final MiniActivityResultService _resultService;
   final TeamService _teamService;
-  final MiniActivityStatisticsService? _statsService;
+  final MiniActivityStatsAggregationService? _statsService;
 
   MiniActivitiesHandler(
     this._miniActivityService,

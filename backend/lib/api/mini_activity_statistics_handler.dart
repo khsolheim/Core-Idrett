@@ -9,10 +9,17 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class MiniActivityStatisticsHandler {
-  final MiniActivityStatisticsService _statsService;
+  final MiniActivityPlayerStatsService _playerStatsService;
+  final MiniActivityHeadToHeadService _headToHeadService;
+  final MiniActivityStatsAggregationService _aggregationService;
   final TeamService _teamService;
 
-  MiniActivityStatisticsHandler(this._statsService, this._teamService);
+  MiniActivityStatisticsHandler(
+    this._playerStatsService,
+    this._headToHeadService,
+    this._aggregationService,
+    this._teamService,
+  );
 
   Router get router {
     final router = Router();
@@ -60,7 +67,7 @@ class MiniActivityStatisticsHandler {
       final sortBy = request.url.queryParameters['sort_by'];
       final descending = request.url.queryParameters['descending'] != 'false';
 
-      final stats = await _statsService.getTeamPlayerStats(
+      final stats = await _playerStatsService.getTeamPlayerStats(
         teamId: teamId,
         seasonId: seasonId,
         sortBy: sortBy,
@@ -87,7 +94,7 @@ class MiniActivityStatisticsHandler {
 
       final seasonId = request.url.queryParameters['season_id'];
 
-      final stats = await _statsService.getPlayerStats(
+      final stats = await _playerStatsService.getPlayerStats(
         userId: targetUserId,
         teamId: teamId,
         seasonId: seasonId,
@@ -117,7 +124,7 @@ class MiniActivityStatisticsHandler {
 
       final seasonId = request.url.queryParameters['season_id'];
 
-      final aggregate = await _statsService.getPlayerStatsAggregate(
+      final aggregate = await _aggregationService.getPlayerStatsAggregate(
         userId: targetUserId,
         teamId: teamId,
         seasonId: seasonId,
@@ -147,7 +154,7 @@ class MiniActivityStatisticsHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final stats = await _statsService.getHeadToHead(
+      final stats = await _headToHeadService.getHeadToHead(
         teamId: teamId,
         user1Id: user1Id,
         user2Id: user2Id,
@@ -175,7 +182,7 @@ class MiniActivityStatisticsHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final stats = await _statsService.getHeadToHeadForUser(
+      final stats = await _headToHeadService.getHeadToHeadForUser(
         teamId: teamId,
         userId: targetUserId,
       );
@@ -198,7 +205,7 @@ class MiniActivityStatisticsHandler {
       final limitStr = request.url.queryParameters['limit'];
       final limit = limitStr != null ? int.tryParse(limitStr) ?? 50 : 50;
 
-      final history = await _statsService.getTeamHistoryForUser(
+      final history = await _headToHeadService.getTeamHistoryForUser(
         userId: targetUserId,
         limit: limit,
       );
@@ -227,7 +234,7 @@ class MiniActivityStatisticsHandler {
       final limitStr = request.url.queryParameters['limit'];
       final limit = limitStr != null ? int.tryParse(limitStr) ?? 50 : 50;
 
-      final leaderboard = await _statsService.getMiniActivityLeaderboard(
+      final leaderboard = await _aggregationService.getMiniActivityLeaderboard(
         teamId: teamId,
         seasonId: seasonId,
         limit: limit,
@@ -258,7 +265,7 @@ class MiniActivityStatisticsHandler {
         sourceType = PointSourceType.fromString(sourceTypeStr);
       }
 
-      final sources = await _statsService.getPointSourcesForUser(
+      final sources = await _headToHeadService.getPointSourcesForUser(
         userId: targetUserId,
         leaderboardEntryId: leaderboardEntryId,
         sourceType: sourceType,
@@ -278,7 +285,7 @@ class MiniActivityStatisticsHandler {
         return resp.unauthorized();
       }
 
-      final sources = await _statsService.getPointSourcesForEntry(entryId);
+      final sources = await _headToHeadService.getPointSourcesForEntry(entryId);
       return resp.ok(sources.map((s) => s.toJson()).toList());
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -308,7 +315,7 @@ class MiniActivityStatisticsHandler {
         return resp.forbidden('Kun administratorer kan behandle resultater');
       }
 
-      await _statsService.processMiniActivityResults(
+      await _aggregationService.processMiniActivityResults(
         miniActivityId: miniActivityId,
         teamId: teamId,
         seasonId: safeStringNullable(data, 'season_id'),
