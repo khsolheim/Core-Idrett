@@ -71,10 +71,13 @@ Plans:
   4. Points config service extracted into separate concern
   5. All split services use barrel exports maintaining existing import paths
   6. Existing backend tests continue passing after splitting
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 03-01: [Plan details TBD during planning]
+- [ ] 03-01-PLAN.md — Split tournament_service (758 LOC → 4) and leaderboard_service (702 LOC → 3)
+- [ ] 03-02-PLAN.md — Split fine_service (615 LOC → 3) and activity_service (577 LOC → 2)
+- [ ] 03-03-PLAN.md — Split export_service (541 LOC → 2) and mini_activity_statistics_service (534 LOC → 3)
+- [ ] 03-04-PLAN.md — Split mini_activity_division_service (526 LOC → 2) and points_config_service (489 LOC → 3) + final verification
 
 ### Phase 4: Backend Security & Input Validation
 **Goal**: Harden API security with consolidated auth checks, rate limiting, and validated inputs
@@ -195,7 +198,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Test Infrastructure | 4/4 | ✓ Complete | 2026-02-09 |
 | 2. Type Safety & Validation | 4/4 | ✓ Complete | 2026-02-09 |
-| 3. Backend Service Splitting | 0/0 | Not started | - |
+| 3. Backend Service Splitting | 0/4 | Planned | - |
 | 4. Backend Security & Input Validation | 0/0 | Not started | - |
 | 5. Frontend Widget Extraction | 0/0 | Not started | - |
 | 6. Feature Test Coverage | 0/0 | Not started | - |
