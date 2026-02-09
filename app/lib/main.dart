@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,15 @@ import 'features/settings/providers/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase for push notifications (non-blocking)
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    if (kDebugMode) {
+      print('Firebase initialization failed: $e');
+    }
+  }
 
   // Pre-cache SharedPreferences so subsequent calls (auth token, settings) resolve instantly
   await Future.wait([
