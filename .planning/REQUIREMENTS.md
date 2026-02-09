@@ -18,14 +18,14 @@ Requirements for this refactoring milestone. Each maps to roadmap phases.
 
 ### File Splitting — Backend Services
 
-- [ ] **BSPLIT-01**: tournament_service.dart (757 LOC) split into focused sub-services with barrel export
-- [ ] **BSPLIT-02**: leaderboard_service.dart (701 LOC) split into focused sub-services with barrel export
-- [ ] **BSPLIT-03**: fine_service.dart (614 LOC) split into focused sub-services with barrel export
-- [ ] **BSPLIT-04**: activity_service.dart (576 LOC) split into focused sub-services with barrel export
-- [ ] **BSPLIT-05**: export_service.dart (540 LOC) split into focused sub-services with barrel export
-- [ ] **BSPLIT-06**: mini_activity_statistics_service.dart (533 LOC) split into focused sub-services
-- [ ] **BSPLIT-07**: mini_activity_division_service.dart (525 LOC) split into focused sub-services
-- [ ] **BSPLIT-08**: points_config_service.dart (488 LOC) split into focused sub-services
+- [x] **BSPLIT-01**: tournament_service.dart (757 LOC) split into focused sub-services with barrel export ✓ Phase 3
+- [x] **BSPLIT-02**: leaderboard_service.dart (701 LOC) split into focused sub-services with barrel export ✓ Phase 3
+- [x] **BSPLIT-03**: fine_service.dart (614 LOC) split into focused sub-services with barrel export ✓ Phase 3
+- [x] **BSPLIT-04**: activity_service.dart (576 LOC) split into focused sub-services with barrel export ✓ Phase 3
+- [x] **BSPLIT-05**: export_service.dart (540 LOC) split into focused sub-services with barrel export ✓ Phase 3
+- [x] **BSPLIT-06**: mini_activity_statistics_service.dart (533 LOC) split into focused sub-services ✓ Phase 3
+- [x] **BSPLIT-07**: mini_activity_division_service.dart (525 LOC) split into focused sub-services ✓ Phase 3
+- [x] **BSPLIT-08**: points_config_service.dart (488 LOC) split into focused sub-services ✓ Phase 3
 
 ### File Splitting — Frontend Widgets
 
@@ -123,14 +123,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TYPE-04 | Phase 2 | ✓ Complete |
 | TYPE-05 | Phase 2 | ✓ Complete |
 | TYPE-06 | Phase 2 | ✓ Complete |
-| BSPLIT-01 | Phase 3 | Pending |
-| BSPLIT-02 | Phase 3 | Pending |
-| BSPLIT-03 | Phase 3 | Pending |
-| BSPLIT-04 | Phase 3 | Pending |
-| BSPLIT-05 | Phase 3 | Pending |
-| BSPLIT-06 | Phase 3 | Pending |
-| BSPLIT-07 | Phase 3 | Pending |
-| BSPLIT-08 | Phase 3 | Pending |
+| BSPLIT-01 | Phase 3 | ✓ Complete |
+| BSPLIT-02 | Phase 3 | ✓ Complete |
+| BSPLIT-03 | Phase 3 | ✓ Complete |
+| BSPLIT-04 | Phase 3 | ✓ Complete |
+| BSPLIT-05 | Phase 3 | ✓ Complete |
+| BSPLIT-06 | Phase 3 | ✓ Complete |
+| BSPLIT-07 | Phase 3 | ✓ Complete |
+| BSPLIT-08 | Phase 3 | ✓ Complete |
 | SEC-01 | Phase 4 | Pending |
 | SEC-02 | Phase 4 | Pending |
 | SEC-03 | Phase 4 | Pending |
