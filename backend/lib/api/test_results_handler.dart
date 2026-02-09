@@ -214,7 +214,7 @@ class TestResultsHandler {
 
       await _testService.deleteResult(resultId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Resultat slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette resultat');
     }

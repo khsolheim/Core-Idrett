@@ -322,7 +322,7 @@ class MiniActivityStatisticsHandler {
         results: results,
       );
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Resultater behandlet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }

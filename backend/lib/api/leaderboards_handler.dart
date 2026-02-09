@@ -227,7 +227,7 @@ class LeaderboardsHandler {
 
       await _crudService.deleteLeaderboard(leaderboardId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Resultatliste slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette leaderboard');
     }

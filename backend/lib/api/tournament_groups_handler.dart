@@ -136,7 +136,7 @@ class TournamentGroupsHandler {
       }
 
       await _groupService.deleteGroup(groupId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Gruppe slettet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }

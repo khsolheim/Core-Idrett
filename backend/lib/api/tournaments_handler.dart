@@ -199,7 +199,7 @@ class TournamentsHandler {
       }
 
       await _crudService.deleteTournament(tournamentId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Turnering slettet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }

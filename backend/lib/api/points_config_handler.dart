@@ -230,7 +230,7 @@ class PointsConfigHandler {
 
       await _crudService.deleteConfig(configId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Konfigurasjon slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette konfigurasjon');
     }
@@ -375,7 +375,7 @@ class PointsConfigHandler {
 
       await _crudService.setOptOut(targetUserId, teamId, optOut);
 
-      return resp.ok({'success': true, 'opt_out': optOut});
+      return resp.ok({'message': 'Oppdatert', 'opt_out': optOut});
     } catch (e) {
       return resp.serverError('Kunne ikke endre opt-out status');
     }

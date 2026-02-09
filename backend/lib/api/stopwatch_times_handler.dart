@@ -141,7 +141,7 @@ class StopwatchTimesHandler {
         notes: safeStringNullable(data, 'notes'),
       );
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Tid oppdatert'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -155,7 +155,7 @@ class StopwatchTimesHandler {
       }
 
       await _stopwatchService.deleteTime(timeId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Tid slettet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -180,7 +180,7 @@ class StopwatchTimesHandler {
         times: times,
       );
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Tider registrert'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }

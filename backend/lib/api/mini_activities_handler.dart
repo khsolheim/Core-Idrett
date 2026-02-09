@@ -158,7 +158,7 @@ class MiniActivitiesHandler {
       }
 
       await _templateService.deleteTemplate(templateId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Mal slettet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -333,7 +333,7 @@ class MiniActivitiesHandler {
       }
 
       await _miniActivityService.deleteMiniActivity(miniActivityId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Miniaktivitet slettet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -418,7 +418,7 @@ class MiniActivitiesHandler {
       }
 
       await _miniActivityService.archiveMiniActivity(miniActivityId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Arkivert'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }

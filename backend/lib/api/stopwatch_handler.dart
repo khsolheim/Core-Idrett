@@ -118,7 +118,7 @@ class StopwatchHandler {
       }
 
       await _stopwatchService.deleteSession(sessionId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Stoppeklokke slettet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -260,7 +260,7 @@ class StopwatchHandler {
       }
 
       await _stopwatchService.cancelSession(sessionId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Avbrutt'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }

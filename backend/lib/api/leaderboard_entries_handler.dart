@@ -138,7 +138,7 @@ class LeaderboardEntriesHandler {
           userPoints: userPoints,
         );
 
-        return resp.ok({'success': true});
+        return resp.ok({'message': 'Poeng lagt til'});
       } else {
         return resp.badRequest('user_id eller user_points er pakrevd');
       }
@@ -170,7 +170,7 @@ class LeaderboardEntriesHandler {
 
       await _crudService.resetLeaderboard(leaderboardId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Poeng tilbakestilt'});
     } catch (e) {
       return resp.serverError('Kunne ikke nullstille leaderboard');
     }
@@ -265,7 +265,7 @@ class LeaderboardEntriesHandler {
 
       await _crudService.deletePointConfig(miniActivityId, leaderboardId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Konfigurasjon slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette poengkonfigurasjon');
     }

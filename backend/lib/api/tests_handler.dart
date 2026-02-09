@@ -183,7 +183,7 @@ class TestsHandler {
 
       await _testService.deleteTemplate(templateId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Test slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette testmal');
     }

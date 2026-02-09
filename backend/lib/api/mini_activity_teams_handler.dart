@@ -287,7 +287,7 @@ class MiniActivityTeamsHandler {
       }
 
       await _managementService.removeHandicap(miniActivityId: miniActivityId, userId: targetUserId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Handicap fjernet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
