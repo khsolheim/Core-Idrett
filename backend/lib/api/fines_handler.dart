@@ -208,7 +208,7 @@ class FinesHandler {
       }
 
       if (!isFinesManager(team)) {
-        return resp.forbidden('Kun admin eller botesjef kan opprette boter');
+        return resp.forbidden('Kun admin eller bøtesjef kan opprette bøter');
       }
 
       final body = await parseBody(request);
