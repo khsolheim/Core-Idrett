@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/extensions/async_value_extensions.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/document.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../providers/document_provider.dart';
@@ -138,9 +139,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
 
     if (url != null && mounted) {
       // In a real implementation, use url_launcher or open in app viewer
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Apner ${doc.name}...')),
-      );
+      ErrorDisplayService.showInfo('Åpner ${doc.name}...');
     }
   }
 

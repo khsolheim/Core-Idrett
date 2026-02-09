@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/extensions/async_value_extensions.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/export_log.dart';
 import '../providers/export_provider.dart';
 import 'widgets/widgets.dart';
@@ -180,12 +181,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
 
     final error = ref.read(exportNotifierProvider(widget.teamId)).error;
     if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Eksport feilet. Prøv igjen.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ErrorDisplayService.showWarning('Eksport feilet. Prøv igjen.');
     }
   }
 
@@ -203,9 +199,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
       // Fallback: Copy to clipboard
       await Clipboard.setData(ClipboardData(text: content));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data kopiert til utklippstavlen')),
-        );
+        ErrorDisplayService.showInfo('Data kopiert til utklippstavlen');
       }
     }
   }

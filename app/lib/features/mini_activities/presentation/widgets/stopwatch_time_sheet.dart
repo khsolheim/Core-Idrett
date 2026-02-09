@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../../data/models/stopwatch.dart';
 import '../../providers/stopwatch_provider.dart';
 
@@ -68,9 +69,7 @@ class _StopwatchTimeSheetState extends ConsumerState<StopwatchTimeSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke registrere tid. Prøv igjen.')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke registrere tid. Prøv igjen.');
       }
     } finally {
       if (mounted) {

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../../data/models/activity.dart';
 import '../../../../data/models/mini_activity.dart';
 import '../../../activities/providers/activity_provider.dart';
@@ -40,13 +41,10 @@ class TeamDivisionSheetState extends ConsumerState<TeamDivisionSheet> {
 
   Future<void> _divide(List<String> participantIds) async {
     if (participantIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(widget.instanceId != null
-              ? 'Ingen deltakere har svart "Ja"'
-              : 'Velg minst en deltaker'),
-        ),
-      );
+      final message = widget.instanceId != null
+          ? 'Ingen deltakere har svart "Ja"'
+          : 'Velg minst en deltaker';
+      ErrorDisplayService.showWarning(message);
       return;
     }
 
@@ -66,9 +64,7 @@ class TeamDivisionSheetState extends ConsumerState<TeamDivisionSheet> {
       if (result != null) {
         Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke dele inn lag. Prov igjen.')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke dele inn lag. Prøv igjen.');
       }
     }
   }

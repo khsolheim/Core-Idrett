@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/extensions/async_value_extensions.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/points_config.dart';
 import '../../teams/providers/team_provider.dart';
 import '../providers/points_provider.dart';
@@ -108,18 +109,11 @@ class _PointsConfigScreenState extends ConsumerState<PointsConfigScreen> {
           );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Innstillinger lagret')),
-        );
+        ErrorDisplayService.showSuccess('Innstillinger lagret');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Kunne ikke lagre innstillinger. Prøv igjen.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke lagre innstillinger. Prøv igjen.');
       }
     } finally {
       if (mounted) {

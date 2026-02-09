@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../../data/models/activity.dart';
 import '../../../../data/models/team.dart';
 import '../../../../data/models/user.dart';
@@ -46,13 +47,9 @@ class _ActivityDetailContentState extends ConsumerState<ActivityDetailContent> {
       setState(() => _isResponding = false);
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Svar registrert')),
-        );
+        ErrorDisplayService.showSuccess('Svar registrert');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke registrere svar')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke registrere svar');
       }
     }
   }
@@ -257,17 +254,9 @@ class _ActivityDetailContentState extends ConsumerState<ActivityDetailContent> {
       setState(() => _isAwardingPoints = false);
 
       if (result != null && result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message)),
-        );
+        ErrorDisplayService.showSuccess(result.message);
       } else {
-        final error = ref.read(attendancePointsProvider).error;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error?.toString() ?? 'Kunne ikke tildele oppm\u00F8tepoeng'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke tildele oppmøtepoeng');
       }
     }
   }

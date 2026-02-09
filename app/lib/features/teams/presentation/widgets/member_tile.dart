@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../../data/models/team.dart';
 import '../../providers/team_provider.dart';
 import 'member_action_dialogs.dart';
@@ -212,12 +213,7 @@ class MemberTile extends ConsumerWidget {
     );
 
     if (!success && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kunne ikke oppdatere tilganger'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ErrorDisplayService.showWarning('Kunne ikke oppdatere tilganger');
     }
   }
 
@@ -234,18 +230,14 @@ class MemberTile extends ConsumerWidget {
     );
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-                ? (isInjured
-                    ? '${member.userName} markert som skadet'
-                    : '${member.userName} markert som frisk')
-                : 'Kunne ikke oppdatere skadet-status',
-          ),
-          backgroundColor: success ? null : Colors.red,
-        ),
-      );
+      if (success) {
+        final message = isInjured
+            ? '${member.userName} markert som skadet'
+            : '${member.userName} markert som frisk';
+        ErrorDisplayService.showSuccess(message);
+      } else {
+        ErrorDisplayService.showWarning('Kunne ikke oppdatere skadet-status');
+      }
     }
   }
 
@@ -254,14 +246,11 @@ class MemberTile extends ConsumerWidget {
     final success = await notifier.reactivateMember(teamId, member.id);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Medlem reaktivert' : 'Kunne ikke reaktivere medlem',
-          ),
-          backgroundColor: success ? null : Colors.red,
-        ),
-      );
+      if (success) {
+        ErrorDisplayService.showSuccess('Medlem reaktivert');
+      } else {
+        ErrorDisplayService.showWarning('Kunne ikke reaktivere medlem');
+      }
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../../data/models/team.dart';
 import '../../providers/team_provider.dart';
 
@@ -36,14 +37,11 @@ Future<void> showDeactivateMemberDialog(
     final success = await notifier.deactivateMember(teamId, member.id);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Medlem deaktivert' : 'Kunne ikke deaktivere medlem',
-          ),
-          backgroundColor: success ? null : Colors.red,
-        ),
-      );
+      if (success) {
+        ErrorDisplayService.showSuccess('Medlem deaktivert');
+      } else {
+        ErrorDisplayService.showWarning('Kunne ikke deaktivere medlem');
+      }
     }
   }
 }
@@ -82,14 +80,11 @@ Future<void> showRemoveMemberDialog(
     final success = await notifier.removeMember(teamId, member.id);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Medlem fjernet' : 'Kunne ikke fjerne medlem',
-          ),
-          backgroundColor: success ? null : Colors.red,
-        ),
-      );
+      if (success) {
+        ErrorDisplayService.showSuccess('Medlem fjernet');
+      } else {
+        ErrorDisplayService.showWarning('Kunne ikke fjerne medlem');
+      }
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/extensions/async_value_extensions.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -257,17 +258,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       setState(() => _saving = false);
 
       if (result != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profil oppdatert')),
-        );
+        ErrorDisplayService.showSuccess('Profil oppdatert');
         context.pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Kunne ikke oppdatere profil'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke oppdatere profil');
       }
     }
   }
@@ -322,12 +316,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           FilledButton(
             onPressed: () {
               if (newPasswordController.text != confirmPasswordController.text) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Passordene stemmer ikke overens'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                ErrorDisplayService.showWarning('Passordene stemmer ikke overens');
                 return;
               }
               Navigator.pop(context, true);
@@ -345,18 +334,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           newPassword: newPasswordController.text,
         );
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Passord endret')),
-          );
+          ErrorDisplayService.showSuccess('Passord endret');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString().replaceAll('Exception: ', '')),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ErrorDisplayService.showWarning('Kunne ikke endre passord');
         }
       }
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/statistics.dart';
 import '../providers/test_provider.dart';
 import 'widgets/widgets.dart';
@@ -110,9 +111,7 @@ class _TestDetailScreenState extends ConsumerState<TestDetailScreen>
               );
           if (success && context.mounted) {
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Resultat registrert')),
-            );
+            ErrorDisplayService.showSuccess('Resultat registrert');
           }
         },
       ),

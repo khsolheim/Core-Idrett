@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../../data/models/team.dart';
 import '../../providers/team_provider.dart';
 
@@ -164,13 +165,9 @@ class _MemberOptionsSheetState extends ConsumerState<MemberOptionsSheet> {
       Navigator.pop(context);
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tilganger oppdatert')),
-        );
+        ErrorDisplayService.showSuccess('Tilganger oppdatert');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke oppdatere tilganger')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke oppdatere tilganger');
       }
     }
   }

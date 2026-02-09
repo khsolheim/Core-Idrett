@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../../data/models/mini_activity.dart';
 import '../../providers/mini_activity_provider.dart';
 
@@ -85,9 +86,7 @@ class _HandicapSheetState extends ConsumerState<HandicapSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke lagre handicap. Prøv igjen.')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke lagre handicap. Prøv igjen.');
       }
     } finally {
       if (mounted) {
@@ -133,9 +132,7 @@ class _HandicapSheetState extends ConsumerState<HandicapSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke fjerne handicap. Prøv igjen.')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke fjerne handicap. Prøv igjen.');
       }
     } finally {
       if (mounted) {

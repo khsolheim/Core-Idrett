@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/extensions/async_value_extensions.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/activity.dart';
 import '../../../data/models/team.dart';
 import '../../../data/models/user.dart';
@@ -162,14 +163,10 @@ class ActivityDetailScreen extends ConsumerWidget {
             final message = scope == EditScope.single
                 ? 'Aktivitet slettet'
                 : '${result.affectedCount} aktiviteter slettet';
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
+            ErrorDisplayService.showSuccess(message);
             context.pop(); // Go back after successful delete
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Kunne ikke slette aktivitet')),
-            );
+            ErrorDisplayService.showWarning('Kunne ikke slette aktivitet');
           }
         }
       }

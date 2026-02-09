@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../../data/models/absence.dart';
 import '../../providers/absence_provider.dart';
 import 'reject_reason_dialog.dart';
@@ -37,20 +38,13 @@ class _PendingAbsenceCardState extends ConsumerState<PendingAbsenceCard> {
             widget.absence.id,
           );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fravaer godkjent')),
-        );
+        ErrorDisplayService.showSuccess('Fravær godkjent');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Kunne ikke godkjenne fravær. Prøv igjen.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke godkjenne fravær. Prøv igjen.');
       }
-    } finally {
+    } finally{
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -73,18 +67,11 @@ class _PendingAbsenceCardState extends ConsumerState<PendingAbsenceCard> {
             reason: reason.isNotEmpty ? reason : null,
           );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fravaer avvist')),
-        );
+        ErrorDisplayService.showSuccess('Fravær avvist');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Kunne ikke avvise fravær. Prøv igjen.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke avvise fravær. Prøv igjen.');
       }
     } finally {
       if (mounted) {

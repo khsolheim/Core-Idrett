@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/extensions/async_value_extensions.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/activity.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -344,15 +345,11 @@ class _ActivityInstanceCard extends ConsumerWidget {
             final message = scope == EditScope.single
                 ? 'Aktivitet slettet'
                 : '${result.affectedCount} aktiviteter slettet';
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
+            ErrorDisplayService.showSuccess(message);
             // Refresh the list
             ref.invalidate(upcomingInstancesProvider(teamId));
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Kunne ikke slette aktivitet')),
-            );
+            ErrorDisplayService.showWarning('Kunne ikke slette aktivitet');
           }
         }
       }

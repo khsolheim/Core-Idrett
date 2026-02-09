@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/services/error_display_service.dart';
 import '../../../auth/data/auth_repository.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -122,11 +123,7 @@ void showExportDataDialog(BuildContext context) {
         FilledButton(
           onPressed: () {
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Eksportforespørsel sendt. Du vil motta en e-post snart.'),
-              ),
-            );
+            ErrorDisplayService.showInfo('Eksportforespørsel sendt. Du vil motta en e-post snart.');
           },
           child: const Text('Eksporter'),
         ),
@@ -246,12 +243,7 @@ void showFinalDeleteConfirmation(BuildContext context, WidgetRef ref) {
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Kunne ikke slette konto: ${e.toString().replaceAll('Exception: ', '')}'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  ErrorDisplayService.showWarning('Kunne ikke slette konto');
                 }
               }
             }

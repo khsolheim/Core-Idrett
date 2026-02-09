@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/extensions/async_value_extensions.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/activity.dart';
 import '../providers/activity_provider.dart';
 import 'widgets/edit_instance_form_fields.dart';
@@ -183,14 +184,10 @@ class _EditInstanceScreenState extends ConsumerState<EditInstanceScreen> {
         final message = widget.scope == EditScope.single
             ? 'Aktivitet oppdatert'
             : '${result.affectedCount} aktiviteter oppdatert';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ErrorDisplayService.showSuccess(message);
         context.pop(true); // Return true to indicate success
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke oppdatere aktivitet')),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke oppdatere aktivitet');
       }
     }
   }
