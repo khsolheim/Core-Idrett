@@ -1,7 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:retry/retry.dart';
+import '../../../core/errors/app_exceptions.dart';
 import '../../../data/models/notification.dart';
+import '../data/notification_local_data_source.dart';
 import '../data/notification_repository.dart';
 
 // FCM token provider
@@ -11,11 +16,20 @@ final fcmTokenProvider = NotifierProvider<FcmTokenNotifier, String?>(() {
 
 class FcmTokenNotifier extends Notifier<String?> {
   late final NotificationRepository _repo;
+  late final NotificationLocalDataSource _localDataSource;
   bool _initialized = false;
+
+  static const _retryOptions = RetryOptions(
+    maxAttempts: 8,
+    delayFactor: Duration(milliseconds: 400),
+    randomizationFactor: 0.25,
+    maxDelay: Duration(seconds: 60),
+  );
 
   @override
   String? build() {
     _repo = ref.watch(notificationRepositoryProvider);
+    _localDataSource = ref.watch(notificationLocalDataSourceProvider);
     return null;
   }
 
@@ -38,27 +52,75 @@ class FcmTokenNotifier extends Notifier<String?> {
       // Get the token
       final token = await messaging.getToken();
       if (token != null) {
-        await _registerToken(token);
+        // Fire-and-forget: don't block startup
+        unawaited(_registerTokenWithRetry(token));
       }
 
       // Listen for token refresh
-      messaging.onTokenRefresh.listen(_registerToken);
+      messaging.onTokenRefresh.listen((token) {
+        unawaited(_registerTokenWithRetry(token));
+      }).onError((error) {
+        _logRegistrationError(error, Platform.isIOS ? 'ios' : 'android');
+      });
+
+      // Check for stale local token and reregister if needed
+      unawaited(_recoverStaleToken());
     }
 
-    // Handle foreground messages
+    // Handle foreground messages (delegated to Plan 08-03)
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
   }
 
-  Future<void> _registerToken(String token) async {
+  Future<void> _registerTokenWithRetry(String token) async {
     state = token;
+    final platform = Platform.isIOS ? 'ios' : 'android';
+
     try {
-      final platform = Platform.isIOS ? 'ios' : 'android';
-      await _repo.registerToken(
-        token: token,
-        platform: platform,
+      await _retryOptions.retry(
+        () => _repo.registerToken(token: token, platform: platform),
+        retryIf: (e) => _isRetryableError(e),
       );
+      // Success: persist locally with timestamp
+      await _localDataSource.saveToken(token, DateTime.now().toUtc());
     } catch (e) {
-      // Token registration failed - will retry on next app start
+      // All retries exhausted — log error, persist token for next startup attempt
+      _logRegistrationError(e, platform);
+      // Still save token locally so we can retry on next startup
+      await _localDataSource.saveToken(token, DateTime.fromMillisecondsSinceEpoch(0));
+    }
+  }
+
+  /// Determines if an error is retryable (network/server issues)
+  /// Does NOT retry on 400/401/403/404 (client errors that won't change on retry)
+  bool _isRetryableError(Exception e) {
+    if (e is NetworkException) return true;
+    if (e is TimeoutException) return true;
+    if (e is ServerException) return true;
+    if (e is ServiceUnavailableException) return true;
+    // DioException wrapping — check inner error
+    return false;
+  }
+
+  void _logRegistrationError(Object error, String platform) {
+    if (kDebugMode) {
+      print('[FCM] Token registration failed after ${_retryOptions.maxAttempts} attempts '
+          '(platform: $platform, error: $error)');
+    }
+    // TODO: Send to error tracking service (Crashlytics) when integrated
+  }
+
+  Future<void> _recoverStaleToken() async {
+    try {
+      if (await _localDataSource.needsReregistration()) {
+        final (localToken, _) = await _localDataSource.getToken();
+        if (localToken != null) {
+          await _registerTokenWithRetry(localToken);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('[FCM] Stale token recovery failed: $e');
+      }
     }
   }
 
@@ -81,6 +143,7 @@ class FcmTokenNotifier extends Notifier<String?> {
       }
       state = null;
     }
+    await _localDataSource.clearToken();
   }
 }
 
