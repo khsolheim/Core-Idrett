@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/team_provider.dart';
+import '../../../core/services/error_display_service.dart';
 
 class CreateTeamScreen extends ConsumerStatefulWidget {
   const CreateTeamScreen({super.key});
@@ -40,9 +41,7 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
       if (team != null) {
         context.pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke opprette lag. Prøv igjen.')),
-        );
+        ErrorDisplayService.showSuccess('Kunne ikke opprette lag. Prøv igjen.');
       }
     }
   }

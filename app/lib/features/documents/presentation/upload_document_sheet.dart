@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/error_display_service.dart';
 import '../../../data/models/document.dart';
 import '../providers/document_provider.dart';
 
@@ -224,16 +225,9 @@ class _UploadDocumentSheetState extends ConsumerState<UploadDocumentSheet> {
       if (mounted) {
         if (success) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Dokument lastet opp')),
-          );
+          ErrorDisplayService.showSuccess('Dokument lastet opp');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Kunne ikke laste opp dokument'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ErrorDisplayService.showWarning('Kunne ikke laste opp dokument');
           setState(() {
             _isUploading = false;
           });
@@ -241,12 +235,7 @@ class _UploadDocumentSheetState extends ConsumerState<UploadDocumentSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Kunne ikke laste opp dokument. Prøv igjen.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke laste opp dokument. Prøv igjen.');
         setState(() {
           _isUploading = false;
         });

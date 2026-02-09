@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../data/models/team.dart';
+import '../../../../core/services/error_display_service.dart';
 
 class EditTeamGeneralTab extends StatelessWidget {
   final GlobalKey<FormState> formKey;
@@ -240,9 +241,7 @@ class _InviteCodeCard extends StatelessWidget {
               onPressed: () {
                 if (inviteCode != null) {
                   Clipboard.setData(ClipboardData(text: inviteCode!));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Kode kopiert')),
-                  );
+                  ErrorDisplayService.showSuccess('Kode kopiert');
                 }
               },
             ),

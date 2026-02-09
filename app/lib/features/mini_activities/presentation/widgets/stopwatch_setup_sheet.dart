@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/stopwatch.dart';
 import '../../providers/stopwatch_provider.dart';
+import '../../../../core/services/error_display_service.dart';
 
 /// Bottom sheet for creating a new stopwatch session
 class StopwatchSetupSheet extends ConsumerStatefulWidget {
@@ -69,9 +70,7 @@ class _StopwatchSetupSheetState extends ConsumerState<StopwatchSetupSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke opprette stoppeklokke. Prøv igjen.')),
-        );
+        ErrorDisplayService.showSuccess('Kunne ikke opprette stoppeklokke. Prøv igjen.');
       }
     } finally {
       if (mounted) {

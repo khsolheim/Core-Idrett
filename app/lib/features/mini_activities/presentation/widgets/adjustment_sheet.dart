@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/mini_activity.dart';
 import '../../providers/mini_activity_provider.dart';
+import '../../../../core/services/error_display_service.dart';
 
 /// Bottom sheet for awarding bonus or penalty points
 class AdjustmentSheet extends ConsumerStatefulWidget {
@@ -84,9 +85,7 @@ class _AdjustmentSheetState extends ConsumerState<AdjustmentSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke lagre justering. Prøv igjen.')),
-        );
+        ErrorDisplayService.showSuccess('Kunne ikke lagre justering. Prøv igjen.');
       }
     } finally {
       if (mounted) {

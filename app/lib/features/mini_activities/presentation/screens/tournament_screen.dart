@@ -8,6 +8,7 @@ import '../widgets/tournament_bracket.dart';
 import '../widgets/match_card.dart';
 import '../widgets/match_result_sheet.dart';
 import '../widgets/tournament_setup_sheet.dart';
+import '../../../../core/services/error_display_service.dart';
 
 /// Screen for viewing and managing a tournament
 class TournamentScreen extends ConsumerWidget {
@@ -128,9 +129,7 @@ class _TournamentContentState extends ConsumerState<_TournamentContent>
   Future<void> _generateBracket(BuildContext context, WidgetRef ref) async {
     // Show participant selection dialog
     // For now, just show a message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Velg deltakere for å generere bracket')),
-    );
+    ErrorDisplayService.showSuccess('Velg deltakere for å generere bracket');
   }
 }
 

@@ -4,6 +4,7 @@ import '../../../../data/models/mini_activity.dart';
 import '../../providers/mini_activity_provider.dart';
 import 'add_participant_sheet.dart';
 import 'mini_activity_helpers.dart';
+import '../../../../core/services/error_display_service.dart';
 
 void showRenameTeamDialog({
   required BuildContext context,
@@ -181,9 +182,7 @@ void showMoveParticipantDialog({
   final otherTeams = miniActivity.teams?.where((t) => t.id != team.id).toList() ?? [];
 
   if (otherTeams.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Ingen andre lag a flytte til')),
-    );
+    ErrorDisplayService.showSuccess('Ingen andre lag a flytte til');
     return;
   }
 

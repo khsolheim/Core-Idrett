@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/tournament.dart';
 import '../../providers/tournament_provider.dart';
+import '../../../../core/services/error_display_service.dart';
 
 /// Bottom sheet for recording match results
 class MatchResultSheet extends ConsumerStatefulWidget {
@@ -90,9 +91,7 @@ class _MatchResultSheetState extends ConsumerState<MatchResultSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke lagre resultat. Prøv igjen.')),
-        );
+        ErrorDisplayService.showSuccess('Kunne ikke lagre resultat. Prøv igjen.');
       }
     } finally {
       if (mounted) {

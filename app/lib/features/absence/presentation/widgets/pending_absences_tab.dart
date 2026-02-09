@@ -6,6 +6,7 @@ import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../providers/absence_provider.dart';
 import 'pending_absence_card.dart';
 import 'reject_reason_dialog.dart';
+import '../../../../core/services/error_display_service.dart';
 
 class PendingAbsencesTab extends ConsumerStatefulWidget {
   final String teamId;
@@ -73,9 +74,7 @@ class _PendingAbsencesTabState extends ConsumerState<PendingAbsencesTab> {
         _selectedIds.clear();
         _isSelectMode = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$successCount fravaer godkjent')),
-      );
+      ErrorDisplayService.showSuccess('$successCount fravær godkjent');
     }
   }
 
@@ -111,9 +110,7 @@ class _PendingAbsencesTabState extends ConsumerState<PendingAbsencesTab> {
         _selectedIds.clear();
         _isSelectMode = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$successCount fravaer avvist')),
-      );
+      ErrorDisplayService.showSuccess('$successCount fravær avvist');
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/team.dart';
 import '../../providers/team_provider.dart';
+import '../../../../core/services/error_display_service.dart';
 
 class EditTeamTrainerTypesTab extends ConsumerWidget {
   final String teamId;
@@ -100,16 +101,11 @@ class EditTeamTrainerTypesTab extends ConsumerWidget {
       );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result != null
-                  ? 'Trenertype opprettet'
-                  : 'Kunne ikke opprette trenertype',
-            ),
-            backgroundColor: result != null ? null : Colors.red,
-          ),
-        );
+        if (result != null) {
+          ErrorDisplayService.showSuccess('Trenertype opprettet');
+        } else {
+          ErrorDisplayService.showWarning('Kunne ikke opprette trenertype');
+        }
       }
     }
   }
@@ -146,16 +142,11 @@ class EditTeamTrainerTypesTab extends ConsumerWidget {
           await notifier.deleteTrainerType(teamId, trainerType.id);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success
-                  ? 'Trenertype slettet'
-                  : 'Kunne ikke slette trenertype',
-            ),
-            backgroundColor: success ? null : Colors.red,
-          ),
-        );
+        if (success) {
+          ErrorDisplayService.showSuccess('Trenertype slettet');
+        } else {
+          ErrorDisplayService.showWarning('Kunne ikke slette trenertype');
+        }
       }
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/tournament.dart';
 import '../../providers/tournament_provider.dart';
+import '../../../../core/services/error_display_service.dart';
 
 /// Bottom sheet for creating/configuring a tournament
 class TournamentSetupSheet extends ConsumerStatefulWidget {
@@ -86,9 +87,7 @@ class _TournamentSetupSheetState extends ConsumerState<TournamentSetupSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke lagre turnering. Prøv igjen.')),
-        );
+        ErrorDisplayService.showSuccess('Kunne ikke lagre turnering. Prøv igjen.');
       }
     } finally {
       if (mounted) {

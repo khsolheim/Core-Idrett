@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/activity.dart';
 import '../providers/activity_provider.dart';
+import '../../../core/services/error_display_service.dart';
 
 class CreateActivityScreen extends ConsumerStatefulWidget {
   final String teamId;
@@ -113,14 +114,10 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
       setState(() => _isLoading = false);
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Aktivitet opprettet')),
-        );
+        ErrorDisplayService.showSuccess('Aktivitet opprettet');
         context.pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke opprette aktivitet')),
-        );
+        ErrorDisplayService.showSuccess('Kunne ikke opprette aktivitet');
       }
     }
   }

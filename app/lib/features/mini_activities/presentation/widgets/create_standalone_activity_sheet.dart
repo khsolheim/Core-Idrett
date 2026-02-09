@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/mini_activity.dart';
 import '../../providers/mini_activity_provider.dart';
+import '../../../../core/services/error_display_service.dart';
 
 /// Bottom sheet for creating a standalone mini-activity
 class CreateStandaloneActivitySheet extends ConsumerStatefulWidget {
@@ -34,9 +35,7 @@ class _CreateStandaloneActivitySheetState
 
   Future<void> _create() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Navn er pakrevd')),
-      );
+      ErrorDisplayService.showSuccess('Navn er pakrevd');
       return;
     }
 
@@ -62,9 +61,7 @@ class _CreateStandaloneActivitySheetState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kunne ikke opprette aktivitet. Prøv igjen.')),
-        );
+        ErrorDisplayService.showSuccess('Kunne ikke opprette aktivitet. Prøv igjen.');
       }
     } finally {
       if (mounted) {

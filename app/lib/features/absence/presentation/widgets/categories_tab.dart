@@ -4,6 +4,7 @@ import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/absence.dart';
 import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../providers/absence_provider.dart';
+import '../../../../core/services/error_display_service.dart';
 
 class CategoriesTab extends ConsumerWidget {
   final String teamId;
@@ -238,9 +239,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
 
   Future<void> _save() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Navn er påkrevd')),
-      );
+      ErrorDisplayService.showSuccess('Navn er påkrevd');
       return;
     }
 
@@ -253,22 +252,14 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
       );
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.existingCategory != null
-                ? 'Kategori oppdatert'
-                : 'Kategori opprettet'),
-          ),
-        );
+        final message = widget.existingCategory != null
+            ? 'Kategori oppdatert'
+            : 'Kategori opprettet';
+        ErrorDisplayService.showSuccess(message);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Kunne ikke lagre kategori. Prøv igjen.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke lagre kategori. Prøv igjen.');
       }
     } finally {
       if (mounted) {

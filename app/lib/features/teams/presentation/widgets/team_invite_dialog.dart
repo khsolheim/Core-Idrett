@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/team.dart';
 import '../../providers/team_provider.dart';
+import '../../../../core/services/error_display_service.dart';
 
 class TeamInviteDialog extends ConsumerStatefulWidget {
   final String teamId;
@@ -57,9 +58,7 @@ class _TeamInviteDialogState extends ConsumerState<TeamInviteDialog> {
                     icon: const Icon(Icons.copy),
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: inviteUrl));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lenke kopiert!')),
-                      );
+                      ErrorDisplayService.showSuccess('Lenke kopiert!');
                     },
                   ),
                 ],

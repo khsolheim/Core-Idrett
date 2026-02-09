@@ -7,6 +7,7 @@ import '../providers/team_provider.dart';
 import 'widgets/edit_team_general_tab.dart';
 import 'widgets/edit_team_members_tab.dart';
 import 'widgets/edit_team_trainer_types_tab.dart';
+import '../../../core/services/error_display_service.dart';
 
 class EditTeamScreen extends ConsumerStatefulWidget {
   final String teamId;
@@ -186,17 +187,10 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
       setState(() => _saving = false);
 
       if (teamUpdated != null && settingsUpdated != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Laginnstillinger lagret')),
-        );
+        ErrorDisplayService.showSuccess('Laginnstillinger lagret');
         context.pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Kunne ikke lagre endringer'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorDisplayService.showWarning('Kunne ikke lagre endringer');
       }
     }
   }
@@ -228,9 +222,7 @@ class _EditTeamScreenState extends ConsumerState<EditTeamScreen>
       if (newCode != null) {
         ref.invalidate(teamDetailProvider(widget.teamId));
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ny invitasjonskode generert')),
-          );
+          ErrorDisplayService.showSuccess('Ny invitasjonskode generert');
         }
       }
     }
