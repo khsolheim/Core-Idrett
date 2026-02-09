@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Koden skal være lett å forstå, endre, og utvide — uten å krasje på uventede data.
-**Current focus:** Phase 2 - Type Safety & Validation (complete, verified)
+**Current focus:** Phase 3 - Backend Service Splitting (in progress)
 
 ## Current Position
 
-Phase: 2 of 10 (Type Safety & Validation)
-Plan: 4 of 4 (Phase 2 COMPLETE - Handler layer fully migrated)
-Status: Phase 2 complete ✅
-Last activity: 2026-02-09 — Plan 02-04 complete, all 32 backend handlers migrated to safe parsing (268 tests passing)
+Phase: 3 of 10 (Backend Service Splitting)
+Plan: 1 of 4 (Tournament and Leaderboard services split)
+Status: In progress
+Last activity: 2026-02-09 — Plan 03-01 complete, split 2 largest services (tournament 758→4 services, leaderboard 702→3 services)
 
-Progress: [████████░░] 44% (7 of 16 total plans across all phases)
+Progress: [████████░░] 50% (8 of 16 total plans across all phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: ~20 minutes
-- Total execution time: ~2.5 hours
+- Total plans completed: 8
+- Average duration: ~18 minutes
+- Total execution time: ~2.6 hours
 
 **By Phase:**
 
@@ -29,6 +29,7 @@ Progress: [████████░░] 44% (7 of 16 total plans across all p
 |-------|-------|------------|----------|
 | 01    | 4/4   | ~3.5h      | ~50m     |
 | 02    | 4/4   | ~21m       | ~5m      |
+| 03    | 1/4   | ~7m        | ~7m      |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -38,9 +39,10 @@ Progress: [████████░░] 44% (7 of 16 total plans across all p
 - Plan 02-01: Safe parsing helpers + LeaderboardEntry fix (4 min)
 - Plan 02-03: Backend service migration (7 min, Python script automation)
 - Plan 02-04: Handler layer migration (10 min, 32 handlers, ~250 casts)
-- Trend: TDD execution very fast; automated migrations fastest approach
+- Plan 03-01: Tournament + Leaderboard service splitting (7 min, 2 services → 7 sub-services)
+- Trend: TDD execution very fast; automated migrations and refactorings consistently fast
 
-*Updated 2026-02-09 after plan 02-04 complete (Phase 2 complete)*
+*Updated 2026-02-09 after plan 03-01 complete*
 
 ## Accumulated Context
 
@@ -67,6 +69,9 @@ Recent decisions affecting current work:
 - Enum conversions kept as-is — fromString methods already validate input (02-04)
 - Internal service response casts preserved — service layer returns validated data (02-04)
 - DateTime.parse replaced with tryParse — safe parsing for date strings in tournament handlers (02-04)
+- Service splitting with barrel exports — split large services while maintaining import paths (03-01)
+- Tournament service split into 4 sub-services — CRUD, Rounds, Matches, Bracket (03-01)
+- Leaderboard service split into 3 sub-services — CRUD/forwarding, Category, Ranking (03-01)
 
 ### Pending Todos
 
@@ -78,7 +83,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Phase 2 verified)
-Stopped at: Phase 2 verified — 5/5 must-haves passed, 6/6 requirements satisfied
+Last session: 2026-02-09 (Plan 03-01 execution)
+Stopped at: Plan 03-01 complete — Tournament + Leaderboard services split, 268 tests passing
 Resume file: None
-Next: Phase 3 planning → /gsd:plan-phase 3
+Next: Plan 03-02 execution → /gsd:execute-plan 03-02
