@@ -7,10 +7,11 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 class ExportsHandler {
-  final ExportService _exportService;
+  final ExportDataService _dataService;
+  final ExportUtilityService _utilityService;
   final TeamService _teamService;
 
-  ExportsHandler(this._exportService, this._teamService);
+  ExportsHandler(this._dataService, this._utilityService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -47,14 +48,14 @@ class ExportsHandler {
       final seasonId = params['season_id'];
       final leaderboardId = params['leaderboard_id'];
 
-      final data = await _exportService.exportLeaderboard(
+      final data = await _dataService.exportLeaderboard(
         teamId,
         seasonId: seasonId,
         leaderboardId: leaderboardId,
       );
 
       // Log the export
-      await _exportService.logExport(
+      await _utilityService.logExport(
         teamId: teamId,
         userId: userId,
         exportType: ExportType.leaderboard,
@@ -95,7 +96,7 @@ class ExportsHandler {
           ? DateTime.tryParse(params['to_date']!)
           : null;
 
-      final data = await _exportService.exportAttendance(
+      final data = await _dataService.exportAttendance(
         teamId,
         seasonId: seasonId,
         fromDate: fromDate,
@@ -103,7 +104,7 @@ class ExportsHandler {
       );
 
       // Log the export
-      await _exportService.logExport(
+      await _utilityService.logExport(
         teamId: teamId,
         userId: userId,
         exportType: ExportType.attendance,
@@ -147,7 +148,7 @@ class ExportsHandler {
           ? DateTime.tryParse(params['to_date']!)
           : null;
 
-      final data = await _exportService.exportFines(
+      final data = await _dataService.exportFines(
         teamId,
         paidOnly: paidOnly,
         fromDate: fromDate,
@@ -155,7 +156,7 @@ class ExportsHandler {
       );
 
       // Log the export
-      await _exportService.logExport(
+      await _utilityService.logExport(
         teamId: teamId,
         userId: userId,
         exportType: ExportType.fines,
@@ -195,10 +196,10 @@ class ExportsHandler {
       final params = request.url.queryParameters;
       final format = params['format'] ?? 'json';
 
-      final data = await _exportService.exportMembers(teamId);
+      final data = await _dataService.exportMembers(teamId);
 
       // Log the export
-      await _exportService.logExport(
+      await _utilityService.logExport(
         teamId: teamId,
         userId: userId,
         exportType: ExportType.members,
@@ -234,14 +235,14 @@ class ExportsHandler {
           ? DateTime.tryParse(params['to_date']!)
           : null;
 
-      final data = await _exportService.exportActivities(
+      final data = await _dataService.exportActivities(
         teamId,
         fromDate: fromDate,
         toDate: toDate,
       );
 
       // Log the export
-      await _exportService.logExport(
+      await _utilityService.logExport(
         teamId: teamId,
         userId: userId,
         exportType: ExportType.activities,
@@ -275,7 +276,7 @@ class ExportsHandler {
       final params = request.url.queryParameters;
       final limit = int.tryParse(params['limit'] ?? '50') ?? 50;
 
-      final history = await _exportService.getExportHistory(teamId, limit: limit);
+      final history = await _utilityService.getExportHistory(teamId, limit: limit);
 
       return resp.ok({
         'exports': history.map((e) => e.toJson()).toList(),
@@ -289,7 +290,7 @@ class ExportsHandler {
   Response _formatResponse(Map<String, dynamic> data, String format, String filename) {
     switch (format.toLowerCase()) {
       case 'csv':
-        final csv = _exportService.generateCsv(data);
+        final csv = _utilityService.generateCsv(data);
         return Response.ok(
           csv,
           headers: {

@@ -88,7 +88,8 @@ Router createRouter(Database db) {
   final directMessageService = DirectMessageService(db, userService);
   final messageService = MessageService(db, userService);
   final documentService = DocumentService(db, userService);
-  final exportService = ExportService(db);
+  final exportDataService = ExportDataService(db);
+  final exportUtilityService = ExportUtilityService(db);
   final tournamentGroupService = TournamentGroupService(db);
   final tournamentCrudService = TournamentCrudService(db);
   final tournamentRoundsService = TournamentRoundsService(db);
@@ -189,7 +190,7 @@ Router createRouter(Database db) {
   final documentsHandler = DocumentsHandler(documentService, teamService);
   router.mount('/documents', const Pipeline().addMiddleware(auth).addHandler(documentsHandler.router.call).call);
 
-  final exportsHandler = ExportsHandler(exportService, teamService);
+  final exportsHandler = ExportsHandler(exportDataService, exportUtilityService, teamService);
   router.mount('/exports', const Pipeline().addMiddleware(auth).addHandler(exportsHandler.router.call).call);
 
   // Health check (no auth)
