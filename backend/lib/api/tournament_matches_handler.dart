@@ -44,10 +44,14 @@ class TournamentMatchesHandler {
   Future<Response> _getMatches(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final roundId = request.url.queryParameters['round_id'];
       final matches = await _matchesService.getMatchesForTournament(
@@ -63,7 +67,9 @@ class TournamentMatchesHandler {
   Future<Response> _getMatchById(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final match = await _matchesService.getMatchById(matchId);
       if (match == null) {
@@ -79,7 +85,9 @@ class TournamentMatchesHandler {
   Future<Response> _updateMatch(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -104,7 +112,9 @@ class TournamentMatchesHandler {
   Future<Response> _startMatch(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final match = await _matchesService.startMatch(matchId);
       return resp.ok(match.toJson());
@@ -116,7 +126,9 @@ class TournamentMatchesHandler {
   Future<Response> _completeMatch(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -135,7 +147,9 @@ class TournamentMatchesHandler {
   Future<Response> _declareWalkover(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -161,7 +175,9 @@ class TournamentMatchesHandler {
   Future<Response> _getMatchGames(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final games = await _matchesService.getGamesForMatch(matchId);
       return resp.ok(games.map((g) => g.toJson()).toList());
@@ -173,7 +189,9 @@ class TournamentMatchesHandler {
   Future<Response> _recordGame(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -201,7 +219,9 @@ class TournamentMatchesHandler {
   Future<Response> _updateGame(Request request, String gameId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 

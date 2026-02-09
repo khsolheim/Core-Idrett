@@ -36,10 +36,14 @@ class TournamentRoundsHandler {
   Future<Response> _getRounds(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final rounds = await _roundsService.getRoundsForTournament(tournamentId);
       return resp.ok(rounds.map((r) => r.toJson()).toList());
@@ -51,10 +55,14 @@ class TournamentRoundsHandler {
   Future<Response> _createRound(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final data = await parseBody(request);
 
@@ -86,7 +94,9 @@ class TournamentRoundsHandler {
   Future<Response> _updateRound(Request request, String roundId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 

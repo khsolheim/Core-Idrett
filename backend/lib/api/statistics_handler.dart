@@ -35,10 +35,14 @@ class StatisticsHandler {
   Future<Response> _getLeaderboard(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final yearParam = request.url.queryParameters['year'];
       final year = yearParam != null ? int.tryParse(yearParam) : null;
@@ -56,10 +60,14 @@ class StatisticsHandler {
   Future<Response> _getTeamAttendance(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final fromParam = request.url.queryParameters['from'];
       final toParam = request.url.queryParameters['to'];
@@ -84,10 +92,14 @@ class StatisticsHandler {
   Future<Response> _getPlayerStatistics(Request request, String teamId, String userId) async {
     try {
       final requestUserId = getUserId(request);
-      if (requestUserId == null) return resp.unauthorized();
+      if (requestUserId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, requestUserId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final stats = await _statisticsService.getPlayerStatistics(userId, teamId);
 
@@ -104,7 +116,9 @@ class StatisticsHandler {
   Future<Response> _getMatchStats(Request request, String instanceId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final stats = await _matchStatsService.getMatchStats(instanceId);
 
@@ -119,7 +133,9 @@ class StatisticsHandler {
   Future<Response> _recordMatchStats(Request request, String instanceId) async {
     try {
       final requestUserId = getUserId(request);
-      if (requestUserId == null) return resp.unauthorized();
+      if (requestUserId == null) {
+        return resp.unauthorized();
+      }
 
       final body = await parseBody(request);
       final userId = safeStringNullable(body, 'user_id');

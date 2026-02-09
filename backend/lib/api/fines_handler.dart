@@ -56,10 +56,14 @@ class FinesHandler {
   Future<Response> _getFineRules(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final activeOnly = request.url.queryParameters['active'] == 'true';
       final rules = await _ruleService.getFineRules(teamId, activeOnly: activeOnly ? true : null);
@@ -73,10 +77,14 @@ class FinesHandler {
   Future<Response> _createFineRule(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       if (!isAdmin(team)) {
         return resp.forbidden('Kun admin kan opprette bøteregler');
@@ -110,7 +118,9 @@ class FinesHandler {
   Future<Response> _updateFineRule(Request request, String ruleId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       // TODO: Add team membership + admin permission check (requires rule->teamId lookup)
       final body = await parseBody(request);
@@ -136,7 +146,9 @@ class FinesHandler {
   Future<Response> _deleteFineRule(Request request, String ruleId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       // TODO: Add team membership + admin permission check (requires rule->teamId lookup)
       final success = await _ruleService.deleteFineRule(ruleId);
@@ -155,10 +167,14 @@ class FinesHandler {
   Future<Response> _getFines(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final status = request.url.queryParameters['status'];
       final offenderId = request.url.queryParameters['offender_id'];
@@ -182,10 +198,14 @@ class FinesHandler {
   Future<Response> _createFine(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       if (!isFinesManager(team)) {
         return resp.forbidden('Kun admin eller botesjef kan opprette boter');
@@ -223,7 +243,9 @@ class FinesHandler {
   Future<Response> _getFine(Request request, String fineId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final fine = await _crudService.getFine(fineId);
 
@@ -240,7 +262,9 @@ class FinesHandler {
   Future<Response> _approveFine(Request request, String fineId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       // TODO: Add team membership + fine_boss permission check (requires fine->teamId lookup)
       final fine = await _crudService.approveFine(fineId, userId);
@@ -258,7 +282,9 @@ class FinesHandler {
   Future<Response> _rejectFine(Request request, String fineId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       // TODO: Add team membership + fine_boss permission check (requires fine->teamId lookup)
       final fine = await _crudService.rejectFine(fineId, userId);
@@ -277,7 +303,9 @@ class FinesHandler {
   Future<Response> _createAppeal(Request request, String fineId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final body = await parseBody(request);
 
@@ -299,7 +327,9 @@ class FinesHandler {
   Future<Response> _resolveAppeal(Request request, String appealId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       // TODO: Add team membership + fine_boss permission check (requires appeal->teamId lookup)
       final body = await parseBody(request);
@@ -324,10 +354,14 @@ class FinesHandler {
   Future<Response> _getPendingAppeals(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final appeals = await _crudService.getPendingAppeals(teamId);
 
@@ -341,7 +375,9 @@ class FinesHandler {
   Future<Response> _recordPayment(Request request, String fineId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       // TODO: Add team membership + fine_boss permission check (requires fine->teamId lookup)
       final body = await parseBody(request);
@@ -367,10 +403,14 @@ class FinesHandler {
   Future<Response> _getTeamSummary(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final summary = await _summaryService.getTeamSummary(teamId);
 
@@ -383,10 +423,14 @@ class FinesHandler {
   Future<Response> _getUserSummaries(Request request, String teamId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await requireTeamMember(_teamService, teamId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final summaries = await _summaryService.getUserSummaries(teamId);
 

@@ -78,10 +78,14 @@ class TournamentsHandler {
   Future<Response> _createTournament(Request request, String miniActivityId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForMiniActivity(miniActivityId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final data = await parseBody(request);
 
@@ -110,10 +114,14 @@ class TournamentsHandler {
   Future<Response> _getTournamentForMiniActivity(Request request, String miniActivityId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForMiniActivity(miniActivityId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til dette laget');
+      }
 
       final tournament = await _crudService.getTournamentForMiniActivity(miniActivityId);
       if (tournament == null) {
@@ -129,10 +137,14 @@ class TournamentsHandler {
   Future<Response> _getTournamentById(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final tournament = await _crudService.getTournamentById(tournamentId);
       if (tournament == null) {
@@ -148,10 +160,14 @@ class TournamentsHandler {
   Future<Response> _updateTournament(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final data = await parseBody(request);
 
@@ -173,10 +189,14 @@ class TournamentsHandler {
   Future<Response> _deleteTournament(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       await _crudService.deleteTournament(tournamentId);
       return resp.ok({'success': true});
@@ -190,10 +210,14 @@ class TournamentsHandler {
   Future<Response> _generateBracket(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final data = await parseBody(request);
 

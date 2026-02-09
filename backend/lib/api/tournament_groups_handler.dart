@@ -58,10 +58,14 @@ class TournamentGroupsHandler {
   Future<Response> _getGroups(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final groups = await _groupService.getGroupsForTournament(tournamentId);
       return resp.ok(groups.map((g) => g.toJson()).toList());
@@ -73,10 +77,14 @@ class TournamentGroupsHandler {
   Future<Response> _createGroup(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final data = await parseBody(request);
 
@@ -101,7 +109,9 @@ class TournamentGroupsHandler {
   Future<Response> _updateGroup(Request request, String groupId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -121,7 +131,9 @@ class TournamentGroupsHandler {
   Future<Response> _deleteGroup(Request request, String groupId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       await _groupService.deleteGroup(groupId);
       return resp.ok({'success': true});
@@ -135,7 +147,9 @@ class TournamentGroupsHandler {
   Future<Response> _getGroupStandings(Request request, String groupId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final standings = await _groupService.getGroupStandings(groupId);
       return resp.ok(standings.map((s) => s.toJson()).toList());
@@ -149,7 +163,9 @@ class TournamentGroupsHandler {
   Future<Response> _getGroupMatches(Request request, String groupId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final matches = await _groupService.getGroupMatches(groupId);
       return resp.ok(matches.map((m) => m.toJson()).toList());
@@ -161,7 +177,9 @@ class TournamentGroupsHandler {
   Future<Response> _createGroupMatch(Request request, String groupId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -191,7 +209,9 @@ class TournamentGroupsHandler {
   Future<Response> _updateGroupMatch(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -216,7 +236,9 @@ class TournamentGroupsHandler {
   Future<Response> _completeGroupMatch(Request request, String matchId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -244,10 +266,14 @@ class TournamentGroupsHandler {
   Future<Response> _getQualificationRounds(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final rounds = await _groupService.getQualificationRounds(tournamentId);
       return resp.ok(rounds.map((r) => r.toJson()).toList());
@@ -259,10 +285,14 @@ class TournamentGroupsHandler {
   Future<Response> _createQualificationRound(Request request, String tournamentId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final team = await _requireTeamForTournament(tournamentId, userId);
-      if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
+      if (team == null) {
+        return resp.forbidden('Ingen tilgang til denne turneringen');
+      }
 
       final data = await parseBody(request);
 
@@ -287,7 +317,9 @@ class TournamentGroupsHandler {
   Future<Response> _getQualificationResults(Request request, String qualificationId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final results = await _groupService.getQualificationResults(qualificationId);
       return resp.ok(results.map((r) => r.toJson()).toList());
@@ -299,7 +331,9 @@ class TournamentGroupsHandler {
   Future<Response> _recordQualificationResult(Request request, String qualificationId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final data = await parseBody(request);
 
@@ -325,7 +359,9 @@ class TournamentGroupsHandler {
   Future<Response> _finalizeQualification(Request request, String qualificationId) async {
     try {
       final userId = getUserId(request);
-      if (userId == null) return resp.unauthorized();
+      if (userId == null) {
+        return resp.unauthorized();
+      }
 
       final advancedResults = await _groupService.finalizeQualification(qualificationId);
       return resp.ok(advancedResults.map((r) => r.toJson()).toList());
