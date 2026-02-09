@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Koden skal være lett å forstå, endre, og utvide — uten å krasje på uventede data.
-**Current focus:** Phase 5 - Frontend Widget Extraction (in progress)
+**Current focus:** Phase 6 - Feature Test Coverage (in progress)
 
 ## Current Position
 
-Phase: 5 of 10 (Frontend Widget Extraction)
-Plan: 3 of 4 (In progress)
+Phase: 6 of 10 (Feature Test Coverage)
+Plan: 1 of 3 (Complete)
 Status: Active
-Last activity: 2026-02-09 — Plan 05-03 complete, split mini_activity_detail_content (436→307 LOC) and stats_widgets (429→4 LOC barrel), 5 new widget files
+Last activity: 2026-02-09 — Plan 06-01 complete, export and statistics service tests with mocktail, 54 tests, zero-division edge cases verified
 
-Progress: [█████████░] 88% (15 of 17 total plans across phases 01-05)
+Progress: [█████████░] 89% (16 of 18 total plans across phases 01-06)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
-- Average duration: ~12 minutes
-- Total execution time: ~3 hours
+- Total plans completed: 16
+- Average duration: ~11.5 minutes
+- Total execution time: ~3.1 hours
 
 **By Phase:**
 
@@ -32,6 +32,7 @@ Progress: [█████████░] 88% (15 of 17 total plans across phas
 | 03    | 4/4   | ~25m       | ~6.25m   |
 | 04    | 2/2   | ~4m        | ~2m      |
 | 05    | 3/4   | ~12m       | ~4m      |
+| 06    | 1/3   | ~5m        | ~5m      |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -50,9 +51,10 @@ Progress: [█████████░] 88% (15 of 17 total plans across phas
 - Plan 05-01: Test detail widget extraction (234 min, test_detail_screen 590→211 LOC, 3 new widget files)
 - Plan 05-02: Export & activity detail widget extraction (3 min, export_screen 470→219 LOC, activity_detail_screen 456→178 LOC, 3 new widget files)
 - Plan 05-03: Mini-activity widget extraction (5 min, mini_activity_detail_content 436→307 LOC, stats_widgets→barrel, 5 new widget files)
-- Trend: Phase 5 in progress — widget extraction fast and clean, maintaining functionality while reducing file sizes
+- Plan 06-01: Export and statistics service tests (5 min, mocktail setup, 54 tests covering all export types + statistics edge cases)
+- Trend: Phase 6 started — service test coverage with mocktail, comprehensive edge case validation
 
-*Updated 2026-02-09 after plan 05-03 complete*
+*Updated 2026-02-09 after plan 06-01 complete*
 
 ## Accumulated Context
 
@@ -107,6 +109,9 @@ Recent decisions affecting current work:
 - [Phase 05-03]: Dialog helpers as standalone functions with explicit parameters - improves testability and makes dependencies clear
 - [Phase 05-03]: Convert stats_widgets to barrel file - preserves existing imports while enabling focused widget files
 - [Phase 05-03]: Group related widgets in same file - PlayerStatsCard + CompactStatsCard stay together for cohesion
+- [Phase 06-01]: Use mocktail for service mocking - provides clean mock syntax without code generation
+- [Phase 06-01]: Mock Database and SupabaseClient separately - allows precise control over query responses
+- [Phase 06-01]: Explicit edge case testing for zero-division - prevents NaN/Infinity bugs in attendance calculations
 
 ### Pending Todos
 
@@ -118,7 +123,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 05-03 execution)
-Stopped at: Completed 05-03-PLAN.md — Mini-activity widget extraction complete
+Last session: 2026-02-09 (Plan 06-01 execution)
+Stopped at: Completed 06-01-PLAN.md — Export and statistics service tests complete
 Resume file: None
-Next: Phase 5 Plan 04 (team detail widget extraction)
+Next: Phase 6 Plan 02 (activity and tournament service tests)
