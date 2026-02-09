@@ -16,7 +16,8 @@ import '../helpers/parsing_helpers.dart';
 class MiniActivitiesHandler {
   final MiniActivityService _miniActivityService;
   final MiniActivityTemplateService _templateService;
-  final MiniActivityDivisionService _divisionService;
+  final MiniActivityDivisionAlgorithmService _divisionAlgorithmService;
+  final MiniActivityDivisionManagementService _divisionManagementService;
   final MiniActivityResultService _resultService;
   final TeamService _teamService;
   final MiniActivityStatsAggregationService? _statsService;
@@ -24,7 +25,8 @@ class MiniActivitiesHandler {
   MiniActivitiesHandler(
     this._miniActivityService,
     this._templateService,
-    this._divisionService,
+    this._divisionAlgorithmService,
+    this._divisionManagementService,
     this._resultService,
     this._teamService, [
     this._statsService,
@@ -59,7 +61,8 @@ class MiniActivitiesHandler {
     // Mount team division & handicap routes
     final teamsHandler = MiniActivityTeamsHandler(
       _miniActivityService,
-      _divisionService,
+      _divisionAlgorithmService,
+      _divisionManagementService,
     );
     router.mount('/', teamsHandler.router.call);
 

@@ -74,7 +74,8 @@ Router createRouter(Database db) {
   final activityInstanceService = ActivityInstanceService(db, leaderboardCrudService, seasonService);
   final miniActivityService = MiniActivityService(db, userService);
   final miniActivityTemplateService = MiniActivityTemplateService(db);
-  final miniActivityDivisionService = MiniActivityDivisionService(db);
+  final miniActivityDivisionAlgorithmService = MiniActivityDivisionAlgorithmService(db);
+  final miniActivityDivisionManagementService = MiniActivityDivisionManagementService(db);
   final miniActivityResultService = MiniActivityResultService(db, leaderboardCrudService, seasonService);
   final playerRatingService = PlayerRatingService(db);
   final matchStatsService = MatchStatsService(db, userService);
@@ -103,7 +104,9 @@ Router createRouter(Database db) {
   final miniActivityStatsAggregationService = MiniActivityStatsAggregationService(
     db, miniActivityPlayerStatsService, miniActivityHeadToHeadService, userService,
   );
-  final pointsConfigService = PointsConfigService(db);
+  final pointsConfigCrudService = PointsConfigCrudService(db);
+  final attendancePointsService = AttendancePointsService(db);
+  final manualAdjustmentService = ManualAdjustmentService(db);
   final absenceService = AbsenceService(db);
   final achievementDefinitionService = AchievementDefinitionService(db);
   final achievementService = AchievementService(db, achievementDefinitionService);
@@ -132,7 +135,8 @@ Router createRouter(Database db) {
   final miniActivitiesHandler = MiniActivitiesHandler(
     miniActivityService,
     miniActivityTemplateService,
-    miniActivityDivisionService,
+    miniActivityDivisionAlgorithmService,
+    miniActivityDivisionManagementService,
     miniActivityResultService,
     teamService,
     miniActivityStatsAggregationService,
@@ -170,7 +174,9 @@ Router createRouter(Database db) {
   );
   router.mount('/leaderboards', const Pipeline().addMiddleware(auth).addHandler(leaderboardsHandler.router.call).call);
 
-  final pointsConfigHandler = PointsConfigHandler(pointsConfigService, teamService);
+  final pointsConfigHandler = PointsConfigHandler(
+    pointsConfigCrudService, attendancePointsService, manualAdjustmentService, teamService,
+  );
   router.mount('/points', const Pipeline().addMiddleware(auth).addHandler(pointsConfigHandler.router.call).call);
 
   final absenceHandler = AbsenceHandler(absenceService, teamService);

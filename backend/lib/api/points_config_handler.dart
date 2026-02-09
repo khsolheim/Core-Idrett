@@ -1,7 +1,7 @@
 import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import '../services/points_config_service.dart' show PointsConfigService;
+import '../services/points_config_service.dart';
 import '../services/team_service.dart';
 import 'points_adjustments_handler.dart';
 import 'helpers/auth_helpers.dart';
@@ -9,11 +9,15 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class PointsConfigHandler {
-  final PointsConfigService _pointsConfigService;
+  final PointsConfigCrudService _crudService;
+  final AttendancePointsService _attendanceService;
+  final ManualAdjustmentService _adjustmentService;
   final TeamService _teamService;
 
   PointsConfigHandler(
-    this._pointsConfigService,
+    this._crudService,
+    this._attendanceService,
+    this._adjustmentService,
     this._teamService,
   );
 
@@ -37,7 +41,7 @@ class PointsConfigHandler {
 
     // Mount manual adjustment routes
     final adjustmentsHandler = PointsAdjustmentsHandler(
-      _pointsConfigService,
+      _adjustmentService,
       _teamService,
     );
     router.mount('/', adjustmentsHandler.router.call);
@@ -58,7 +62,7 @@ class PointsConfigHandler {
       }
 
       final seasonId = request.url.queryParameters['season_id'];
-      final config = await _pointsConfigService.getOrCreateConfig(
+      final config = await _crudService.getOrCreateConfig(
         teamId,
         seasonId: seasonId,
       );
@@ -88,14 +92,14 @@ class PointsConfigHandler {
       final body = await parseBody(request);
 
       // Check if config exists
-      final existing = await _pointsConfigService.getConfig(
+      final existing = await _crudService.getConfig(
         teamId,
         seasonId: safeStringNullable(body, 'season_id'),
       );
 
       if (existing != null) {
         // Update existing
-        final config = await _pointsConfigService.updateConfig(
+        final config = await _crudService.updateConfig(
           configId: existing.id,
           trainingPoints: safeIntNullable(body, 'training_points'),
           matchPoints: safeIntNullable(body, 'match_points'),
@@ -119,7 +123,7 @@ class PointsConfigHandler {
       }
 
       // Create new
-      final config = await _pointsConfigService.createConfig(
+      final config = await _crudService.createConfig(
         teamId: teamId,
         seasonId: safeStringNullable(body, 'season_id'),
         trainingPoints: safeIntNullable(body, 'training_points') ?? 1,
@@ -157,7 +161,7 @@ class PointsConfigHandler {
         return resp.unauthorized();
       }
 
-      final existingConfig = await _pointsConfigService.getConfigById(configId);
+      final existingConfig = await _crudService.getConfigById(configId);
       if (existingConfig == null) {
         return resp.notFound('Konfigurasjon ikke funnet');
       }
@@ -173,7 +177,7 @@ class PointsConfigHandler {
 
       final body = await parseBody(request);
 
-      final config = await _pointsConfigService.updateConfig(
+      final config = await _crudService.updateConfig(
         configId: configId,
         trainingPoints: safeIntNullable(body, 'training_points'),
         matchPoints: safeIntNullable(body, 'match_points'),
@@ -210,7 +214,7 @@ class PointsConfigHandler {
         return resp.unauthorized();
       }
 
-      final existingConfig = await _pointsConfigService.getConfigById(configId);
+      final existingConfig = await _crudService.getConfigById(configId);
       if (existingConfig == null) {
         return resp.notFound('Konfigurasjon ikke funnet');
       }
@@ -224,7 +228,7 @@ class PointsConfigHandler {
         return resp.forbidden('Kun admin kan slette poengkonfigurasjon');
       }
 
-      await _pointsConfigService.deleteConfig(configId);
+      await _crudService.deleteConfig(configId);
 
       return resp.ok({'success': true});
     } catch (e) {
@@ -249,7 +253,7 @@ class PointsConfigHandler {
           request.url.queryParameters['user_id'] ?? userId;
       final seasonId = request.url.queryParameters['season_id'];
 
-      final stats = await _pointsConfigService.getUserAttendanceStats(
+      final stats = await _attendanceService.getUserAttendanceStats(
         targetUserId,
         teamId,
         seasonId: seasonId,
@@ -272,7 +276,7 @@ class PointsConfigHandler {
       final teamId = request.url.queryParameters['team_id'];
       final seasonId = request.url.queryParameters['season_id'];
 
-      final points = await _pointsConfigService.getUserAttendancePoints(
+      final points = await _attendanceService.getUserAttendancePoints(
         targetUserId,
         teamId: teamId,
         seasonId: seasonId,
@@ -326,7 +330,7 @@ class PointsConfigHandler {
       }
       final weightedPoints = weightedPointsRaw.toDouble();
 
-      final points = await _pointsConfigService.awardAttendancePoints(
+      final points = await _attendanceService.awardAttendancePoints(
         teamId: teamId,
         userId: targetUserId,
         instanceId: instanceId,
@@ -364,12 +368,12 @@ class PointsConfigHandler {
       }
 
       // Check if opt-out is allowed
-      final config = await _pointsConfigService.getConfig(teamId);
+      final config = await _crudService.getConfig(teamId);
       if (config != null && !config.allowOptOut && optOut) {
         return resp.forbidden('Opt-out er ikke aktivert for dette laget');
       }
 
-      await _pointsConfigService.setOptOut(targetUserId, teamId, optOut);
+      await _crudService.setOptOut(targetUserId, teamId, optOut);
 
       return resp.ok({'success': true, 'opt_out': optOut});
     } catch (e) {
@@ -390,7 +394,7 @@ class PointsConfigHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final optOut = await _pointsConfigService.hasOptedOut(targetUserId, teamId);
+      final optOut = await _crudService.hasOptedOut(targetUserId, teamId);
 
       return resp.ok({'opt_out': optOut});
     } catch (e) {

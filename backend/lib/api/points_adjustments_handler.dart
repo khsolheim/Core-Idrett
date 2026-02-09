@@ -1,17 +1,17 @@
 import 'helpers/request_helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import '../services/points_config_service.dart' show PointsConfigService, AdjustmentType;
+import '../services/points_config_service.dart' show ManualAdjustmentService, AdjustmentType;
 import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class PointsAdjustmentsHandler {
-  final PointsConfigService _pointsConfigService;
+  final ManualAdjustmentService _adjustmentService;
   final TeamService _teamService;
 
-  PointsAdjustmentsHandler(this._pointsConfigService, this._teamService);
+  PointsAdjustmentsHandler(this._adjustmentService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -61,7 +61,7 @@ class PointsAdjustmentsHandler {
 
       final adjustmentType = AdjustmentType.fromString(adjustmentTypeStr);
 
-      final adjustment = await _pointsConfigService.createAdjustment(
+      final adjustment = await _adjustmentService.createAdjustment(
         teamId: teamId,
         userId: targetUserId,
         points: points,
@@ -93,7 +93,7 @@ class PointsAdjustmentsHandler {
       final limitStr = request.url.queryParameters['limit'];
       final limit = limitStr != null ? int.tryParse(limitStr) : null;
 
-      final adjustments = await _pointsConfigService.getTeamAdjustments(
+      final adjustments = await _adjustmentService.getTeamAdjustments(
         teamId,
         seasonId: seasonId,
         limit: limit,
@@ -118,7 +118,7 @@ class PointsAdjustmentsHandler {
       final teamId = request.url.queryParameters['team_id'];
       final seasonId = request.url.queryParameters['season_id'];
 
-      final adjustments = await _pointsConfigService.getUserAdjustments(
+      final adjustments = await _adjustmentService.getUserAdjustments(
         targetUserId,
         teamId: teamId,
         seasonId: seasonId,

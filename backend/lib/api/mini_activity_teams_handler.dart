@@ -9,9 +9,14 @@ import 'helpers/response_helpers.dart' as resp;
 import '../helpers/parsing_helpers.dart';
 class MiniActivityTeamsHandler {
   final MiniActivityService _miniActivityService;
-  final MiniActivityDivisionService _divisionService;
+  final MiniActivityDivisionAlgorithmService _algorithmService;
+  final MiniActivityDivisionManagementService _managementService;
 
-  MiniActivityTeamsHandler(this._miniActivityService, this._divisionService);
+  MiniActivityTeamsHandler(
+    this._miniActivityService,
+    this._algorithmService,
+    this._managementService,
+  );
 
   Router get router {
     final router = Router();
@@ -67,7 +72,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('For få deltakere for antall lag');
       }
 
-      await _divisionService.divideTeams(
+      await _algorithmService.divideTeams(
         miniActivityId: miniActivityId,
         method: method,
         numberOfTeams: numberOfTeams,
@@ -92,7 +97,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      await _divisionService.resetTeamDivision(miniActivityId);
+      await _managementService.resetTeamDivision(miniActivityId);
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
@@ -116,7 +121,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('Mangler påkrevde felt (user_id, mini_team_id)');
       }
 
-      await _divisionService.addLateParticipant(
+      await _managementService.addLateParticipant(
         miniActivityId: miniActivityId,
         userId: participantUserId,
         teamId: miniTeamId,
@@ -143,7 +148,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('Mangler påkrevd felt (name)');
       }
 
-      await _divisionService.updateTeamName(teamId: miniTeamId, newName: newName);
+      await _managementService.updateTeamName(teamId: miniTeamId, newName: newName);
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
       return resp.ok(detail);
     } catch (e) {
@@ -165,7 +170,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('Mangler påkrevd felt (name)');
       }
 
-      await _divisionService.createTeam(
+      await _managementService.createTeam(
         miniActivityId: miniActivityId,
         name: name,
       );
@@ -191,7 +196,7 @@ class MiniActivityTeamsHandler {
         // Body is optional for delete
       }
 
-      await _divisionService.deleteTeam(
+      await _managementService.deleteTeam(
         miniActivityId: miniActivityId,
         teamId: miniTeamId,
         moveParticipantsToTeamId: safeStringNullable(data, 'move_participants_to_team_id'),
@@ -218,7 +223,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('Mangler påkrevd felt (target_team_id)');
       }
 
-      await _divisionService.moveParticipantToTeam(
+      await _managementService.moveParticipantToTeam(
         participantId: participantId,
         newTeamId: targetTeamId,
       );
@@ -239,7 +244,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      final handicaps = await _divisionService.getHandicaps(miniActivityId);
+      final handicaps = await _managementService.getHandicaps(miniActivityId);
       return resp.ok(handicaps.map((h) => h.toJson()).toList());
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -262,7 +267,7 @@ class MiniActivityTeamsHandler {
         return resp.badRequest('Mangler påkrevde felt (user_id, handicap_value)');
       }
 
-      final handicap = await _divisionService.setHandicap(
+      final handicap = await _managementService.setHandicap(
         miniActivityId: miniActivityId,
         userId: targetUserId,
         handicapValue: handicapValue,
@@ -281,7 +286,7 @@ class MiniActivityTeamsHandler {
         return resp.unauthorized();
       }
 
-      await _divisionService.removeHandicap(miniActivityId: miniActivityId, userId: targetUserId);
+      await _managementService.removeHandicap(miniActivityId: miniActivityId, userId: targetUserId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError('En feil oppstod');
