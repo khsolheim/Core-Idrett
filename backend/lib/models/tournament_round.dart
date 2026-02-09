@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
 import 'tournament_match.dart';
 
 enum RoundType {
@@ -73,14 +74,14 @@ class TournamentRound extends Equatable {
 
   factory TournamentRound.fromJson(Map<String, dynamic> row) {
     return TournamentRound(
-      id: row['id'] as String,
-      tournamentId: row['tournament_id'] as String,
-      roundNumber: row['round_number'] as int,
-      roundName: row['round_name'] as String?,
-      roundType: RoundType.fromString(row['round_type'] as String? ?? 'winners'),
-      status: MatchStatus.fromString(row['status'] as String? ?? 'pending'),
-      scheduledTime: row['scheduled_time'] as DateTime?,
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      tournamentId: safeString(row, 'tournament_id'),
+      roundNumber: safeInt(row, 'round_number'),
+      roundName: safeStringNullable(row, 'round_name'),
+      roundType: RoundType.fromString(safeString(row, 'round_type', defaultValue: 'winners')),
+      status: MatchStatus.fromString(safeString(row, 'status', defaultValue: 'pending')),
+      scheduledTime: safeDateTimeNullable(row, 'scheduled_time'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 

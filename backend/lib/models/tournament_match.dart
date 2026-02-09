@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 enum MatchStatus {
   pending,
   inProgress,
@@ -103,23 +105,23 @@ class TournamentMatch extends Equatable {
 
   factory TournamentMatch.fromJson(Map<String, dynamic> row) {
     return TournamentMatch(
-      id: row['id'] as String,
-      tournamentId: row['tournament_id'] as String,
-      roundId: row['round_id'] as String,
-      bracketPosition: row['bracket_position'] as int,
-      teamAId: row['team_a_id'] as String?,
-      teamBId: row['team_b_id'] as String?,
-      winnerId: row['winner_id'] as String?,
-      teamAScore: row['team_a_score'] as int?,
-      teamBScore: row['team_b_score'] as int?,
-      status: MatchStatus.fromString(row['status'] as String? ?? 'pending'),
-      scheduledTime: row['scheduled_time'] as DateTime?,
-      matchOrder: row['match_order'] as int? ?? 0,
-      winnerGoesToMatchId: row['winner_goes_to_match_id'] as String?,
-      loserGoesToMatchId: row['loser_goes_to_match_id'] as String?,
-      isWalkover: row['is_walkover'] as bool? ?? false,
-      walkoverReason: row['walkover_reason'] as String?,
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      tournamentId: safeString(row, 'tournament_id'),
+      roundId: safeString(row, 'round_id'),
+      bracketPosition: safeInt(row, 'bracket_position'),
+      teamAId: safeStringNullable(row, 'team_a_id'),
+      teamBId: safeStringNullable(row, 'team_b_id'),
+      winnerId: safeStringNullable(row, 'winner_id'),
+      teamAScore: safeIntNullable(row, 'team_a_score'),
+      teamBScore: safeIntNullable(row, 'team_b_score'),
+      status: MatchStatus.fromString(safeString(row, 'status', defaultValue: 'pending')),
+      scheduledTime: safeDateTimeNullable(row, 'scheduled_time'),
+      matchOrder: safeInt(row, 'match_order', defaultValue: 0),
+      winnerGoesToMatchId: safeStringNullable(row, 'winner_goes_to_match_id'),
+      loserGoesToMatchId: safeStringNullable(row, 'loser_goes_to_match_id'),
+      isWalkover: safeBool(row, 'is_walkover', defaultValue: false),
+      walkoverReason: safeStringNullable(row, 'walkover_reason'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -186,14 +188,14 @@ class MatchGame extends Equatable {
 
   factory MatchGame.fromJson(Map<String, dynamic> row) {
     return MatchGame(
-      id: row['id'] as String,
-      matchId: row['match_id'] as String,
-      gameNumber: row['game_number'] as int,
-      teamAScore: row['team_a_score'] as int? ?? 0,
-      teamBScore: row['team_b_score'] as int? ?? 0,
-      winnerId: row['winner_id'] as String?,
-      status: MatchStatus.fromString(row['status'] as String? ?? 'pending'),
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      matchId: safeString(row, 'match_id'),
+      gameNumber: safeInt(row, 'game_number'),
+      teamAScore: safeInt(row, 'team_a_score', defaultValue: 0),
+      teamBScore: safeInt(row, 'team_b_score', defaultValue: 0),
+      winnerId: safeStringNullable(row, 'winner_id'),
+      status: MatchStatus.fromString(safeString(row, 'status', defaultValue: 'pending')),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 

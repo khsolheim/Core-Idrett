@@ -3,19 +3,7 @@
 
 import 'package:equatable/equatable.dart';
 
-// Helper to parse DateTime from database (may come as String or DateTime)
-DateTime _parseDateTime(dynamic value) {
-  if (value is DateTime) return value;
-  if (value is String) return DateTime.parse(value);
-  return DateTime.now();
-}
-
-DateTime? _parseDateTimeNullable(dynamic value) {
-  if (value == null) return null;
-  if (value is DateTime) return value;
-  if (value is String) return DateTime.parse(value);
-  return null;
-}
+import '../helpers/parsing_helpers.dart';
 
 class ActivityTemplate extends Equatable {
   final String id;
@@ -74,21 +62,21 @@ class ActivityTemplate extends Equatable {
 
   factory ActivityTemplate.fromJson(Map<String, dynamic> row) {
     return ActivityTemplate(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      name: row['name'] as String,
-      type: row['type'] as String,
-      defaultPoints: row['default_points'] as int? ?? 1,
-      createdAt: _parseDateTime(row['created_at']),
-      description: row['description'] as String?,
-      instructions: row['instructions'] as String?,
-      sportType: row['sport_type'] as String?,
-      suggestedRules: row['suggested_rules'] as Map<String, dynamic>?,
-      isFavorite: row['is_favorite'] as bool? ?? false,
-      winPoints: row['win_points'] as int? ?? 3,
-      drawPoints: row['draw_points'] as int? ?? 1,
-      lossPoints: row['loss_points'] as int? ?? 0,
-      leaderboardId: row['leaderboard_id'] as String?,
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      name: safeString(row, 'name'),
+      type: safeString(row, 'type'),
+      defaultPoints: safeInt(row, 'default_points', defaultValue: 1),
+      createdAt: requireDateTime(row, 'created_at'),
+      description: safeStringNullable(row, 'description'),
+      instructions: safeStringNullable(row, 'instructions'),
+      sportType: safeStringNullable(row, 'sport_type'),
+      suggestedRules: safeMapNullable(row, 'suggested_rules'),
+      isFavorite: safeBool(row, 'is_favorite', defaultValue: false),
+      winPoints: safeInt(row, 'win_points', defaultValue: 3),
+      drawPoints: safeInt(row, 'draw_points', defaultValue: 1),
+      lossPoints: safeInt(row, 'loss_points', defaultValue: 0),
+      leaderboardId: safeStringNullable(row, 'leaderboard_id'),
     );
   }
 
@@ -218,25 +206,25 @@ class MiniActivity extends Equatable {
 
   factory MiniActivity.fromJson(Map<String, dynamic> row) {
     return MiniActivity(
-      id: row['id'] as String,
-      instanceId: row['instance_id'] as String?,
-      templateId: row['template_id'] as String?,
-      name: row['name'] as String,
-      type: row['type'] as String,
-      divisionMethod: row['division_method'] as String?,
-      numTeams: row['num_teams'] as int? ?? 2,
-      createdAt: _parseDateTime(row['created_at']),
-      teamId: row['team_id'] as String?,
-      leaderboardId: row['leaderboard_id'] as String?,
-      enableLeaderboard: row['enable_leaderboard'] as bool? ?? true,
-      winPoints: row['win_points'] as int? ?? 3,
-      drawPoints: row['draw_points'] as int? ?? 1,
-      lossPoints: row['loss_points'] as int? ?? 0,
-      description: row['description'] as String?,
-      maxParticipants: row['max_participants'] as int?,
-      handicapEnabled: row['handicap_enabled'] as bool? ?? false,
-      archivedAt: _parseDateTimeNullable(row['archived_at']),
-      winnerTeamId: row['winner_team_id'] as String?,
+      id: safeString(row, 'id'),
+      instanceId: safeStringNullable(row, 'instance_id'),
+      templateId: safeStringNullable(row, 'template_id'),
+      name: safeString(row, 'name'),
+      type: safeString(row, 'type'),
+      divisionMethod: safeStringNullable(row, 'division_method'),
+      numTeams: safeInt(row, 'num_teams', defaultValue: 2),
+      createdAt: requireDateTime(row, 'created_at'),
+      teamId: safeStringNullable(row, 'team_id'),
+      leaderboardId: safeStringNullable(row, 'leaderboard_id'),
+      enableLeaderboard: safeBool(row, 'enable_leaderboard', defaultValue: true),
+      winPoints: safeInt(row, 'win_points', defaultValue: 3),
+      drawPoints: safeInt(row, 'draw_points', defaultValue: 1),
+      lossPoints: safeInt(row, 'loss_points', defaultValue: 0),
+      description: safeStringNullable(row, 'description'),
+      maxParticipants: safeIntNullable(row, 'max_participants'),
+      handicapEnabled: safeBool(row, 'handicap_enabled', defaultValue: false),
+      archivedAt: safeDateTimeNullable(row, 'archived_at'),
+      winnerTeamId: safeStringNullable(row, 'winner_team_id'),
     );
   }
 

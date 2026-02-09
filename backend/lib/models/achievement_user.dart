@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
 import 'achievement_definition.dart';
 
 /// User achievement (awarded achievement)
@@ -70,30 +71,30 @@ class UserAchievement extends Equatable {
 
   factory UserAchievement.fromJson(Map<String, dynamic> row) {
     return UserAchievement(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      achievementId: row['achievement_id'] as String,
-      teamId: row['team_id'] as String,
-      seasonId: row['season_id'] as String?,
-      pointsAwarded: row['points_awarded'] as int? ?? 0,
-      awardedAt: DateTime.parse(row['awarded_at'] as String),
-      timesEarned: row['times_earned'] as int? ?? 1,
-      lastEarnedAt: DateTime.parse(
-          row['last_earned_at'] as String? ?? row['awarded_at'] as String),
-      triggerReference: row['trigger_reference'] as Map<String, dynamic>?,
+      id: safeString(row, 'id'),
+      userId: safeString(row, 'user_id'),
+      achievementId: safeString(row, 'achievement_id'),
+      teamId: safeString(row, 'team_id'),
+      seasonId: safeStringNullable(row, 'season_id'),
+      pointsAwarded: safeInt(row, 'points_awarded', defaultValue: 0),
+      awardedAt: requireDateTime(row, 'awarded_at'),
+      timesEarned: safeInt(row, 'times_earned', defaultValue: 1),
+      lastEarnedAt: safeDateTimeNullable(row, 'last_earned_at') ??
+          requireDateTime(row, 'awarded_at'),
+      triggerReference: safeMapNullable(row, 'trigger_reference'),
       // Joined fields from view
-      achievementCode: row['code'] as String?,
-      achievementName: row['achievement_name'] as String?,
-      achievementDescription: row['description'] as String?,
-      achievementIcon: row['icon'] as String?,
-      achievementTier: row['tier'] != null
-          ? AchievementTier.fromString(row['tier'] as String)
+      achievementCode: safeStringNullable(row, 'code'),
+      achievementName: safeStringNullable(row, 'achievement_name'),
+      achievementDescription: safeStringNullable(row, 'description'),
+      achievementIcon: safeStringNullable(row, 'icon'),
+      achievementTier: safeStringNullable(row, 'tier') != null
+          ? AchievementTier.fromString(safeString(row, 'tier'))
           : null,
-      achievementCategory: row['category'] != null
-          ? AchievementCategory.fromString(row['category'] as String)
+      achievementCategory: safeStringNullable(row, 'category') != null
+          ? AchievementCategory.fromString(safeString(row, 'category'))
           : null,
-      userName: row['user_name'] as String?,
-      teamName: row['team_name'] as String?,
+      userName: safeStringNullable(row, 'user_name'),
+      teamName: safeStringNullable(row, 'team_name'),
     );
   }
 
@@ -177,24 +178,22 @@ class AchievementProgress extends Equatable {
 
   factory AchievementProgress.fromJson(Map<String, dynamic> row) {
     return AchievementProgress(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      achievementId: row['achievement_id'] as String,
-      teamId: row['team_id'] as String,
-      seasonId: row['season_id'] as String?,
-      currentValue: row['current_value'] as int? ?? 0,
-      targetValue: row['target_value'] as int,
-      progressPercent: (row['progress_percent'] as num?)?.toDouble() ?? 0.0,
-      lastContributionAt: row['last_contribution_at'] != null
-          ? DateTime.parse(row['last_contribution_at'] as String)
-          : null,
-      updatedAt: DateTime.parse(row['updated_at'] as String),
+      id: safeString(row, 'id'),
+      userId: safeString(row, 'user_id'),
+      achievementId: safeString(row, 'achievement_id'),
+      teamId: safeString(row, 'team_id'),
+      seasonId: safeStringNullable(row, 'season_id'),
+      currentValue: safeInt(row, 'current_value', defaultValue: 0),
+      targetValue: safeInt(row, 'target_value'),
+      progressPercent: safeDouble(row, 'progress_percent', defaultValue: 0.0),
+      lastContributionAt: safeDateTimeNullable(row, 'last_contribution_at'),
+      updatedAt: requireDateTime(row, 'updated_at'),
       // Joined fields
-      achievementCode: row['code'] as String?,
-      achievementName: row['achievement_name'] as String?,
-      achievementIcon: row['icon'] as String?,
-      achievementTier: row['tier'] != null
-          ? AchievementTier.fromString(row['tier'] as String)
+      achievementCode: safeStringNullable(row, 'code'),
+      achievementName: safeStringNullable(row, 'achievement_name'),
+      achievementIcon: safeStringNullable(row, 'icon'),
+      achievementTier: safeStringNullable(row, 'tier') != null
+          ? AchievementTier.fromString(safeString(row, 'tier'))
           : null,
     );
   }

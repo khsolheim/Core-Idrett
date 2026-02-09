@@ -3,6 +3,8 @@
 
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 // BM-025: Tournament type enum
 enum TournamentType {
   singleElimination,
@@ -147,15 +149,15 @@ class Tournament extends Equatable {
 
   factory Tournament.fromJson(Map<String, dynamic> row) {
     return Tournament(
-      id: row['id'] as String,
-      miniActivityId: row['mini_activity_id'] as String,
-      tournamentType: TournamentType.fromString(row['tournament_type'] as String),
-      bestOf: row['best_of'] as int? ?? 1,
-      bronzeFinal: row['bronze_final'] as bool? ?? false,
-      seedingMethod: SeedingMethod.fromString(row['seeding_method'] as String? ?? 'random'),
-      maxParticipants: row['max_participants'] as int?,
-      status: TournamentStatus.fromString(row['status'] as String? ?? 'setup'),
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      miniActivityId: safeString(row, 'mini_activity_id'),
+      tournamentType: TournamentType.fromString(safeString(row, 'tournament_type')),
+      bestOf: safeInt(row, 'best_of', defaultValue: 1),
+      bronzeFinal: safeBool(row, 'bronze_final', defaultValue: false),
+      seedingMethod: SeedingMethod.fromString(safeString(row, 'seeding_method', defaultValue: 'random')),
+      maxParticipants: safeIntNullable(row, 'max_participants'),
+      status: TournamentStatus.fromString(safeString(row, 'status', defaultValue: 'setup')),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 

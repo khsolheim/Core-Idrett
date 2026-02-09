@@ -3,6 +3,8 @@
 
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 // BM-046: Player stats model
 class MiniActivityPlayerStats extends Equatable {
   final String id;
@@ -63,22 +65,22 @@ class MiniActivityPlayerStats extends Equatable {
 
   factory MiniActivityPlayerStats.fromJson(Map<String, dynamic> row) {
     return MiniActivityPlayerStats(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      teamId: row['team_id'] as String,
-      seasonId: row['season_id'] as String?,
-      totalParticipations: row['total_participations'] as int? ?? 0,
-      totalWins: row['total_wins'] as int? ?? 0,
-      totalLosses: row['total_losses'] as int? ?? 0,
-      totalDraws: row['total_draws'] as int? ?? 0,
-      totalPoints: row['total_points'] as int? ?? 0,
-      firstPlaceCount: row['first_place_count'] as int? ?? 0,
-      secondPlaceCount: row['second_place_count'] as int? ?? 0,
-      thirdPlaceCount: row['third_place_count'] as int? ?? 0,
-      bestStreak: row['best_streak'] as int? ?? 0,
-      currentStreak: row['current_streak'] as int? ?? 0,
-      averagePlacement: (row['average_placement'] as num?)?.toDouble(),
-      updatedAt: row['updated_at'] as DateTime,
+      id: safeString(row, 'id'),
+      userId: safeString(row, 'user_id'),
+      teamId: safeString(row, 'team_id'),
+      seasonId: safeStringNullable(row, 'season_id'),
+      totalParticipations: safeInt(row, 'total_participations', defaultValue: 0),
+      totalWins: safeInt(row, 'total_wins', defaultValue: 0),
+      totalLosses: safeInt(row, 'total_losses', defaultValue: 0),
+      totalDraws: safeInt(row, 'total_draws', defaultValue: 0),
+      totalPoints: safeInt(row, 'total_points', defaultValue: 0),
+      firstPlaceCount: safeInt(row, 'first_place_count', defaultValue: 0),
+      secondPlaceCount: safeInt(row, 'second_place_count', defaultValue: 0),
+      thirdPlaceCount: safeInt(row, 'third_place_count', defaultValue: 0),
+      bestStreak: safeInt(row, 'best_streak', defaultValue: 0),
+      currentStreak: safeInt(row, 'current_streak', defaultValue: 0),
+      averagePlacement: safeDoubleNullable(row, 'average_placement'),
+      updatedAt: requireDateTime(row, 'updated_at'),
     );
   }
 
@@ -164,16 +166,16 @@ class HeadToHeadStats extends Equatable {
 
   factory HeadToHeadStats.fromJson(Map<String, dynamic> row) {
     return HeadToHeadStats(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      user1Id: row['user1_id'] as String,
-      user2Id: row['user2_id'] as String,
-      user1Wins: row['user1_wins'] as int? ?? 0,
-      user2Wins: row['user2_wins'] as int? ?? 0,
-      draws: row['draws'] as int? ?? 0,
-      totalMatchups: row['total_matchups'] as int? ?? 0,
-      lastMatchupAt: row['last_matchup_at'] as DateTime?,
-      updatedAt: row['updated_at'] as DateTime,
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      user1Id: safeString(row, 'user1_id'),
+      user2Id: safeString(row, 'user2_id'),
+      user1Wins: safeInt(row, 'user1_wins', defaultValue: 0),
+      user2Wins: safeInt(row, 'user2_wins', defaultValue: 0),
+      draws: safeInt(row, 'draws', defaultValue: 0),
+      totalMatchups: safeInt(row, 'total_matchups', defaultValue: 0),
+      lastMatchupAt: safeDateTimeNullable(row, 'last_matchup_at'),
+      updatedAt: requireDateTime(row, 'updated_at'),
     );
   }
 
@@ -252,17 +254,24 @@ class MiniActivityTeamHistory extends Equatable {
       ];
 
   factory MiniActivityTeamHistory.fromJson(Map<String, dynamic> row) {
+    // Handle teammates list carefully
+    List<Map<String, dynamic>>? teammates;
+    final teammatesRaw = safeListNullable(row, 'teammates');
+    if (teammatesRaw != null) {
+      teammates = teammatesRaw.map((e) => e as Map<String, dynamic>).toList();
+    }
+
     return MiniActivityTeamHistory(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      miniActivityId: row['mini_activity_id'] as String,
-      miniTeamId: row['mini_team_id'] as String?,
-      teamName: row['team_name'] as String?,
-      teammates: (row['teammates'] as List<dynamic>?)?.cast<Map<String, dynamic>>(),
-      placement: row['placement'] as int?,
-      pointsEarned: row['points_earned'] as int? ?? 0,
-      wasWinner: row['was_winner'] as bool? ?? false,
-      recordedAt: row['recorded_at'] as DateTime,
+      id: safeString(row, 'id'),
+      userId: safeString(row, 'user_id'),
+      miniActivityId: safeString(row, 'mini_activity_id'),
+      miniTeamId: safeStringNullable(row, 'mini_team_id'),
+      teamName: safeStringNullable(row, 'team_name'),
+      teammates: teammates,
+      placement: safeIntNullable(row, 'placement'),
+      pointsEarned: safeInt(row, 'points_earned', defaultValue: 0),
+      wasWinner: safeBool(row, 'was_winner', defaultValue: false),
+      recordedAt: requireDateTime(row, 'recorded_at'),
     );
   }
 
@@ -389,14 +398,14 @@ class LeaderboardPointSource extends Equatable {
 
   factory LeaderboardPointSource.fromJson(Map<String, dynamic> row) {
     return LeaderboardPointSource(
-      id: row['id'] as String,
-      leaderboardEntryId: row['leaderboard_entry_id'] as String,
-      userId: row['user_id'] as String,
-      sourceType: PointSourceType.fromString(row['source_type'] as String),
-      sourceId: row['source_id'] as String,
-      points: row['points'] as int,
-      description: row['description'] as String?,
-      recordedAt: row['recorded_at'] as DateTime,
+      id: safeString(row, 'id'),
+      leaderboardEntryId: safeString(row, 'leaderboard_entry_id'),
+      userId: safeString(row, 'user_id'),
+      sourceType: PointSourceType.fromString(safeString(row, 'source_type')),
+      sourceId: safeString(row, 'source_id'),
+      points: safeInt(row, 'points'),
+      description: safeStringNullable(row, 'description'),
+      recordedAt: requireDateTime(row, 'recorded_at'),
     );
   }
 

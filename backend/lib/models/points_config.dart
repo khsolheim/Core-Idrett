@@ -3,6 +3,8 @@
 
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 /// Configuration for team point system
 class TeamPointsConfig extends Equatable {
   final String id;
@@ -86,37 +88,30 @@ class TeamPointsConfig extends Equatable {
         updatedAt,
       ];
 
-  static double _parseDouble(dynamic value, double defaultValue) {
-    if (value == null) return defaultValue;
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? defaultValue;
-    return defaultValue;
-  }
-
   factory TeamPointsConfig.fromJson(Map<String, dynamic> row) {
     return TeamPointsConfig(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      seasonId: row['season_id'] as String?,
-      trainingPoints: row['training_points'] as int? ?? 1,
-      matchPoints: row['match_points'] as int? ?? 2,
-      socialPoints: row['social_points'] as int? ?? 1,
-      trainingWeight: _parseDouble(row['training_weight'], 1.0),
-      matchWeight: _parseDouble(row['match_weight'], 1.5),
-      socialWeight: _parseDouble(row['social_weight'], 0.5),
-      competitionWeight: _parseDouble(row['competition_weight'], 1.0),
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      seasonId: safeStringNullable(row, 'season_id'),
+      trainingPoints: safeInt(row, 'training_points', defaultValue: 1),
+      matchPoints: safeInt(row, 'match_points', defaultValue: 2),
+      socialPoints: safeInt(row, 'social_points', defaultValue: 1),
+      trainingWeight: safeDouble(row, 'training_weight', defaultValue: 1.0),
+      matchWeight: safeDouble(row, 'match_weight', defaultValue: 1.5),
+      socialWeight: safeDouble(row, 'social_weight', defaultValue: 0.5),
+      competitionWeight: safeDouble(row, 'competition_weight', defaultValue: 1.0),
       miniActivityDistribution:
-          row['mini_activity_distribution'] as String? ?? 'top_three',
-      autoAwardAttendance: row['auto_award_attendance'] as bool? ?? true,
-      visibility: row['visibility'] as String? ?? 'all',
-      allowOptOut: row['allow_opt_out'] as bool? ?? false,
-      requireAbsenceReason: row['require_absence_reason'] as bool? ?? false,
-      requireAbsenceApproval: row['require_absence_approval'] as bool? ?? false,
+          safeString(row, 'mini_activity_distribution', defaultValue: 'top_three'),
+      autoAwardAttendance: safeBool(row, 'auto_award_attendance', defaultValue: true),
+      visibility: safeString(row, 'visibility', defaultValue: 'all'),
+      allowOptOut: safeBool(row, 'allow_opt_out', defaultValue: false),
+      requireAbsenceReason: safeBool(row, 'require_absence_reason', defaultValue: false),
+      requireAbsenceApproval: safeBool(row, 'require_absence_approval', defaultValue: false),
       excludeValidAbsenceFromPercentage:
-          row['exclude_valid_absence_from_percentage'] as bool? ?? true,
-      newPlayerStartMode: row['new_player_start_mode'] as String? ?? 'from_join',
-      createdAt: DateTime.parse(row['created_at'] as String),
-      updatedAt: DateTime.parse(row['updated_at'] as String),
+          safeBool(row, 'exclude_valid_absence_from_percentage', defaultValue: true),
+      newPlayerStartMode: safeString(row, 'new_player_start_mode', defaultValue: 'from_join'),
+      createdAt: requireDateTime(row, 'created_at'),
+      updatedAt: requireDateTime(row, 'updated_at'),
     );
   }
 
@@ -262,15 +257,15 @@ class AttendancePoints extends Equatable {
 
   factory AttendancePoints.fromJson(Map<String, dynamic> row) {
     return AttendancePoints(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      userId: row['user_id'] as String,
-      instanceId: row['instance_id'] as String,
-      seasonId: row['season_id'] as String?,
-      activityType: row['activity_type'] as String,
-      basePoints: row['base_points'] as int? ?? 0,
-      weightedPoints: (row['weighted_points'] as num?)?.toDouble() ?? 0.0,
-      awardedAt: DateTime.parse(row['awarded_at'] as String),
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      userId: safeString(row, 'user_id'),
+      instanceId: safeString(row, 'instance_id'),
+      seasonId: safeStringNullable(row, 'season_id'),
+      activityType: safeString(row, 'activity_type'),
+      basePoints: safeInt(row, 'base_points', defaultValue: 0),
+      weightedPoints: safeDouble(row, 'weighted_points', defaultValue: 0.0),
+      awardedAt: requireDateTime(row, 'awarded_at'),
     );
   }
 
@@ -339,18 +334,18 @@ class ManualPointAdjustment extends Equatable {
 
   factory ManualPointAdjustment.fromJson(Map<String, dynamic> row) {
     return ManualPointAdjustment(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      userId: row['user_id'] as String,
-      seasonId: row['season_id'] as String?,
-      points: row['points'] as int,
-      adjustmentType: row['adjustment_type'] as String,
-      reason: row['reason'] as String,
-      createdBy: row['created_by'] as String,
-      createdAt: DateTime.parse(row['created_at'] as String),
-      userName: row['user_name'] as String?,
-      userAvatarUrl: row['user_avatar_url'] as String?,
-      createdByName: row['created_by_name'] as String?,
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      userId: safeString(row, 'user_id'),
+      seasonId: safeStringNullable(row, 'season_id'),
+      points: safeInt(row, 'points'),
+      adjustmentType: safeString(row, 'adjustment_type'),
+      reason: safeString(row, 'reason'),
+      createdBy: safeString(row, 'created_by'),
+      createdAt: requireDateTime(row, 'created_at'),
+      userName: safeStringNullable(row, 'user_name'),
+      userAvatarUrl: safeStringNullable(row, 'user_avatar_url'),
+      createdByName: safeStringNullable(row, 'created_by_name'),
     );
   }
 

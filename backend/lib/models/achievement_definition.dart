@@ -5,6 +5,8 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 /// Achievement tier
 enum AchievementTier {
   bronze,
@@ -190,9 +192,9 @@ class AchievementCriteria extends Equatable {
 
   factory AchievementCriteria.fromJson(Map<String, dynamic> json) {
     return AchievementCriteria(
-      type: AchievementCriteriaType.fromString(json['type'] as String),
-      threshold: json['threshold'] as int?,
-      period: json['period'] as String?,
+      type: AchievementCriteriaType.fromString(safeString(json, 'type')),
+      threshold: safeIntNullable(json, 'threshold'),
+      period: safeStringNullable(json, 'period'),
     );
   }
 
@@ -272,28 +274,27 @@ class AchievementDefinition extends Equatable {
     if (criteriaJson is String) {
       criteriaMap = jsonDecode(criteriaJson) as Map<String, dynamic>;
     } else {
-      criteriaMap = criteriaJson as Map<String, dynamic>;
+      criteriaMap = safeMap(row, 'criteria');
     }
 
     return AchievementDefinition(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String?,
-      code: row['code'] as String,
-      name: row['name'] as String,
-      description: row['description'] as String?,
-      icon: row['icon'] as String?,
-      color: row['color'] as String?,
-      tier: AchievementTier.fromString(row['tier'] as String? ?? 'bronze'),
-      category:
-          AchievementCategory.fromString(row['category'] as String),
+      id: safeString(row, 'id'),
+      teamId: safeStringNullable(row, 'team_id'),
+      code: safeString(row, 'code'),
+      name: safeString(row, 'name'),
+      description: safeStringNullable(row, 'description'),
+      icon: safeStringNullable(row, 'icon'),
+      color: safeStringNullable(row, 'color'),
+      tier: AchievementTier.fromString(safeString(row, 'tier', defaultValue: 'bronze')),
+      category: AchievementCategory.fromString(safeString(row, 'category')),
       criteria: AchievementCriteria.fromJson(criteriaMap),
-      bonusPoints: row['bonus_points'] as int? ?? 0,
-      isActive: row['is_active'] as bool? ?? true,
-      isSecret: row['is_secret'] as bool? ?? false,
-      isRepeatable: row['is_repeatable'] as bool? ?? false,
-      repeatCooldownDays: row['repeat_cooldown_days'] as int?,
-      createdAt: DateTime.parse(row['created_at'] as String),
-      updatedAt: DateTime.parse(row['updated_at'] as String),
+      bonusPoints: safeInt(row, 'bonus_points', defaultValue: 0),
+      isActive: safeBool(row, 'is_active', defaultValue: true),
+      isSecret: safeBool(row, 'is_secret', defaultValue: false),
+      isRepeatable: safeBool(row, 'is_repeatable', defaultValue: false),
+      repeatCooldownDays: safeIntNullable(row, 'repeat_cooldown_days'),
+      createdAt: requireDateTime(row, 'created_at'),
+      updatedAt: requireDateTime(row, 'updated_at'),
     );
   }
 

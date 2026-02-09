@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class MatchStats extends Equatable {
   final String id;
   final String instanceId;
@@ -43,16 +45,16 @@ class MatchStats extends Equatable {
 
   factory MatchStats.fromJson(Map<String, dynamic> json) {
     return MatchStats(
-      id: json['id'],
-      instanceId: json['instance_id'],
-      userId: json['user_id'],
-      goals: json['goals'] ?? 0,
-      assists: json['assists'] ?? 0,
-      minutesPlayed: json['minutes_played'] ?? 0,
-      yellowCards: json['yellow_cards'] ?? 0,
-      redCards: json['red_cards'] ?? 0,
-      userName: json['user_name'],
-      userAvatarUrl: json['user_avatar_url'],
+      id: safeString(json, 'id'),
+      instanceId: safeString(json, 'instance_id'),
+      userId: safeString(json, 'user_id'),
+      goals: safeInt(json, 'goals', defaultValue: 0),
+      assists: safeInt(json, 'assists', defaultValue: 0),
+      minutesPlayed: safeInt(json, 'minutes_played', defaultValue: 0),
+      yellowCards: safeInt(json, 'yellow_cards', defaultValue: 0),
+      redCards: safeInt(json, 'red_cards', defaultValue: 0),
+      userName: safeStringNullable(json, 'user_name'),
+      userAvatarUrl: safeStringNullable(json, 'user_avatar_url'),
     );
   }
 
@@ -113,16 +115,16 @@ class PlayerRating extends Equatable {
 
   factory PlayerRating.fromJson(Map<String, dynamic> json) {
     return PlayerRating(
-      id: json['id'],
-      userId: json['user_id'],
-      teamId: json['team_id'],
-      rating: (json['rating'] as num?)?.toDouble() ?? 1000.0,
-      wins: json['wins'] ?? 0,
-      losses: json['losses'] ?? 0,
-      draws: json['draws'] ?? 0,
-      updatedAt: DateTime.parse(json['updated_at']),
-      userName: json['user_name'],
-      userAvatarUrl: json['user_avatar_url'],
+      id: safeString(json, 'id'),
+      userId: safeString(json, 'user_id'),
+      teamId: safeString(json, 'team_id'),
+      rating: safeDouble(json, 'rating', defaultValue: 1000.0),
+      wins: safeInt(json, 'wins', defaultValue: 0),
+      losses: safeInt(json, 'losses', defaultValue: 0),
+      draws: safeInt(json, 'draws', defaultValue: 0),
+      updatedAt: requireDateTime(json, 'updated_at'),
+      userName: safeStringNullable(json, 'user_name'),
+      userAvatarUrl: safeStringNullable(json, 'user_avatar_url'),
     );
   }
 
@@ -192,19 +194,19 @@ class SeasonStats extends Equatable {
 
   factory SeasonStats.fromJson(Map<String, dynamic> json) {
     return SeasonStats(
-      id: json['id'],
-      userId: json['user_id'],
-      teamId: json['team_id'],
-      seasonYear: json['season_year'],
-      attendanceCount: json['attendance_count'] ?? 0,
-      totalPoints: json['total_points'] ?? 0,
-      totalGoals: json['total_goals'] ?? 0,
-      totalAssists: json['total_assists'] ?? 0,
-      totalWins: json['total_wins'] ?? 0,
-      totalLosses: json['total_losses'] ?? 0,
-      totalDraws: json['total_draws'] ?? 0,
-      userName: json['user_name'],
-      userAvatarUrl: json['user_avatar_url'],
+      id: safeString(json, 'id'),
+      userId: safeString(json, 'user_id'),
+      teamId: safeString(json, 'team_id'),
+      seasonYear: safeInt(json, 'season_year'),
+      attendanceCount: safeInt(json, 'attendance_count', defaultValue: 0),
+      totalPoints: safeInt(json, 'total_points', defaultValue: 0),
+      totalGoals: safeInt(json, 'total_goals', defaultValue: 0),
+      totalAssists: safeInt(json, 'total_assists', defaultValue: 0),
+      totalWins: safeInt(json, 'total_wins', defaultValue: 0),
+      totalLosses: safeInt(json, 'total_losses', defaultValue: 0),
+      totalDraws: safeInt(json, 'total_draws', defaultValue: 0),
+      userName: safeStringNullable(json, 'user_name'),
+      userAvatarUrl: safeStringNullable(json, 'user_avatar_url'),
     );
   }
 

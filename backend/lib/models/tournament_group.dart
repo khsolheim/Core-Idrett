@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
 import 'tournament_match.dart';
 
 // BM-029: Tournament group model
@@ -25,12 +26,12 @@ class TournamentGroup extends Equatable {
 
   factory TournamentGroup.fromJson(Map<String, dynamic> row) {
     return TournamentGroup(
-      id: row['id'] as String,
-      tournamentId: row['tournament_id'] as String,
-      name: row['name'] as String,
-      advanceCount: row['advance_count'] as int? ?? 2,
-      sortOrder: row['sort_order'] as int? ?? 0,
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      tournamentId: safeString(row, 'tournament_id'),
+      name: safeString(row, 'name'),
+      advanceCount: safeInt(row, 'advance_count', defaultValue: 2),
+      sortOrder: safeInt(row, 'sort_order', defaultValue: 0),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -96,18 +97,18 @@ class GroupStanding extends Equatable {
 
   factory GroupStanding.fromJson(Map<String, dynamic> row) {
     return GroupStanding(
-      id: row['id'] as String,
-      groupId: row['group_id'] as String,
-      teamId: row['team_id'] as String,
-      played: row['played'] as int? ?? 0,
-      won: row['won'] as int? ?? 0,
-      drawn: row['drawn'] as int? ?? 0,
-      lost: row['lost'] as int? ?? 0,
-      goalsFor: row['goals_for'] as int? ?? 0,
-      goalsAgainst: row['goals_against'] as int? ?? 0,
-      points: row['points'] as int? ?? 0,
-      position: row['position'] as int?,
-      updatedAt: row['updated_at'] as DateTime,
+      id: safeString(row, 'id'),
+      groupId: safeString(row, 'group_id'),
+      teamId: safeString(row, 'team_id'),
+      played: safeInt(row, 'played', defaultValue: 0),
+      won: safeInt(row, 'won', defaultValue: 0),
+      drawn: safeInt(row, 'drawn', defaultValue: 0),
+      lost: safeInt(row, 'lost', defaultValue: 0),
+      goalsFor: safeInt(row, 'goals_for', defaultValue: 0),
+      goalsAgainst: safeInt(row, 'goals_against', defaultValue: 0),
+      points: safeInt(row, 'points', defaultValue: 0),
+      position: safeIntNullable(row, 'position'),
+      updatedAt: requireDateTime(row, 'updated_at'),
     );
   }
 
@@ -172,16 +173,16 @@ class GroupMatch extends Equatable {
 
   factory GroupMatch.fromJson(Map<String, dynamic> row) {
     return GroupMatch(
-      id: row['id'] as String,
-      groupId: row['group_id'] as String,
-      teamAId: row['team_a_id'] as String,
-      teamBId: row['team_b_id'] as String,
-      teamAScore: row['team_a_score'] as int?,
-      teamBScore: row['team_b_score'] as int?,
-      status: MatchStatus.fromString(row['status'] as String? ?? 'pending'),
-      scheduledTime: row['scheduled_time'] as DateTime?,
-      matchOrder: row['match_order'] as int? ?? 0,
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      groupId: safeString(row, 'group_id'),
+      teamAId: safeString(row, 'team_a_id'),
+      teamBId: safeString(row, 'team_b_id'),
+      teamAScore: safeIntNullable(row, 'team_a_score'),
+      teamBScore: safeIntNullable(row, 'team_b_score'),
+      status: MatchStatus.fromString(safeString(row, 'status', defaultValue: 'pending')),
+      scheduledTime: safeDateTimeNullable(row, 'scheduled_time'),
+      matchOrder: safeInt(row, 'match_order', defaultValue: 0),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -227,12 +228,12 @@ class QualificationRound extends Equatable {
 
   factory QualificationRound.fromJson(Map<String, dynamic> row) {
     return QualificationRound(
-      id: row['id'] as String,
-      tournamentId: row['tournament_id'] as String,
-      name: row['name'] as String,
-      advanceCount: row['advance_count'] as int? ?? 8,
-      sortDirection: row['sort_direction'] as String? ?? 'desc',
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      tournamentId: safeString(row, 'tournament_id'),
+      name: safeString(row, 'name'),
+      advanceCount: safeInt(row, 'advance_count', defaultValue: 8),
+      sortDirection: safeString(row, 'sort_direction', defaultValue: 'desc'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -283,13 +284,13 @@ class QualificationResult extends Equatable {
 
   factory QualificationResult.fromJson(Map<String, dynamic> row) {
     return QualificationResult(
-      id: row['id'] as String,
-      qualificationRoundId: row['qualification_round_id'] as String,
-      userId: row['user_id'] as String,
-      resultValue: (row['result_value'] as num).toDouble(),
-      advanced: row['advanced'] as bool? ?? false,
-      rank: row['rank'] as int?,
-      createdAt: row['created_at'] as DateTime,
+      id: safeString(row, 'id'),
+      qualificationRoundId: safeString(row, 'qualification_round_id'),
+      userId: safeString(row, 'user_id'),
+      resultValue: safeDouble(row, 'result_value'),
+      advanced: safeBool(row, 'advanced', defaultValue: false),
+      rank: safeIntNullable(row, 'rank'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 

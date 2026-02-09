@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/parsing_helpers.dart';
+
 class MiniActivityTeam extends Equatable {
   final String id;
   final String miniActivityId;
@@ -18,10 +20,10 @@ class MiniActivityTeam extends Equatable {
 
   factory MiniActivityTeam.fromJson(Map<String, dynamic> row) {
     return MiniActivityTeam(
-      id: row['id'] as String,
-      miniActivityId: row['mini_activity_id'] as String,
-      name: row['name'] as String?,
-      finalScore: row['final_score'] as int?,
+      id: safeString(row, 'id'),
+      miniActivityId: safeString(row, 'mini_activity_id'),
+      name: safeStringNullable(row, 'name'),
+      finalScore: safeIntNullable(row, 'final_score'),
     );
   }
 
@@ -69,11 +71,11 @@ class MiniActivityParticipant extends Equatable {
 
   factory MiniActivityParticipant.fromJson(Map<String, dynamic> row) {
     return MiniActivityParticipant(
-      id: row['id'] as String,
-      miniTeamId: row['mini_team_id'] as String?,
-      miniActivityId: row['mini_activity_id'] as String,
-      userId: row['user_id'] as String,
-      points: row['points'] as int? ?? 0,
+      id: safeString(row, 'id'),
+      miniTeamId: safeStringNullable(row, 'mini_team_id'),
+      miniActivityId: safeString(row, 'mini_activity_id'),
+      userId: safeString(row, 'user_id'),
+      points: safeInt(row, 'points', defaultValue: 0),
     );
   }
 

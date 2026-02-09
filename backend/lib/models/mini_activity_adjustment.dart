@@ -1,11 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-// Helper to parse DateTime from database (may come as String or DateTime)
-DateTime _parseDateTime(dynamic value) {
-  if (value is DateTime) return value;
-  if (value is String) return DateTime.parse(value);
-  return DateTime.now();
-}
+import '../helpers/parsing_helpers.dart';
 
 // Adjustment model (BM-013 to BM-015)
 class MiniActivityAdjustment extends Equatable {
@@ -43,14 +38,14 @@ class MiniActivityAdjustment extends Equatable {
 
   factory MiniActivityAdjustment.fromJson(Map<String, dynamic> row) {
     return MiniActivityAdjustment(
-      id: row['id'] as String,
-      miniActivityId: row['mini_activity_id'] as String,
-      teamId: row['team_id'] as String?,
-      userId: row['user_id'] as String?,
-      points: row['points'] as int,
-      reason: row['reason'] as String?,
-      createdBy: row['created_by'] as String,
-      createdAt: _parseDateTime(row['created_at']),
+      id: safeString(row, 'id'),
+      miniActivityId: safeString(row, 'mini_activity_id'),
+      teamId: safeStringNullable(row, 'team_id'),
+      userId: safeStringNullable(row, 'user_id'),
+      points: safeInt(row, 'points'),
+      reason: safeStringNullable(row, 'reason'),
+      createdBy: safeString(row, 'created_by'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -103,12 +98,12 @@ class MiniActivityHandicap extends Equatable {
 
   factory MiniActivityHandicap.fromJson(Map<String, dynamic> row) {
     return MiniActivityHandicap(
-      id: row['id'] as String,
-      miniActivityId: row['mini_activity_id'] as String,
-      userId: row['user_id'] as String,
-      handicapValue: (row['handicap_value'] as num).toDouble(),
-      createdAt: _parseDateTime(row['created_at']),
-      updatedAt: _parseDateTime(row['updated_at']),
+      id: safeString(row, 'id'),
+      miniActivityId: safeString(row, 'mini_activity_id'),
+      userId: safeString(row, 'user_id'),
+      handicapValue: safeDouble(row, 'handicap_value'),
+      createdAt: requireDateTime(row, 'created_at'),
+      updatedAt: requireDateTime(row, 'updated_at'),
     );
   }
 
