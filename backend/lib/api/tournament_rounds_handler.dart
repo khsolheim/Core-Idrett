@@ -9,10 +9,11 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class TournamentRoundsHandler {
-  final TournamentService _tournamentService;
+  final TournamentCrudService _crudService;
+  final TournamentRoundsService _roundsService;
   final TeamService _teamService;
 
-  TournamentRoundsHandler(this._tournamentService, this._teamService);
+  TournamentRoundsHandler(this._crudService, this._roundsService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -27,7 +28,7 @@ class TournamentRoundsHandler {
   Future<Map<String, dynamic>?> _requireTeamForTournament(
       String tournamentId, String userId) async {
     final teamId =
-        await _tournamentService.getTeamIdForTournament(tournamentId);
+        await _crudService.getTeamIdForTournament(tournamentId);
     if (teamId == null) return null;
     return requireTeamMember(_teamService, teamId, userId);
   }
@@ -40,7 +41,7 @@ class TournamentRoundsHandler {
       final team = await _requireTeamForTournament(tournamentId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
 
-      final rounds = await _tournamentService.getRoundsForTournament(tournamentId);
+      final rounds = await _roundsService.getRoundsForTournament(tournamentId);
       return resp.ok(rounds.map((r) => r.toJson()).toList());
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -64,7 +65,7 @@ class TournamentRoundsHandler {
         return resp.badRequest('Mangler påkrevde felt (round_number, round_name)');
       }
 
-      final round = await _tournamentService.createRound(
+      final round = await _roundsService.createRound(
         tournamentId: tournamentId,
         roundNumber: roundNumber,
         roundName: roundName,
@@ -89,7 +90,7 @@ class TournamentRoundsHandler {
 
       final data = await parseBody(request);
 
-      final round = await _tournamentService.updateRound(
+      final round = await _roundsService.updateRound(
         roundId: roundId,
         roundName: safeStringNullable(data, 'round_name'),
         status: data['status'] != null

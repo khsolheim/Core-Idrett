@@ -83,7 +83,12 @@ Router createRouter(Database db) {
   final documentService = DocumentService(db, userService);
   final exportService = ExportService(db);
   final tournamentGroupService = TournamentGroupService(db);
-  final tournamentService = TournamentService(db, tournamentGroupService);
+  final tournamentCrudService = TournamentCrudService(db);
+  final tournamentRoundsService = TournamentRoundsService(db);
+  final tournamentMatchesService = TournamentMatchesService(db);
+  final tournamentBracketService = TournamentBracketService(
+    db, tournamentCrudService, tournamentRoundsService, tournamentMatchesService, tournamentGroupService,
+  );
   final stopwatchService = StopwatchService(db, userService);
   final miniActivityStatisticsService = MiniActivityStatisticsService(db, userService);
   final pointsConfigService = PointsConfigService(db);
@@ -122,7 +127,10 @@ Router createRouter(Database db) {
   );
   router.mount('/mini-activities', const Pipeline().addMiddleware(auth).addHandler(miniActivitiesHandler.router.call).call);
 
-  final tournamentsHandler = TournamentsHandler(tournamentService, tournamentGroupService, teamService);
+  final tournamentsHandler = TournamentsHandler(
+    tournamentCrudService, tournamentRoundsService, tournamentMatchesService,
+    tournamentBracketService, tournamentGroupService, teamService,
+  );
   router.mount('/tournaments', const Pipeline().addMiddleware(auth).addHandler(tournamentsHandler.router.call).call);
 
   final stopwatchHandler = StopwatchHandler(stopwatchService, teamService);

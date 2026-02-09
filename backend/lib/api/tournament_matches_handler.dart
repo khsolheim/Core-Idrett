@@ -9,10 +9,11 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class TournamentMatchesHandler {
-  final TournamentService _tournamentService;
+  final TournamentCrudService _crudService;
+  final TournamentMatchesService _matchesService;
   final TeamService _teamService;
 
-  TournamentMatchesHandler(this._tournamentService, this._teamService);
+  TournamentMatchesHandler(this._crudService, this._matchesService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -35,7 +36,7 @@ class TournamentMatchesHandler {
   Future<Map<String, dynamic>?> _requireTeamForTournament(
       String tournamentId, String userId) async {
     final teamId =
-        await _tournamentService.getTeamIdForTournament(tournamentId);
+        await _crudService.getTeamIdForTournament(tournamentId);
     if (teamId == null) return null;
     return requireTeamMember(_teamService, teamId, userId);
   }
@@ -49,7 +50,7 @@ class TournamentMatchesHandler {
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
 
       final roundId = request.url.queryParameters['round_id'];
-      final matches = await _tournamentService.getMatchesForTournament(
+      final matches = await _matchesService.getMatchesForTournament(
         tournamentId,
         roundId: roundId,
       );
@@ -64,7 +65,7 @@ class TournamentMatchesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
-      final match = await _tournamentService.getMatchById(matchId);
+      final match = await _matchesService.getMatchById(matchId);
       if (match == null) {
         return resp.notFound('Kamp ikke funnet');
       }
@@ -82,7 +83,7 @@ class TournamentMatchesHandler {
 
       final data = await parseBody(request);
 
-      final match = await _tournamentService.updateMatch(
+      final match = await _matchesService.updateMatch(
         matchId: matchId,
         teamAScore: safeIntNullable(data, 'team_a_score'),
         teamBScore: safeIntNullable(data, 'team_b_score'),
@@ -105,7 +106,7 @@ class TournamentMatchesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
-      final match = await _tournamentService.startMatch(matchId);
+      final match = await _matchesService.startMatch(matchId);
       return resp.ok(match.toJson());
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -124,7 +125,7 @@ class TournamentMatchesHandler {
         return resp.badRequest('Mangler påkrevd felt (winner_id)');
       }
 
-      final match = await _tournamentService.completeMatch(matchId, winnerId);
+      final match = await _matchesService.completeMatch(matchId, winnerId);
       return resp.ok(match.toJson());
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -145,7 +146,7 @@ class TournamentMatchesHandler {
         return resp.badRequest('Mangler påkrevd felt (winner_id)');
       }
 
-      final match = await _tournamentService.declareWalkover(
+      final match = await _matchesService.declareWalkover(
         matchId: matchId,
         winnerId: winnerId,
         reason: reason,
@@ -162,7 +163,7 @@ class TournamentMatchesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
-      final games = await _tournamentService.getGamesForMatch(matchId);
+      final games = await _matchesService.getGamesForMatch(matchId);
       return resp.ok(games.map((g) => g.toJson()).toList());
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -183,7 +184,7 @@ class TournamentMatchesHandler {
         return resp.badRequest('Mangler påkrevde felt (game_number, winner_id)');
       }
 
-      final game = await _tournamentService.recordGame(
+      final game = await _matchesService.recordGame(
         matchId: matchId,
         gameNumber: gameNumber,
         teamAScore: safeIntNullable(data, 'team_a_score') ?? 0,
@@ -204,7 +205,7 @@ class TournamentMatchesHandler {
 
       final data = await parseBody(request);
 
-      final game = await _tournamentService.updateGame(
+      final game = await _matchesService.updateGame(
         gameId: gameId,
         teamAScore: safeIntNullable(data, 'team_a_score'),
         teamBScore: safeIntNullable(data, 'team_b_score'),

@@ -13,11 +13,21 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class TournamentsHandler {
-  final TournamentService _tournamentService;
+  final TournamentCrudService _crudService;
+  final TournamentRoundsService _roundsService;
+  final TournamentMatchesService _matchesService;
+  final TournamentBracketService _bracketService;
   final TournamentGroupService _groupService;
   final TeamService _teamService;
 
-  TournamentsHandler(this._tournamentService, this._groupService, this._teamService);
+  TournamentsHandler(
+    this._crudService,
+    this._roundsService,
+    this._matchesService,
+    this._bracketService,
+    this._groupService,
+    this._teamService,
+  );
 
   Router get router {
     final router = Router();
@@ -33,15 +43,15 @@ class TournamentsHandler {
     router.post('/<tournamentId>/generate-bracket', _generateBracket);
 
     // Mount groups & qualification routes
-    final groupsHandler = TournamentGroupsHandler(_groupService, _tournamentService, _teamService);
+    final groupsHandler = TournamentGroupsHandler(_groupService, _crudService, _teamService);
     router.mount('/', groupsHandler.router.call);
 
     // Mount round routes
-    final roundsHandler = TournamentRoundsHandler(_tournamentService, _teamService);
+    final roundsHandler = TournamentRoundsHandler(_crudService, _roundsService, _teamService);
     router.mount('/', roundsHandler.router.call);
 
     // Mount match & game routes
-    final matchesHandler = TournamentMatchesHandler(_tournamentService, _teamService);
+    final matchesHandler = TournamentMatchesHandler(_crudService, _matchesService, _teamService);
     router.mount('/', matchesHandler.router.call);
 
     return router;
@@ -50,7 +60,7 @@ class TournamentsHandler {
   Future<Map<String, dynamic>?> _requireTeamForMiniActivity(
       String miniActivityId, String userId) async {
     final teamId =
-        await _tournamentService.getTeamIdForMiniActivity(miniActivityId);
+        await _crudService.getTeamIdForMiniActivity(miniActivityId);
     if (teamId == null) return null;
     return requireTeamMember(_teamService, teamId, userId);
   }
@@ -58,7 +68,7 @@ class TournamentsHandler {
   Future<Map<String, dynamic>?> _requireTeamForTournament(
       String tournamentId, String userId) async {
     final teamId =
-        await _tournamentService.getTeamIdForTournament(tournamentId);
+        await _crudService.getTeamIdForTournament(tournamentId);
     if (teamId == null) return null;
     return requireTeamMember(_teamService, teamId, userId);
   }
@@ -80,7 +90,7 @@ class TournamentsHandler {
         return resp.badRequest('Mangler påkrevd felt (tournament_type)');
       }
 
-      final tournament = await _tournamentService.createTournament(
+      final tournament = await _crudService.createTournament(
         miniActivityId: miniActivityId,
         tournamentType: TournamentType.fromString(typeStr),
         bestOf: safeIntNullable(data, 'best_of') ?? 1,
@@ -105,7 +115,7 @@ class TournamentsHandler {
       final team = await _requireTeamForMiniActivity(miniActivityId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
 
-      final tournament = await _tournamentService.getTournamentForMiniActivity(miniActivityId);
+      final tournament = await _crudService.getTournamentForMiniActivity(miniActivityId);
       if (tournament == null) {
         return resp.notFound('Turnering ikke funnet');
       }
@@ -124,7 +134,7 @@ class TournamentsHandler {
       final team = await _requireTeamForTournament(tournamentId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
 
-      final tournament = await _tournamentService.getTournamentById(tournamentId);
+      final tournament = await _crudService.getTournamentById(tournamentId);
       if (tournament == null) {
         return resp.notFound('Turnering ikke funnet');
       }
@@ -145,7 +155,7 @@ class TournamentsHandler {
 
       final data = await parseBody(request);
 
-      final tournament = await _tournamentService.updateTournament(
+      final tournament = await _crudService.updateTournament(
         tournamentId: tournamentId,
         bestOf: safeIntNullable(data, 'best_of'),
         bronzeFinal: safeBoolNullable(data, 'bronze_final'),
@@ -168,7 +178,7 @@ class TournamentsHandler {
       final team = await _requireTeamForTournament(tournamentId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til denne turneringen');
 
-      await _tournamentService.deleteTournament(tournamentId);
+      await _crudService.deleteTournament(tournamentId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -192,7 +202,7 @@ class TournamentsHandler {
         return resp.badRequest('Mangler påkrevd felt (team_ids)');
       }
 
-      final matches = await _tournamentService.generateSingleEliminationBracket(
+      final matches = await _bracketService.generateSingleEliminationBracket(
         tournamentId: tournamentId,
         teamIds: teamIds,
       );

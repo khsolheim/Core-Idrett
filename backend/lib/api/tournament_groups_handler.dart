@@ -11,10 +11,10 @@ import 'helpers/response_helpers.dart' as resp;
 import '../helpers/parsing_helpers.dart';
 class TournamentGroupsHandler {
   final TournamentGroupService _groupService;
-  final TournamentService _tournamentService;
+  final TournamentCrudService _crudService;
   final TeamService _teamService;
 
-  TournamentGroupsHandler(this._groupService, this._tournamentService, this._teamService);
+  TournamentGroupsHandler(this._groupService, this._crudService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -48,7 +48,7 @@ class TournamentGroupsHandler {
   Future<Map<String, dynamic>?> _requireTeamForTournament(
       String tournamentId, String userId) async {
     final teamId =
-        await _tournamentService.getTeamIdForTournament(tournamentId);
+        await _crudService.getTeamIdForTournament(tournamentId);
     if (teamId == null) return null;
     return requireTeamMember(_teamService, teamId, userId);
   }
