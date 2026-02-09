@@ -11,6 +11,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class TournamentsHandler {
   final TournamentService _tournamentService;
   final TournamentGroupService _groupService;
@@ -74,7 +75,7 @@ class TournamentsHandler {
 
       final data = await parseBody(request);
 
-      final typeStr = data['tournament_type'] as String?;
+      final typeStr = safeStringNullable(data, 'tournament_type');
       if (typeStr == null) {
         return resp.badRequest('Mangler påkrevd felt (tournament_type)');
       }
@@ -82,12 +83,12 @@ class TournamentsHandler {
       final tournament = await _tournamentService.createTournament(
         miniActivityId: miniActivityId,
         tournamentType: TournamentType.fromString(typeStr),
-        bestOf: data['best_of'] as int? ?? 1,
-        bronzeFinal: data['bronze_final'] as bool? ?? false,
+        bestOf: safeIntNullable(data, 'best_of') ?? 1,
+        bronzeFinal: safeBool(data, 'bronze_final', defaultValue: false),
         seedingMethod: data['seeding_method'] != null
             ? SeedingMethod.fromString(data['seeding_method'] as String)
             : SeedingMethod.random,
-        maxParticipants: data['max_participants'] as int?,
+        maxParticipants: safeIntNullable(data, 'max_participants'),
       );
 
       return resp.ok(tournament.toJson());
@@ -146,8 +147,8 @@ class TournamentsHandler {
 
       final tournament = await _tournamentService.updateTournament(
         tournamentId: tournamentId,
-        bestOf: data['best_of'] as int?,
-        bronzeFinal: data['bronze_final'] as bool?,
+        bestOf: safeIntNullable(data, 'best_of'),
+        bronzeFinal: safeBoolNullable(data, 'bronze_final'),
         status: data['status'] != null
             ? TournamentStatus.fromString(data['status'] as String)
             : null,
@@ -186,7 +187,7 @@ class TournamentsHandler {
 
       final data = await parseBody(request);
 
-      final teamIds = (data['team_ids'] as List?)?.cast<String>() ?? [];
+      final teamIds = (safeListNullable(data, 'team_ids'))?.cast<String>() ?? [];
       if (teamIds.isEmpty) {
         return resp.badRequest('Mangler påkrevd felt (team_ids)');
       }

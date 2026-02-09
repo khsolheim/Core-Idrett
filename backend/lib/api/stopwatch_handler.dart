@@ -8,6 +8,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class StopwatchHandler {
   final StopwatchService _stopwatchService;
   final TeamService _teamService;
@@ -53,17 +54,17 @@ class StopwatchHandler {
 
       final data = await parseBody(request);
 
-      final sessionTypeStr = data['session_type'] as String?;
+      final sessionTypeStr = safeStringNullable(data, 'session_type');
       if (sessionTypeStr == null) {
         return resp.badRequest('Mangler påkrevd felt (session_type)');
       }
 
       final session = await _stopwatchService.createSession(
-        miniActivityId: data['mini_activity_id'] as String?,
-        teamId: data['team_id'] as String?,
-        name: data['name'] as String?,
+        miniActivityId: safeStringNullable(data, 'mini_activity_id'),
+        teamId: safeStringNullable(data, 'team_id'),
+        name: safeStringNullable(data, 'name'),
         sessionType: StopwatchSessionType.fromString(sessionTypeStr),
-        countdownDurationMs: data['countdown_duration_ms'] as int?,
+        countdownDurationMs: safeIntNullable(data, 'countdown_duration_ms'),
         createdBy: userId,
       );
 

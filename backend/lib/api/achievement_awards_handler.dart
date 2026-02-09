@@ -7,6 +7,7 @@ import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class AchievementAwardsHandler {
   final AchievementService _achievementService;
   final AchievementProgressService _progressService;
@@ -125,8 +126,8 @@ class AchievementAwardsHandler {
       }
 
       final body = await parseBody(request);
-      final targetUserId = body['user_id'] as String?;
-      final achievementId = body['achievement_id'] as String?;
+      final targetUserId = safeStringNullable(body, 'user_id');
+      final achievementId = safeStringNullable(body, 'achievement_id');
 
       if (targetUserId == null || achievementId == null) {
         return resp.badRequest('user_id og achievement_id er påkrevd');
@@ -136,9 +137,9 @@ class AchievementAwardsHandler {
         userId: targetUserId,
         achievementId: achievementId,
         teamId: teamId,
-        seasonId: body['season_id'] as String?,
-        pointsAwarded: body['points_awarded'] as int?,
-        triggerReference: body['trigger_reference'] as Map<String, dynamic>?,
+        seasonId: safeStringNullable(body, 'season_id'),
+        pointsAwarded: safeIntNullable(body, 'points_awarded'),
+        triggerReference: safeMapNullable(body, 'trigger_reference'),
       );
 
       return resp.ok(achievement.toJson());
@@ -165,7 +166,7 @@ class AchievementAwardsHandler {
       Map<String, dynamic>? context;
       try {
         final parsed = await parseBody(request);
-        context = parsed['context'] as Map<String, dynamic>?;
+        context = safeMapNullable(parsed, 'context');
       } catch (_) {
         // Body is optional
       }

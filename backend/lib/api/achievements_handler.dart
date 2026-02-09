@@ -10,6 +10,7 @@ import 'achievement_awards_handler.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class AchievementsHandler {
   final AchievementDefinitionService _definitionService;
   final AchievementService _achievementService;
@@ -101,10 +102,10 @@ class AchievementsHandler {
 
       final body = await parseBody(request);
 
-      final code = body['code'] as String?;
-      final name = body['name'] as String?;
-      final categoryStr = body['category'] as String?;
-      final criteriaJson = body['criteria'] as Map<String, dynamic>?;
+      final code = safeStringNullable(body, 'code');
+      final name = safeStringNullable(body, 'name');
+      final categoryStr = safeStringNullable(body, 'category');
+      final criteriaJson = safeMapNullable(body, 'criteria');
 
       if (code == null || name == null || categoryStr == null || criteriaJson == null) {
         return resp.badRequest('code, name, category og criteria er påkrevd');
@@ -122,17 +123,17 @@ class AchievementsHandler {
         teamId: teamId,
         code: code,
         name: name,
-        description: body['description'] as String?,
-        icon: body['icon'] as String?,
-        color: body['color'] as String?,
+        description: safeStringNullable(body, 'description'),
+        icon: safeStringNullable(body, 'icon'),
+        color: safeStringNullable(body, 'color'),
         tier: tier,
         category: category,
         criteria: criteria,
-        bonusPoints: body['bonus_points'] as int? ?? 0,
-        isActive: body['is_active'] as bool? ?? true,
-        isSecret: body['is_secret'] as bool? ?? false,
-        isRepeatable: body['is_repeatable'] as bool? ?? false,
-        repeatCooldownDays: body['repeat_cooldown_days'] as int?,
+        bonusPoints: safeIntNullable(body, 'bonus_points') ?? 0,
+        isActive: safeBool(body, 'is_active', defaultValue: true),
+        isSecret: safeBool(body, 'is_secret', defaultValue: false),
+        isRepeatable: safeBool(body, 'is_repeatable', defaultValue: false),
+        repeatCooldownDays: safeIntNullable(body, 'repeat_cooldown_days'),
       );
 
       return resp.ok(definition.toJson());
@@ -196,22 +197,22 @@ class AchievementsHandler {
       AchievementCriteria? criteria;
       if (body['criteria'] != null) {
         criteria = AchievementCriteria.fromJson(
-            body['criteria'] as Map<String, dynamic>);
+            safeMap(body, 'criteria'));
       }
 
       final definition = await _definitionService.updateDefinition(
         definitionId: definitionId,
-        name: body['name'] as String?,
-        description: body['description'] as String?,
-        icon: body['icon'] as String?,
-        color: body['color'] as String?,
+        name: safeStringNullable(body, 'name'),
+        description: safeStringNullable(body, 'description'),
+        icon: safeStringNullable(body, 'icon'),
+        color: safeStringNullable(body, 'color'),
         tier: tier,
         criteria: criteria,
-        bonusPoints: body['bonus_points'] as int?,
-        isActive: body['is_active'] as bool?,
-        isSecret: body['is_secret'] as bool?,
-        isRepeatable: body['is_repeatable'] as bool?,
-        repeatCooldownDays: body['repeat_cooldown_days'] as int?,
+        bonusPoints: safeIntNullable(body, 'bonus_points'),
+        isActive: safeBoolNullable(body, 'is_active'),
+        isSecret: safeBoolNullable(body, 'is_secret'),
+        isRepeatable: safeBoolNullable(body, 'is_repeatable'),
+        repeatCooldownDays: safeIntNullable(body, 'repeat_cooldown_days'),
         clearDescription: body['clear_description'] == true,
       );
 

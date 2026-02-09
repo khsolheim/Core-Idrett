@@ -5,6 +5,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class StopwatchTimesHandler {
   final StopwatchService _stopwatchService;
 
@@ -39,8 +40,8 @@ class StopwatchTimesHandler {
 
       final data = await parseBody(request);
 
-      final participantUserId = data['user_id'] as String?;
-      final timeMs = data['time_ms'] as int?;
+      final participantUserId = safeStringNullable(data, 'user_id');
+      final timeMs = safeIntNullable(data, 'time_ms');
 
       if (participantUserId == null || timeMs == null) {
         return resp.badRequest('Mangler påkrevde felt (user_id, time_ms)');
@@ -50,10 +51,10 @@ class StopwatchTimesHandler {
         sessionId: sessionId,
         userId: participantUserId,
         timeMs: timeMs,
-        isSplit: data['is_split'] as bool? ?? false,
-        splitNumber: data['split_number'] as int?,
-        lapNumber: data['lap_number'] as int?,
-        notes: data['notes'] as String?,
+        isSplit: safeBool(data, 'is_split', defaultValue: false),
+        splitNumber: safeIntNullable(data, 'split_number'),
+        lapNumber: safeIntNullable(data, 'lap_number'),
+        notes: safeStringNullable(data, 'notes'),
       );
 
       return resp.ok(time.toJson());
@@ -71,7 +72,7 @@ class StopwatchTimesHandler {
 
       final data = await parseBody(request);
 
-      final participantUserId = data['user_id'] as String?;
+      final participantUserId = safeStringNullable(data, 'user_id');
       if (participantUserId == null) {
         return resp.badRequest('Mangler påkrevd felt (user_id)');
       }
@@ -79,9 +80,9 @@ class StopwatchTimesHandler {
       final time = await _stopwatchService.recordCurrentTime(
         sessionId: sessionId,
         userId: participantUserId,
-        isSplit: data['is_split'] as bool? ?? false,
-        splitNumber: data['split_number'] as int?,
-        notes: data['notes'] as String?,
+        isSplit: safeBool(data, 'is_split', defaultValue: false),
+        splitNumber: safeIntNullable(data, 'split_number'),
+        notes: safeStringNullable(data, 'notes'),
       );
 
       if (time == null) {
@@ -136,8 +137,8 @@ class StopwatchTimesHandler {
 
       await _stopwatchService.updateTime(
         timeId: timeId,
-        timeMs: data['time_ms'] as int?,
-        notes: data['notes'] as String?,
+        timeMs: safeIntNullable(data, 'time_ms'),
+        notes: safeStringNullable(data, 'notes'),
       );
 
       return resp.ok({'success': true});
@@ -169,7 +170,7 @@ class StopwatchTimesHandler {
 
       final data = await parseBody(request);
 
-      final times = (data['times'] as List?)?.cast<Map<String, dynamic>>();
+      final times = (safeListNullable(data, 'times'))?.cast<Map<String, dynamic>>();
       if (times == null || times.isEmpty) {
         return resp.badRequest('Mangler påkrevd felt (times)');
       }

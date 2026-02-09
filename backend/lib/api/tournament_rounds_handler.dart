@@ -7,6 +7,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class TournamentRoundsHandler {
   final TournamentService _tournamentService;
   final TeamService _teamService;
@@ -56,8 +57,8 @@ class TournamentRoundsHandler {
 
       final data = await parseBody(request);
 
-      final roundNumber = data['round_number'] as int?;
-      final roundName = data['round_name'] as String?;
+      final roundNumber = safeIntNullable(data, 'round_number');
+      final roundName = safeStringNullable(data, 'round_name');
 
       if (roundNumber == null || roundName == null) {
         return resp.badRequest('Mangler påkrevde felt (round_number, round_name)');
@@ -71,7 +72,7 @@ class TournamentRoundsHandler {
             ? RoundType.fromString(data['round_type'] as String)
             : RoundType.winners,
         scheduledTime: data['scheduled_time'] != null
-            ? DateTime.parse(data['scheduled_time'] as String)
+            ? DateTime.tryParse(safeString(data, 'scheduled_time'))
             : null,
       );
 
@@ -90,12 +91,12 @@ class TournamentRoundsHandler {
 
       final round = await _tournamentService.updateRound(
         roundId: roundId,
-        roundName: data['round_name'] as String?,
+        roundName: safeStringNullable(data, 'round_name'),
         status: data['status'] != null
             ? TournamentStatus.fromString(data['status'] as String)
             : null,
         scheduledTime: data['scheduled_time'] != null
-            ? DateTime.parse(data['scheduled_time'] as String)
+            ? DateTime.tryParse(safeString(data, 'scheduled_time'))
             : null,
       );
 

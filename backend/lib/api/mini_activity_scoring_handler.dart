@@ -7,6 +7,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class MiniActivityScoringHandler {
   final MiniActivityService _miniActivityService;
   final MiniActivityResultService _resultService;
@@ -43,9 +44,9 @@ class MiniActivityScoringHandler {
 
       final data = await parseBody(request);
 
-      final teamScores = (data['team_scores'] as Map<String, dynamic>?)
+      final teamScores = (safeMapNullable(data, 'team_scores'))
           ?.map((k, v) => MapEntry(k, v as int)) ?? {};
-      final participantPoints = (data['participant_points'] as Map<String, dynamic>?)
+      final participantPoints = (safeMapNullable(data, 'participant_points'))
           ?.map((k, v) => MapEntry(k, v as int)) ?? {};
 
       await _resultService.recordMultipleScores(
@@ -73,8 +74,8 @@ class MiniActivityScoringHandler {
 
       final data = await parseBody(request);
 
-      final winnerTeamId = data['winner_team_id'] as String?;
-      final addToLeaderboard = data['add_to_leaderboard'] as bool? ?? false;
+      final winnerTeamId = safeStringNullable(data, 'winner_team_id');
+      final addToLeaderboard = safeBool(data, 'add_to_leaderboard', defaultValue: false);
 
       await _resultService.setWinner(
         miniActivityId: miniActivityId,
@@ -130,17 +131,17 @@ class MiniActivityScoringHandler {
 
       final data = await parseBody(request);
 
-      final points = data['points'] as int?;
+      final points = safeIntNullable(data, 'points');
       if (points == null) {
         return resp.badRequest('Mangler påkrevd felt (points)');
       }
 
       final adjustment = await _resultService.awardAdjustment(
         miniActivityId: miniActivityId,
-        teamId: data['team_id'] as String?,
-        userId: data['user_id'] as String?,
+        teamId: safeStringNullable(data, 'team_id'),
+        userId: safeStringNullable(data, 'user_id'),
         points: points,
-        reason: data['reason'] as String?,
+        reason: safeStringNullable(data, 'reason'),
         createdBy: userId,
       );
 

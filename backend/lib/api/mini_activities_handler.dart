@@ -12,6 +12,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class MiniActivitiesHandler {
   final MiniActivityService _miniActivityService;
   final MiniActivityTemplateService _templateService;
@@ -112,8 +113,8 @@ class MiniActivitiesHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
-      final type = data['type'] as String?;
+      final name = safeStringNullable(data, 'name');
+      final type = safeStringNullable(data, 'type');
 
       if (name == null || type == null) {
         return resp.badRequest('Mangler påkrevde felt (name, type)');
@@ -127,7 +128,7 @@ class MiniActivitiesHandler {
         teamId: teamId,
         name: name,
         type: type,
-        defaultPoints: data['default_points'] as int? ?? 1,
+        defaultPoints: safeIntNullable(data, 'default_points') ?? 1,
       );
 
       return resp.ok(template.toJson());
@@ -181,15 +182,15 @@ class MiniActivitiesHandler {
 
       final template = await _templateService.updateTemplate(
         templateId: templateId,
-        name: data['name'] as String?,
-        description: data['description'] as String?,
-        instructions: data['instructions'] as String?,
-        sportType: data['sport_type'] as String?,
-        suggestedRules: data['suggested_rules'] as Map<String, dynamic>?,
-        winPoints: data['win_points'] as int?,
-        drawPoints: data['draw_points'] as int?,
-        lossPoints: data['loss_points'] as int?,
-        defaultPoints: data['default_points'] as int?,
+        name: safeStringNullable(data, 'name'),
+        description: safeStringNullable(data, 'description'),
+        instructions: safeStringNullable(data, 'instructions'),
+        sportType: safeStringNullable(data, 'sport_type'),
+        suggestedRules: safeMapNullable(data, 'suggested_rules'),
+        winPoints: safeIntNullable(data, 'win_points'),
+        drawPoints: safeIntNullable(data, 'draw_points'),
+        lossPoints: safeIntNullable(data, 'loss_points'),
+        defaultPoints: safeIntNullable(data, 'default_points'),
       );
 
       if (template == null) {
@@ -255,8 +256,8 @@ class MiniActivitiesHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
-      final type = data['type'] as String?;
+      final name = safeStringNullable(data, 'name');
+      final type = safeStringNullable(data, 'type');
 
       if (name == null || type == null) {
         return resp.badRequest('Mangler påkrevde felt (name, type)');
@@ -264,7 +265,7 @@ class MiniActivitiesHandler {
 
       final miniActivity = await _miniActivityService.createMiniActivity(
         instanceId: instanceId,
-        templateId: data['template_id'] as String?,
+        templateId: safeStringNullable(data, 'template_id'),
         name: name,
         type: type,
       );
@@ -304,14 +305,14 @@ class MiniActivitiesHandler {
 
       await _miniActivityService.updateMiniActivity(
         miniActivityId: miniActivityId,
-        name: data['name'] as String?,
-        description: data['description'] as String?,
-        winPoints: data['win_points'] as int?,
-        drawPoints: data['draw_points'] as int?,
-        lossPoints: data['loss_points'] as int?,
-        enableLeaderboard: data['enable_leaderboard'] as bool?,
-        maxParticipants: data['max_participants'] as int?,
-        handicapEnabled: data['handicap_enabled'] as bool?,
+        name: safeStringNullable(data, 'name'),
+        description: safeStringNullable(data, 'description'),
+        winPoints: safeIntNullable(data, 'win_points'),
+        drawPoints: safeIntNullable(data, 'draw_points'),
+        lossPoints: safeIntNullable(data, 'loss_points'),
+        enableLeaderboard: safeBoolNullable(data, 'enable_leaderboard'),
+        maxParticipants: safeIntNullable(data, 'max_participants'),
+        handicapEnabled: safeBoolNullable(data, 'handicap_enabled'),
       );
 
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
@@ -378,8 +379,8 @@ class MiniActivitiesHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
-      final type = data['type'] as String?;
+      final name = safeStringNullable(data, 'name');
+      final type = safeStringNullable(data, 'type');
 
       if (name == null || type == null) {
         return resp.badRequest('Mangler påkrevde felt (name, type)');
@@ -387,15 +388,15 @@ class MiniActivitiesHandler {
 
       final miniActivity = await _miniActivityService.createStandaloneMiniActivity(
         teamId: teamId,
-        templateId: data['template_id'] as String?,
+        templateId: safeStringNullable(data, 'template_id'),
         name: name,
         type: type,
-        description: data['description'] as String?,
-        leaderboardId: data['leaderboard_id'] as String?,
-        enableLeaderboard: data['enable_leaderboard'] as bool? ?? true,
-        winPoints: data['win_points'] as int? ?? 3,
-        drawPoints: data['draw_points'] as int? ?? 1,
-        lossPoints: data['loss_points'] as int? ?? 0,
+        description: safeStringNullable(data, 'description'),
+        leaderboardId: safeStringNullable(data, 'leaderboard_id'),
+        enableLeaderboard: safeBool(data, 'enable_leaderboard', defaultValue: true),
+        winPoints: safeIntNullable(data, 'win_points') ?? 3,
+        drawPoints: safeIntNullable(data, 'draw_points') ?? 1,
+        lossPoints: safeIntNullable(data, 'loss_points') ?? 0,
       );
 
       return resp.ok(miniActivity.toJson());
@@ -431,7 +432,7 @@ class MiniActivitiesHandler {
 
       final newMiniActivity = await _miniActivityService.duplicateMiniActivity(
         miniActivityId: miniActivityId,
-        newName: data['new_name'] as String?,
+        newName: safeStringNullable(data, 'new_name'),
       );
 
       return resp.ok(newMiniActivity.toJson());

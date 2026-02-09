@@ -8,6 +8,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class TournamentGroupsHandler {
   final TournamentGroupService _groupService;
   final TournamentService _tournamentService;
@@ -79,7 +80,7 @@ class TournamentGroupsHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
+      final name = safeStringNullable(data, 'name');
       if (name == null) {
         return resp.badRequest('Mangler påkrevd felt (name)');
       }
@@ -87,8 +88,8 @@ class TournamentGroupsHandler {
       final group = await _groupService.createGroup(
         tournamentId: tournamentId,
         name: name,
-        advanceCount: data['advance_count'] as int? ?? 2,
-        sortOrder: data['sort_order'] as int? ?? 0,
+        advanceCount: safeIntNullable(data, 'advance_count') ?? 2,
+        sortOrder: safeIntNullable(data, 'sort_order') ?? 0,
       );
 
       return resp.ok(group.toJson());
@@ -106,9 +107,9 @@ class TournamentGroupsHandler {
 
       final group = await _groupService.updateGroup(
         groupId: groupId,
-        name: data['name'] as String?,
-        advanceCount: data['advance_count'] as int?,
-        sortOrder: data['sort_order'] as int?,
+        name: safeStringNullable(data, 'name'),
+        advanceCount: safeIntNullable(data, 'advance_count'),
+        sortOrder: safeIntNullable(data, 'sort_order'),
       );
 
       return resp.ok(group.toJson());
@@ -164,8 +165,8 @@ class TournamentGroupsHandler {
 
       final data = await parseBody(request);
 
-      final teamAId = data['team_a_id'] as String?;
-      final teamBId = data['team_b_id'] as String?;
+      final teamAId = safeStringNullable(data, 'team_a_id');
+      final teamBId = safeStringNullable(data, 'team_b_id');
 
       if (teamAId == null || teamBId == null) {
         return resp.badRequest('Mangler påkrevde felt (team_a_id, team_b_id)');
@@ -176,9 +177,9 @@ class TournamentGroupsHandler {
         teamAId: teamAId,
         teamBId: teamBId,
         scheduledTime: data['scheduled_time'] != null
-            ? DateTime.parse(data['scheduled_time'] as String)
+            ? DateTime.tryParse(safeString(data, 'scheduled_time'))
             : null,
-        matchOrder: data['match_order'] as int? ?? 0,
+        matchOrder: safeIntNullable(data, 'match_order') ?? 0,
       );
 
       return resp.ok(match.toJson());
@@ -196,13 +197,13 @@ class TournamentGroupsHandler {
 
       final match = await _groupService.updateGroupMatch(
         matchId: matchId,
-        teamAScore: data['team_a_score'] as int?,
-        teamBScore: data['team_b_score'] as int?,
+        teamAScore: safeIntNullable(data, 'team_a_score'),
+        teamBScore: safeIntNullable(data, 'team_b_score'),
         status: data['status'] != null
             ? MatchStatus.fromString(data['status'] as String)
             : null,
         scheduledTime: data['scheduled_time'] != null
-            ? DateTime.parse(data['scheduled_time'] as String)
+            ? DateTime.tryParse(safeString(data, 'scheduled_time'))
             : null,
       );
 
@@ -219,8 +220,8 @@ class TournamentGroupsHandler {
 
       final data = await parseBody(request);
 
-      final teamAScore = data['team_a_score'] as int?;
-      final teamBScore = data['team_b_score'] as int?;
+      final teamAScore = safeIntNullable(data, 'team_a_score');
+      final teamBScore = safeIntNullable(data, 'team_b_score');
 
       if (teamAScore == null || teamBScore == null) {
         return resp.badRequest('Mangler påkrevde felt (team_a_score, team_b_score)');
@@ -265,7 +266,7 @@ class TournamentGroupsHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
+      final name = safeStringNullable(data, 'name');
       if (name == null) {
         return resp.badRequest('Mangler påkrevd felt (name)');
       }
@@ -273,8 +274,8 @@ class TournamentGroupsHandler {
       final round = await _groupService.createQualificationRound(
         tournamentId: tournamentId,
         name: name,
-        advanceCount: data['advance_count'] as int? ?? 8,
-        sortDirection: data['sort_direction'] as String? ?? 'desc',
+        advanceCount: safeIntNullable(data, 'advance_count') ?? 8,
+        sortDirection: safeStringNullable(data, 'sort_direction') ?? 'desc',
       );
 
       return resp.ok(round.toJson());
@@ -302,8 +303,8 @@ class TournamentGroupsHandler {
 
       final data = await parseBody(request);
 
-      final participantUserId = data['user_id'] as String?;
-      final resultValue = (data['result_value'] as num?)?.toDouble();
+      final participantUserId = safeStringNullable(data, 'user_id');
+      final resultValue = (safeNumNullable(data, 'result_value'))?.toDouble();
 
       if (participantUserId == null || resultValue == null) {
         return resp.badRequest('Mangler påkrevde felt (user_id, result_value)');

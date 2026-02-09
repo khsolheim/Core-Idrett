@@ -7,6 +7,7 @@ import 'test_results_handler.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class TestsHandler {
   final TestService _testService;
   final TeamService _teamService;
@@ -92,8 +93,8 @@ class TestsHandler {
       }
 
       final body = await parseBody(request);
-      final name = body['name'] as String?;
-      final unit = body['unit'] as String?;
+      final name = safeStringNullable(body, 'name');
+      final unit = safeStringNullable(body, 'unit');
 
       if (name == null || name.isEmpty) {
         return resp.badRequest('Navn er pakrevd');
@@ -106,9 +107,9 @@ class TestsHandler {
       final template = await _testService.createTemplate(
         teamId: teamId,
         name: name,
-        description: body['description'] as String?,
+        description: safeStringNullable(body, 'description'),
         unit: unit,
-        higherIsBetter: body['higher_is_better'] as bool? ?? false,
+        higherIsBetter: safeBool(body, 'higher_is_better', defaultValue: false),
       );
 
       return resp.ok(template.toJson());
@@ -142,10 +143,10 @@ class TestsHandler {
 
       final template = await _testService.updateTemplate(
         templateId: templateId,
-        name: body['name'] as String?,
-        description: body['description'] as String?,
-        unit: body['unit'] as String?,
-        higherIsBetter: body['higher_is_better'] as bool?,
+        name: safeStringNullable(body, 'name'),
+        description: safeStringNullable(body, 'description'),
+        unit: safeStringNullable(body, 'unit'),
+        higherIsBetter: safeBoolNullable(body, 'higher_is_better'),
         clearDescription: body['clear_description'] == true,
       );
 

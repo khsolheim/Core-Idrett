@@ -7,6 +7,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class MiniActivityStatisticsHandler {
   final MiniActivityStatisticsService _statsService;
   final TeamService _teamService;
@@ -295,8 +296,8 @@ class MiniActivityStatisticsHandler {
 
       final data = await parseBody(request);
 
-      final teamId = data['team_id'] as String?;
-      final results = (data['results'] as List?)?.cast<Map<String, dynamic>>();
+      final teamId = safeStringNullable(data, 'team_id');
+      final results = (safeListNullable(data, 'results'))?.cast<Map<String, dynamic>>();
 
       if (teamId == null || results == null) {
         return resp.badRequest('Mangler pakrevde felt (team_id, results)');
@@ -310,7 +311,7 @@ class MiniActivityStatisticsHandler {
       await _statsService.processMiniActivityResults(
         miniActivityId: miniActivityId,
         teamId: teamId,
-        seasonId: data['season_id'] as String?,
+        seasonId: safeStringNullable(data, 'season_id'),
         results: results,
       );
 

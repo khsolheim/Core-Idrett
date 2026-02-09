@@ -6,6 +6,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class MiniActivityTeamsHandler {
   final MiniActivityService _miniActivityService;
   final MiniActivityDivisionService _divisionService;
@@ -43,10 +44,10 @@ class MiniActivityTeamsHandler {
 
       final data = await parseBody(request);
 
-      final method = data['method'] as String?;
-      final numberOfTeams = data['number_of_teams'] as int?;
-      final participantUserIds = (data['participant_user_ids'] as List?)?.cast<String>();
-      final teamId = data['team_id'] as String? ?? '';
+      final method = safeStringNullable(data, 'method');
+      final numberOfTeams = safeIntNullable(data, 'number_of_teams');
+      final participantUserIds = (safeListNullable(data, 'participant_user_ids'))?.cast<String>();
+      final teamId = safeStringNullable(data, 'team_id') ?? '';
 
       if (method == null || numberOfTeams == null || participantUserIds == null) {
         return resp.badRequest(
@@ -108,8 +109,8 @@ class MiniActivityTeamsHandler {
 
       final data = await parseBody(request);
 
-      final participantUserId = data['user_id'] as String?;
-      final miniTeamId = data['mini_team_id'] as String?;
+      final participantUserId = safeStringNullable(data, 'user_id');
+      final miniTeamId = safeStringNullable(data, 'mini_team_id');
 
       if (participantUserId == null || miniTeamId == null) {
         return resp.badRequest('Mangler påkrevde felt (user_id, mini_team_id)');
@@ -137,7 +138,7 @@ class MiniActivityTeamsHandler {
 
       final data = await parseBody(request);
 
-      final newName = data['name'] as String?;
+      final newName = safeStringNullable(data, 'name');
       if (newName == null) {
         return resp.badRequest('Mangler påkrevd felt (name)');
       }
@@ -159,7 +160,7 @@ class MiniActivityTeamsHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
+      final name = safeStringNullable(data, 'name');
       if (name == null || name.isEmpty) {
         return resp.badRequest('Mangler påkrevd felt (name)');
       }
@@ -193,7 +194,7 @@ class MiniActivityTeamsHandler {
       await _divisionService.deleteTeam(
         miniActivityId: miniActivityId,
         teamId: miniTeamId,
-        moveParticipantsToTeamId: data['move_participants_to_team_id'] as String?,
+        moveParticipantsToTeamId: safeStringNullable(data, 'move_participants_to_team_id'),
       );
 
       final detail = await _miniActivityService.getMiniActivityDetail(miniActivityId);
@@ -212,7 +213,7 @@ class MiniActivityTeamsHandler {
 
       final data = await parseBody(request);
 
-      final targetTeamId = data['target_team_id'] as String?;
+      final targetTeamId = safeStringNullable(data, 'target_team_id');
       if (targetTeamId == null) {
         return resp.badRequest('Mangler påkrevd felt (target_team_id)');
       }
@@ -254,8 +255,8 @@ class MiniActivityTeamsHandler {
 
       final data = await parseBody(request);
 
-      final targetUserId = data['user_id'] as String?;
-      final handicapValue = (data['handicap_value'] as num?)?.toDouble();
+      final targetUserId = safeStringNullable(data, 'user_id');
+      final handicapValue = (safeNumNullable(data, 'handicap_value'))?.toDouble();
 
       if (targetUserId == null || handicapValue == null) {
         return resp.badRequest('Mangler påkrevde felt (user_id, handicap_value)');

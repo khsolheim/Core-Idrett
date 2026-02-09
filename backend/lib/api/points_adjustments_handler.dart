@@ -6,6 +6,7 @@ import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class PointsAdjustmentsHandler {
   final PointsConfigService _pointsConfigService;
   final TeamService _teamService;
@@ -40,10 +41,10 @@ class PointsAdjustmentsHandler {
 
       final body = await parseBody(request);
 
-      final targetUserId = body['user_id'] as String?;
-      final points = body['points'] as int?;
-      final adjustmentTypeStr = body['adjustment_type'] as String?;
-      final reason = body['reason'] as String?;
+      final targetUserId = safeStringNullable(body, 'user_id');
+      final points = safeIntNullable(body, 'points');
+      final adjustmentTypeStr = safeStringNullable(body, 'adjustment_type');
+      final reason = safeStringNullable(body, 'reason');
 
       if (targetUserId == null ||
           points == null ||
@@ -67,7 +68,7 @@ class PointsAdjustmentsHandler {
         adjustmentType: adjustmentType,
         reason: reason.trim(),
         createdBy: userId,
-        seasonId: body['season_id'] as String?,
+        seasonId: safeStringNullable(body, 'season_id'),
       );
 
       return resp.ok(adjustment.toJson());

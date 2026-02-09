@@ -7,6 +7,7 @@ import 'points_adjustments_handler.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class PointsConfigHandler {
   final PointsConfigService _pointsConfigService;
   final TeamService _teamService;
@@ -89,29 +90,29 @@ class PointsConfigHandler {
       // Check if config exists
       final existing = await _pointsConfigService.getConfig(
         teamId,
-        seasonId: body['season_id'] as String?,
+        seasonId: safeStringNullable(body, 'season_id'),
       );
 
       if (existing != null) {
         // Update existing
         final config = await _pointsConfigService.updateConfig(
           configId: existing.id,
-          trainingPoints: body['training_points'] as int?,
-          matchPoints: body['match_points'] as int?,
-          socialPoints: body['social_points'] as int?,
-          trainingWeight: (body['training_weight'] as num?)?.toDouble(),
-          matchWeight: (body['match_weight'] as num?)?.toDouble(),
-          socialWeight: (body['social_weight'] as num?)?.toDouble(),
-          competitionWeight: (body['competition_weight'] as num?)?.toDouble(),
-          miniActivityDistribution: body['mini_activity_distribution'] as String?,
-          autoAwardAttendance: body['auto_award_attendance'] as bool?,
-          visibility: body['visibility'] as String?,
-          allowOptOut: body['allow_opt_out'] as bool?,
-          requireAbsenceReason: body['require_absence_reason'] as bool?,
-          requireAbsenceApproval: body['require_absence_approval'] as bool?,
+          trainingPoints: safeIntNullable(body, 'training_points'),
+          matchPoints: safeIntNullable(body, 'match_points'),
+          socialPoints: safeIntNullable(body, 'social_points'),
+          trainingWeight: (safeNumNullable(body, 'training_weight'))?.toDouble(),
+          matchWeight: (safeNumNullable(body, 'match_weight'))?.toDouble(),
+          socialWeight: (safeNumNullable(body, 'social_weight'))?.toDouble(),
+          competitionWeight: (safeNumNullable(body, 'competition_weight'))?.toDouble(),
+          miniActivityDistribution: safeStringNullable(body, 'mini_activity_distribution'),
+          autoAwardAttendance: safeBoolNullable(body, 'auto_award_attendance'),
+          visibility: safeStringNullable(body, 'visibility'),
+          allowOptOut: safeBoolNullable(body, 'allow_opt_out'),
+          requireAbsenceReason: safeBoolNullable(body, 'require_absence_reason'),
+          requireAbsenceApproval: safeBoolNullable(body, 'require_absence_approval'),
           excludeValidAbsenceFromPercentage:
-              body['exclude_valid_absence_from_percentage'] as bool?,
-          newPlayerStartMode: body['new_player_start_mode'] as String?,
+              safeBoolNullable(body, 'exclude_valid_absence_from_percentage'),
+          newPlayerStartMode: safeStringNullable(body, 'new_player_start_mode'),
         );
 
         return resp.ok(config?.toJson());
@@ -120,27 +121,27 @@ class PointsConfigHandler {
       // Create new
       final config = await _pointsConfigService.createConfig(
         teamId: teamId,
-        seasonId: body['season_id'] as String?,
-        trainingPoints: body['training_points'] as int? ?? 1,
-        matchPoints: body['match_points'] as int? ?? 2,
-        socialPoints: body['social_points'] as int? ?? 1,
-        trainingWeight: (body['training_weight'] as num?)?.toDouble() ?? 1.0,
-        matchWeight: (body['match_weight'] as num?)?.toDouble() ?? 1.5,
-        socialWeight: (body['social_weight'] as num?)?.toDouble() ?? 0.5,
+        seasonId: safeStringNullable(body, 'season_id'),
+        trainingPoints: safeIntNullable(body, 'training_points') ?? 1,
+        matchPoints: safeIntNullable(body, 'match_points') ?? 2,
+        socialPoints: safeIntNullable(body, 'social_points') ?? 1,
+        trainingWeight: (safeNumNullable(body, 'training_weight'))?.toDouble() ?? 1.0,
+        matchWeight: (safeNumNullable(body, 'match_weight'))?.toDouble() ?? 1.5,
+        socialWeight: (safeNumNullable(body, 'social_weight'))?.toDouble() ?? 0.5,
         competitionWeight:
-            (body['competition_weight'] as num?)?.toDouble() ?? 1.0,
+            (safeNumNullable(body, 'competition_weight'))?.toDouble() ?? 1.0,
         miniActivityDistribution:
-            body['mini_activity_distribution'] as String? ?? 'top_three',
-        autoAwardAttendance: body['auto_award_attendance'] as bool? ?? true,
-        visibility: body['visibility'] as String? ?? 'all',
-        allowOptOut: body['allow_opt_out'] as bool? ?? false,
-        requireAbsenceReason: body['require_absence_reason'] as bool? ?? false,
+            safeStringNullable(body, 'mini_activity_distribution') ?? 'top_three',
+        autoAwardAttendance: safeBool(body, 'auto_award_attendance', defaultValue: true),
+        visibility: safeStringNullable(body, 'visibility') ?? 'all',
+        allowOptOut: safeBool(body, 'allow_opt_out', defaultValue: false),
+        requireAbsenceReason: safeBool(body, 'require_absence_reason', defaultValue: false),
         requireAbsenceApproval:
-            body['require_absence_approval'] as bool? ?? false,
+            safeBool(body, 'require_absence_approval', defaultValue: false),
         excludeValidAbsenceFromPercentage:
-            body['exclude_valid_absence_from_percentage'] as bool? ?? true,
+            safeBool(body, 'exclude_valid_absence_from_percentage', defaultValue: true),
         newPlayerStartMode:
-            body['new_player_start_mode'] as String? ?? 'from_join',
+            safeStringNullable(body, 'new_player_start_mode') ?? 'from_join',
       );
 
       return resp.ok(config.toJson());
@@ -174,22 +175,22 @@ class PointsConfigHandler {
 
       final config = await _pointsConfigService.updateConfig(
         configId: configId,
-        trainingPoints: body['training_points'] as int?,
-        matchPoints: body['match_points'] as int?,
-        socialPoints: body['social_points'] as int?,
-        trainingWeight: (body['training_weight'] as num?)?.toDouble(),
-        matchWeight: (body['match_weight'] as num?)?.toDouble(),
-        socialWeight: (body['social_weight'] as num?)?.toDouble(),
-        competitionWeight: (body['competition_weight'] as num?)?.toDouble(),
-        miniActivityDistribution: body['mini_activity_distribution'] as String?,
-        autoAwardAttendance: body['auto_award_attendance'] as bool?,
-        visibility: body['visibility'] as String?,
-        allowOptOut: body['allow_opt_out'] as bool?,
-        requireAbsenceReason: body['require_absence_reason'] as bool?,
-        requireAbsenceApproval: body['require_absence_approval'] as bool?,
+        trainingPoints: safeIntNullable(body, 'training_points'),
+        matchPoints: safeIntNullable(body, 'match_points'),
+        socialPoints: safeIntNullable(body, 'social_points'),
+        trainingWeight: (safeNumNullable(body, 'training_weight'))?.toDouble(),
+        matchWeight: (safeNumNullable(body, 'match_weight'))?.toDouble(),
+        socialWeight: (safeNumNullable(body, 'social_weight'))?.toDouble(),
+        competitionWeight: (safeNumNullable(body, 'competition_weight'))?.toDouble(),
+        miniActivityDistribution: safeStringNullable(body, 'mini_activity_distribution'),
+        autoAwardAttendance: safeBoolNullable(body, 'auto_award_attendance'),
+        visibility: safeStringNullable(body, 'visibility'),
+        allowOptOut: safeBoolNullable(body, 'allow_opt_out'),
+        requireAbsenceReason: safeBoolNullable(body, 'require_absence_reason'),
+        requireAbsenceApproval: safeBoolNullable(body, 'require_absence_approval'),
         excludeValidAbsenceFromPercentage:
-            body['exclude_valid_absence_from_percentage'] as bool?,
-        newPlayerStartMode: body['new_player_start_mode'] as String?,
+            safeBoolNullable(body, 'exclude_valid_absence_from_percentage'),
+        newPlayerStartMode: safeStringNullable(body, 'new_player_start_mode'),
       );
 
       if (config == null) {
@@ -304,22 +305,22 @@ class PointsConfigHandler {
 
       final body = await parseBody(request);
 
-      final targetUserId = body['user_id'] as String?;
+      final targetUserId = safeStringNullable(body, 'user_id');
       if (targetUserId == null) {
         return resp.badRequest('user_id er påkrevd');
       }
 
-      final activityType = body['activity_type'] as String?;
+      final activityType = safeStringNullable(body, 'activity_type');
       if (activityType == null) {
         return resp.badRequest('activity_type er påkrevd');
       }
 
-      final basePoints = body['base_points'] as int?;
+      final basePoints = safeIntNullable(body, 'base_points');
       if (basePoints == null) {
         return resp.badRequest('base_points er påkrevd');
       }
 
-      final weightedPointsRaw = body['weighted_points'] as num?;
+      final weightedPointsRaw = safeNumNullable(body, 'weighted_points');
       if (weightedPointsRaw == null) {
         return resp.badRequest('weighted_points er påkrevd');
       }
@@ -330,7 +331,7 @@ class PointsConfigHandler {
         userId: targetUserId,
         instanceId: instanceId,
         activityType: activityType,
-        seasonId: body['season_id'] as String?,
+        seasonId: safeStringNullable(body, 'season_id'),
         basePoints: basePoints,
         weightedPoints: weightedPoints,
       );
@@ -354,8 +355,8 @@ class PointsConfigHandler {
       }
 
       final body = await parseBody(request);
-      final targetUserId = body['user_id'] as String? ?? userId;
-      final optOut = body['opt_out'] as bool? ?? false;
+      final targetUserId = safeStringNullable(body, 'user_id') ?? userId;
+      final optOut = safeBool(body, 'opt_out', defaultValue: false);
 
       // Only allow setting own opt-out unless admin
       if (targetUserId != userId && !isAdmin(team)) {

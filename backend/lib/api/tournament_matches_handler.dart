@@ -7,6 +7,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class TournamentMatchesHandler {
   final TournamentService _tournamentService;
   final TeamService _teamService;
@@ -83,13 +84,13 @@ class TournamentMatchesHandler {
 
       final match = await _tournamentService.updateMatch(
         matchId: matchId,
-        teamAScore: data['team_a_score'] as int?,
-        teamBScore: data['team_b_score'] as int?,
+        teamAScore: safeIntNullable(data, 'team_a_score'),
+        teamBScore: safeIntNullable(data, 'team_b_score'),
         status: data['status'] != null
             ? MatchStatus.fromString(data['status'] as String)
             : null,
         scheduledTime: data['scheduled_time'] != null
-            ? DateTime.parse(data['scheduled_time'] as String)
+            ? DateTime.tryParse(safeString(data, 'scheduled_time'))
             : null,
       );
 
@@ -118,7 +119,7 @@ class TournamentMatchesHandler {
 
       final data = await parseBody(request);
 
-      final winnerId = data['winner_id'] as String?;
+      final winnerId = safeStringNullable(data, 'winner_id');
       if (winnerId == null) {
         return resp.badRequest('Mangler påkrevd felt (winner_id)');
       }
@@ -137,8 +138,8 @@ class TournamentMatchesHandler {
 
       final data = await parseBody(request);
 
-      final winnerId = data['winner_id'] as String?;
-      final reason = data['reason'] as String?;
+      final winnerId = safeStringNullable(data, 'winner_id');
+      final reason = safeStringNullable(data, 'reason');
 
       if (winnerId == null) {
         return resp.badRequest('Mangler påkrevd felt (winner_id)');
@@ -175,8 +176,8 @@ class TournamentMatchesHandler {
 
       final data = await parseBody(request);
 
-      final gameNumber = data['game_number'] as int?;
-      final winnerId = data['winner_id'] as String?;
+      final gameNumber = safeIntNullable(data, 'game_number');
+      final winnerId = safeStringNullable(data, 'winner_id');
 
       if (gameNumber == null || winnerId == null) {
         return resp.badRequest('Mangler påkrevde felt (game_number, winner_id)');
@@ -185,8 +186,8 @@ class TournamentMatchesHandler {
       final game = await _tournamentService.recordGame(
         matchId: matchId,
         gameNumber: gameNumber,
-        teamAScore: data['team_a_score'] as int? ?? 0,
-        teamBScore: data['team_b_score'] as int? ?? 0,
+        teamAScore: safeIntNullable(data, 'team_a_score') ?? 0,
+        teamBScore: safeIntNullable(data, 'team_b_score') ?? 0,
         winnerId: winnerId,
       );
 
@@ -205,9 +206,9 @@ class TournamentMatchesHandler {
 
       final game = await _tournamentService.updateGame(
         gameId: gameId,
-        teamAScore: data['team_a_score'] as int?,
-        teamBScore: data['team_b_score'] as int?,
-        winnerId: data['winner_id'] as String?,
+        teamAScore: safeIntNullable(data, 'team_a_score'),
+        teamBScore: safeIntNullable(data, 'team_b_score'),
+        winnerId: safeStringNullable(data, 'winner_id'),
         status: data['status'] != null
             ? MatchStatus.fromString(data['status'] as String)
             : null,

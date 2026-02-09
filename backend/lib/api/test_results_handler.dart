@@ -6,6 +6,7 @@ import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class TestResultsHandler {
   final TestService _testService;
   final TeamService _teamService;
@@ -118,7 +119,7 @@ class TestResultsHandler {
       }
 
       final body = await parseBody(request);
-      final targetUserId = body['user_id'] as String?;
+      final targetUserId = safeStringNullable(body, 'user_id');
       final value = body['value'];
 
       if (targetUserId == null) {
@@ -132,9 +133,9 @@ class TestResultsHandler {
       final result = await _testService.recordResult(
         testTemplateId: templateId,
         userId: targetUserId,
-        instanceId: body['instance_id'] as String?,
+        instanceId: safeStringNullable(body, 'instance_id'),
         value: (value as num).toDouble(),
-        notes: body['notes'] as String?,
+        notes: safeStringNullable(body, 'notes'),
       );
 
       return resp.ok(result.toJson());
@@ -165,7 +166,7 @@ class TestResultsHandler {
       }
 
       final body = await parseBody(request);
-      final results = body['results'] as List?;
+      final results = safeListNullable(body, 'results');
 
       if (results == null || results.isEmpty) {
         return resp.badRequest('results er pakrevd');
@@ -173,7 +174,7 @@ class TestResultsHandler {
 
       final recorded = await _testService.recordMultipleResults(
         testTemplateId: templateId,
-        instanceId: body['instance_id'] as String?,
+        instanceId: safeStringNullable(body, 'instance_id'),
         results: results.cast<Map<String, dynamic>>(),
       );
 
