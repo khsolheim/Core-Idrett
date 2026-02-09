@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/mini_activity.dart';
 import '../../providers/mini_activity_provider.dart';
-import 'mini_activity_sheets.dart';
+import 'mini_activity_dialogs.dart';
 import 'mini_activity_team_card.dart';
 
 class MiniActivityDetailContent extends ConsumerStatefulWidget {
@@ -119,7 +119,12 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton.icon(
-                          onPressed: () => _showDivisionDialog(context, ref),
+                          onPressed: () => showMiniActivityDivisionDialog(
+                            context,
+                            miniActivityId: widget.miniActivity.id,
+                            instanceId: widget.instanceId,
+                            teamId: widget.teamId,
+                          ),
                           icon: const Icon(Icons.group_add),
                           label: const Text('Del inn lag'),
                         ),
@@ -148,7 +153,10 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
                         setState(() => _isEditMode = false);
                       } else if (!_isEditMode && miniActivity.hasResult) {
                         // Show warning when entering edit mode after result
-                        _showEditWarningDialog(context);
+                        showEditWarningDialog(
+                          context,
+                          onConfirm: () => setState(() => _isEditMode = true),
+                        );
                       } else {
                         setState(() => _isEditMode = !_isEditMode);
                       }
@@ -170,7 +178,13 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
                     isWinner: miniActivity.winnerTeamId == team.id ||
                         (miniActivity.winnerTeam?.id == team.id),
                     isDraw: miniActivity.isDraw,
-                    onWinnerSelected: () => _showSetWinnerDialog(context, team.id),
+                    onWinnerSelected: () => showSetWinnerDialog(
+                      context,
+                      miniActivity: miniActivity,
+                      instanceId: widget.instanceId,
+                      teamId: widget.teamId,
+                      winnerTeamId: team.id,
+                    ),
                   )),
 
               // Quick actions row when not in edit mode
@@ -181,7 +195,13 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => _showSetWinnerDialog(context, null),
+                        onPressed: () => showSetWinnerDialog(
+                          context,
+                          miniActivity: miniActivity,
+                          instanceId: widget.instanceId,
+                          teamId: widget.teamId,
+                          winnerTeamId: null,
+                        ),
                         icon: const Icon(Icons.balance),
                         label: const Text('Uavgjort'),
                       ),
@@ -189,7 +209,12 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
                     const SizedBox(width: 8),
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () => _showScoreDialog(context, ref),
+                        onPressed: () => showMiniActivityScoreDialog(
+                          context,
+                          miniActivity: miniActivity,
+                          instanceId: widget.instanceId,
+                          teamId: widget.teamId,
+                        ),
                         icon: const Icon(Icons.sports_score),
                         label: const Text('Poengsum'),
                       ),
@@ -202,7 +227,13 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
                   SizedBox(
                     width: double.infinity,
                     child: TextButton.icon(
-                      onPressed: () => _showClearResultDialog(context),
+                      onPressed: () => showClearResultDialog(
+                        context,
+                        ref: ref,
+                        miniActivityId: widget.miniActivity.id,
+                        instanceId: widget.instanceId,
+                        teamId: widget.teamId,
+                      ),
                       icon: const Icon(Icons.restart_alt),
                       label: const Text('Nullstill resultat'),
                       style: TextButton.styleFrom(
@@ -219,7 +250,13 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => _showAddTeamDialog(context),
+                    onPressed: () => showAddTeamDialog(
+                      context,
+                      ref: ref,
+                      miniActivityId: widget.miniActivity.id,
+                      instanceId: widget.instanceId,
+                      teamId: widget.teamId,
+                    ),
                     icon: const Icon(Icons.add),
                     label: const Text('Legg til nytt lag'),
                   ),
@@ -267,170 +304,4 @@ class MiniActivityDetailContentState extends ConsumerState<MiniActivityDetailCon
     );
   }
 
-  void _showEditWarningDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rediger lag'),
-        content: const Text(
-          'Resultatet er registrert. Endring av lag kan gjøre resultatet ugyldig. Vil du fortsette?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Avbryt'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() => _isEditMode = true);
-            },
-            child: const Text('Fortsett'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDivisionDialog(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => TeamDivisionSheet(
-        miniActivityId: widget.miniActivity.id,
-        instanceId: widget.instanceId,
-        teamId: widget.teamId,
-      ),
-    );
-  }
-
-  void _showScoreDialog(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => RecordScoresSheet(
-        miniActivity: widget.miniActivity,
-        instanceId: widget.instanceId,
-        teamId: widget.teamId,
-      ),
-    );
-  }
-
-  void _showSetWinnerDialog(BuildContext context, String? winnerTeamId) {
-    showDialog(
-      context: context,
-      builder: (context) => SetWinnerDialog(
-        miniActivity: widget.miniActivity,
-        instanceId: widget.instanceId,
-        teamId: widget.teamId,
-        winnerTeamId: winnerTeamId,
-      ),
-    );
-  }
-
-  void _showClearResultDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Nullstill resultat'),
-        content: const Text(
-          'Er du sikker på at du vil nullstille resultatet? Poeng og vinner vil bli slettet.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Avbryt'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ref.read(resultManagementProvider.notifier).clearResult(
-                    miniActivityId: widget.miniActivity.id,
-                    instanceId: widget.instanceId,
-                    teamId: widget.teamId,
-                  );
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Nullstill'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddTeamDialog(BuildContext context) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Legg til lag'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Lagnavn',
-            hintText: 'F.eks. Grønn',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Avbryt'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (controller.text.isNotEmpty) {
-                Navigator.pop(context);
-                await ref.read(teamManagementProvider.notifier).createTeam(
-                      miniActivityId: widget.miniActivity.id,
-                      instanceId: widget.instanceId,
-                      teamId: widget.teamId,
-                      name: controller.text,
-                    );
-              }
-            },
-            child: const Text('Legg til'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Result badge for winner/draw indication
-class ResultBadge extends StatelessWidget {
-  final String text;
-  final Color backgroundColor;
-  final Color textColor;
-
-  const ResultBadge({
-    super.key,
-    required this.text,
-    required this.backgroundColor,
-    required this.textColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: 1.0,
-      duration: const Duration(milliseconds: 300),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: textColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
 }

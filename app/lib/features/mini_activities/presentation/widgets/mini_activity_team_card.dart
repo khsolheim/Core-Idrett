@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/mini_activity.dart';
-import 'mini_activity_detail_content.dart';
 import 'mini_activity_helpers.dart';
+import 'result_badge.dart';
 import 'team_card_dialogs.dart';
 
 class MiniActivityTeamCard extends ConsumerWidget {
