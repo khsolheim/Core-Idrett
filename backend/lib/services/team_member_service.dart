@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/team.dart';
+import '../helpers/parsing_helpers.dart';
 
 class TeamMemberService {
   final Database _db;
@@ -18,11 +19,11 @@ class TeamMemberService {
     );
 
     return result.map((row) => TrainerType(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      name: row['name'] as String,
-      displayOrder: row['display_order'] as int? ?? 0,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      name: safeString(row, 'name'),
+      displayOrder: safeInt(row, 'display_order', defaultValue: 0),
+      createdAt: requireDateTime(row, 'created_at'),
     )).toList();
   }
 
@@ -42,7 +43,7 @@ class TeamMemberService {
         limit: 1,
       );
       if (existing.isNotEmpty) {
-        order = (existing.first['display_order'] as int? ?? 0) + 1;
+        order = (safeInt(existing.first, 'display_order', defaultValue: 0)) + 1;
       }
     }
 
@@ -55,11 +56,11 @@ class TeamMemberService {
 
     final row = result.first;
     return TrainerType(
-      id: row['id'] as String,
-      teamId: row['team_id'] as String,
-      name: row['name'] as String,
-      displayOrder: row['display_order'] as int? ?? 0,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      teamId: safeString(row, 'team_id'),
+      name: safeString(row, 'name'),
+      displayOrder: safeInt(row, 'display_order', defaultValue: 0),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -108,7 +109,7 @@ class TeamMemberService {
           select: 'is_admin',
           filters: {'id': 'eq.$memberId'},
         );
-        if (current.isNotEmpty && !(current.first['is_admin'] as bool? ?? false)) {
+        if (current.isNotEmpty && !(safeBool(current.first, 'is_admin', defaultValue: false))) {
           updates['role'] = 'fine_boss';
         }
       }
@@ -132,8 +133,8 @@ class TeamMemberService {
         filters: {'id': 'eq.$memberId'},
       );
       if (current.isNotEmpty) {
-        final currentIsAdmin = isAdmin ?? (current.first['is_admin'] as bool? ?? false);
-        final currentIsFineBoss = isFineBoss ?? (current.first['is_fine_boss'] as bool? ?? false);
+        final currentIsAdmin = isAdmin ?? (safeBool(current.first, 'is_admin', defaultValue: false));
+        final currentIsFineBoss = isFineBoss ?? (safeBool(current.first, 'is_fine_boss', defaultValue: false));
 
         if (!currentIsAdmin && !currentIsFineBoss) {
           updates['role'] = 'player';
@@ -183,8 +184,8 @@ class TeamMemberService {
       throw Exception('Member not found');
     }
 
-    final userId = memberResult.first['user_id'] as String;
-    final teamId = memberResult.first['team_id'] as String;
+    final userId = safeString(memberResult.first, 'user_id');
+    final teamId = safeString(memberResult.first, 'team_id');
 
     // Update the injured status
     await _db.client.update(
@@ -208,7 +209,7 @@ class TeamMemberService {
 
     if (activities.isEmpty) return;
 
-    final activityIds = activities.map((a) => a['id'] as String).toList();
+    final activityIds = activities.map((a) => safeString(a, 'id')).toList();
 
     // Get future instances for these activities
     final futureInstances = await _db.client.select(
@@ -223,7 +224,7 @@ class TeamMemberService {
 
     if (futureInstances.isEmpty) return;
 
-    final instanceIds = futureInstances.map((i) => i['id'] as String).toList();
+    final instanceIds = futureInstances.map((i) => safeString(i, 'id')).toList();
 
     if (isInjured) {
       // Delete future opt_out responses for this member

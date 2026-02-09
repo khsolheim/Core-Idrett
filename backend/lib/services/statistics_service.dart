@@ -3,6 +3,7 @@ import '../models/statistics.dart';
 import 'player_rating_service.dart';
 import 'user_service.dart';
 import 'team_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class StatisticsService {
   final Database _db;
@@ -36,7 +37,7 @@ class StatisticsService {
 
     final seasonMap = <String, Map<String, dynamic>>{};
     for (final s in seasonStats) {
-      seasonMap[s['user_id'] as String] = s;
+      seasonMap[safeString(s, 'user_id')] = s;
     }
 
     // Get player ratings
@@ -50,7 +51,7 @@ class StatisticsService {
 
     final ratingMap = <String, Map<String, dynamic>>{};
     for (final r in ratings) {
-      ratingMap[r['user_id'] as String] = r;
+      ratingMap[safeString(r, 'user_id')] = r;
     }
 
     // Build leaderboard entries
@@ -62,8 +63,8 @@ class StatisticsService {
 
       entries.add(_LeaderboardData(
         userId: userId,
-        userName: user['name'] as String? ?? '',
-        userAvatarUrl: user['avatar_url'] as String?,
+        userName: safeStringNullable(user, 'name') ?? '',
+        userAvatarUrl: safeStringNullable(user, 'avatar_url'),
         totalPoints: (season['total_points'] as num?)?.toInt() ?? 0,
         rating: (rating['rating'] as num?)?.toDouble() ?? 1000.0,
         wins: (rating['wins'] as num?)?.toInt() ?? 0,
@@ -153,8 +154,8 @@ class StatisticsService {
       return PlayerStatistics(
         userId: userId,
         teamId: teamId,
-        userName: user['name'] as String,
-        userAvatarUrl: user['avatar_url'] as String?,
+        userName: safeString(user, 'name'),
+        userAvatarUrl: safeStringNullable(user, 'avatar_url'),
         rating: rating,
         currentSeason: currentSeason,
         totalActivities: 0,
@@ -163,7 +164,7 @@ class StatisticsService {
       );
     }
 
-    final activityIds = activities.map((a) => a['id'] as String).toList();
+    final activityIds = activities.map((a) => safeString(a, 'id')).toList();
     final today = DateTime.now().toIso8601String().split('T').first;
 
     // Get past instances
@@ -180,7 +181,7 @@ class StatisticsService {
     final totalActivities = instances.length;
 
     // Get user's 'yes' responses
-    final instanceIds = instances.map((i) => i['id'] as String).toList();
+    final instanceIds = instances.map((i) => safeString(i, 'id')).toList();
     final yesResponses = instanceIds.isNotEmpty
         ? await _db.client.select(
             'activity_responses',
@@ -200,8 +201,8 @@ class StatisticsService {
     return PlayerStatistics(
       userId: userId,
       teamId: teamId,
-      userName: user['name'] as String,
-      userAvatarUrl: user['avatar_url'] as String?,
+      userName: safeString(user, 'name'),
+      userAvatarUrl: safeStringNullable(user, 'avatar_url'),
       rating: rating,
       currentSeason: currentSeason,
       totalActivities: totalActivities,
@@ -235,8 +236,8 @@ class StatisticsService {
         final user = userMap[userId] ?? {};
         return AttendanceRecord(
           userId: userId,
-          userName: user['name'] as String? ?? '',
-          userAvatarUrl: user['avatar_url'] as String?,
+          userName: safeStringNullable(user, 'name') ?? '',
+          userAvatarUrl: safeStringNullable(user, 'avatar_url'),
           totalActivities: 0,
           attended: 0,
           missed: 0,
@@ -245,7 +246,7 @@ class StatisticsService {
       }).toList();
     }
 
-    final activityIds = activities.map((a) => a['id'] as String).toList();
+    final activityIds = activities.map((a) => safeString(a, 'id')).toList();
 
     // Get instances in date range
     final instances = await _db.client.select(
@@ -260,13 +261,13 @@ class StatisticsService {
 
     // Filter by end date manually (since we need two date filters)
     final filteredInstances = instances.where((i) {
-      final dateStr = i['date'] as String?;
+      final dateStr = safeStringNullable(i, 'date');
       if (dateStr == null) return false;
       return dateStr.compareTo(to) <= 0;
     }).toList();
 
     final totalActivities = filteredInstances.length;
-    final instanceIds = filteredInstances.map((i) => i['id'] as String).toList();
+    final instanceIds = filteredInstances.map((i) => safeString(i, 'id')).toList();
 
     // Get all responses for these instances
     final responses = instanceIds.isNotEmpty
@@ -291,8 +292,8 @@ class StatisticsService {
 
       results.add(AttendanceRecord(
         userId: userId,
-        userName: user['name'] as String? ?? '',
-        userAvatarUrl: user['avatar_url'] as String?,
+        userName: safeStringNullable(user, 'name') ?? '',
+        userAvatarUrl: safeStringNullable(user, 'avatar_url'),
         totalActivities: totalActivities,
         attended: attended,
         missed: missed,
@@ -323,7 +324,7 @@ class StatisticsService {
       final current = existing.first;
       await _db.client.update(
         'season_stats',
-        {'total_points': (current['total_points'] as int? ?? 0) + points},
+        {'total_points': (safeInt(current, 'total_points', defaultValue: 0)) + points},
         filters: {
           'user_id': 'eq.$userId',
           'team_id': 'eq.$teamId',
@@ -357,7 +358,7 @@ class StatisticsService {
       final current = existing.first;
       await _db.client.update(
         'season_stats',
-        {'attendance_count': (current['attendance_count'] as int? ?? 0) + 1},
+        {'attendance_count': (safeInt(current, 'attendance_count', defaultValue: 0)) + 1},
         filters: {
           'user_id': 'eq.$userId',
           'team_id': 'eq.$teamId',

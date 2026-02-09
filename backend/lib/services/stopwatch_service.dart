@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/stopwatch.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class StopwatchService {
   final Database _db;
@@ -336,7 +337,7 @@ class StopwatchService {
     );
 
     // Get user info
-    final userIds = times.map((t) => t['user_id'] as String).toSet().toList();
+    final userIds = times.map((t) => safeString(t, 'user_id')).toSet().toList();
     if (userIds.isEmpty) return [];
 
     final userMap = await _userService.getUserMap(userIds);
@@ -372,11 +373,11 @@ class StopwatchService {
     for (final t in times) {
       await recordTime(
         sessionId: sessionId,
-        userId: t['user_id'] as String,
-        timeMs: t['time_ms'] as int,
-        isSplit: t['is_split'] as bool? ?? false,
-        splitNumber: t['split_number'] as int?,
-        notes: t['notes'] as String?,
+        userId: safeString(t, 'user_id'),
+        timeMs: safeInt(t, 'time_ms'),
+        isSplit: safeBool(t, 'is_split', defaultValue: false),
+        splitNumber: safeIntNullable(t, 'split_number'),
+        notes: safeStringNullable(t, 'notes'),
       );
     }
   }

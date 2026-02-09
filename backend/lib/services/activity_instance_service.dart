@@ -3,6 +3,7 @@ import '../db/database.dart';
 import '../models/mini_activity_statistics.dart';
 import 'leaderboard_service.dart';
 import 'season_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class ActivityInstanceService {
   final Database _db;
@@ -142,8 +143,8 @@ class ActivityInstanceService {
     }
 
     final instance = instances.first;
-    final activityId = instance['activity_id'] as String;
-    final instanceDate = instance['date'] as String;
+    final activityId = safeString(instance, 'activity_id');
+    final instanceDate = safeString(instance, 'date');
 
     // Update template fields on the parent activity if provided
     if (title != null || location != null || description != null) {
@@ -170,7 +171,7 @@ class ActivityInstanceService {
       },
     );
 
-    final affectedIds = futureInstances.map((i) => i['id'] as String).toList();
+    final affectedIds = futureInstances.map((i) => safeString(i, 'id')).toList();
 
     if (affectedIds.isEmpty) {
       return {
@@ -241,7 +242,7 @@ class ActivityInstanceService {
     }
 
     final instance = instances.first;
-    final instanceDate = DateTime.parse(instance['date'] as String);
+    final instanceDate = requireDateTime(instance, 'date');
     final today = DateTime.now();
 
     // Verify date is not in the past
@@ -249,7 +250,7 @@ class ActivityInstanceService {
       throw Exception('Cannot delete past instances');
     }
 
-    final activityId = instance['activity_id'] as String;
+    final activityId = safeString(instance, 'activity_id');
 
     // Delete the instance (CASCADE will delete responses)
     await _db.client.delete(
@@ -280,8 +281,8 @@ class ActivityInstanceService {
     }
 
     final instance = instances.first;
-    final activityId = instance['activity_id'] as String;
-    final instanceDate = instance['date'] as String;
+    final activityId = safeString(instance, 'activity_id');
+    final instanceDate = safeString(instance, 'date');
     final today = DateTime.now().toIso8601String().split('T').first;
 
     // Verify the start date is not in the past
@@ -301,13 +302,13 @@ class ActivityInstanceService {
 
     // Verify none are in the past
     for (final i in futureInstances) {
-      final date = i['date'] as String;
+      final date = safeString(i, 'date');
       if (date.compareTo(today) < 0) {
         throw Exception('Cannot delete past instances');
       }
     }
 
-    final affectedIds = futureInstances.map((i) => i['id'] as String).toList();
+    final affectedIds = futureInstances.map((i) => safeString(i, 'id')).toList();
 
     if (affectedIds.isEmpty) {
       return {
@@ -388,7 +389,7 @@ class ActivityInstanceService {
     }
 
     final instance = instances.first;
-    final instanceDate = DateTime.parse(instance['date'] as String);
+    final instanceDate = requireDateTime(instance, 'date');
     final now = DateTime.now();
 
     // Check that date has passed
@@ -412,7 +413,7 @@ class ActivityInstanceService {
     }
 
     final activity = activities.first;
-    final teamId = activity['team_id'] as String;
+    final teamId = safeString(activity, 'team_id');
 
     // Get team settings for attendance points value
     final settingsResult = await _db.client.select(
@@ -421,7 +422,7 @@ class ActivityInstanceService {
     );
 
     final attendancePoints = settingsResult.isNotEmpty
-        ? (settingsResult.first['attendance_points'] as int? ?? 1)
+        ? (safeInt(settingsResult.first, 'attendance_points', defaultValue: 1))
         : 1;
 
     // Get the active season for this team
@@ -449,7 +450,7 @@ class ActivityInstanceService {
     final effectiveTitle = instance['title_override'] ?? activity['title'];
 
     for (final response in responses) {
-      final userId = response['user_id'] as String;
+      final userId = safeString(response, 'user_id');
 
       // Check if points were already awarded for this instance
       final alreadyAwarded = await _leaderboardService.hasPointsForSource(

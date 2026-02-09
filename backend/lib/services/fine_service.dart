@@ -3,6 +3,7 @@ import '../db/database.dart';
 import '../models/fine.dart';
 import 'team_service.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class FineService {
   final Database _db;
@@ -108,10 +109,10 @@ class FineService {
     if (fines.isEmpty) return [];
 
     // Get all related data
-    final offenderIds = fines.map((f) => f['offender_id'] as String).toSet().toList();
-    final reporterIds = fines.map((f) => f['reporter_id'] as String?).whereType<String>().toSet().toList();
-    final ruleIds = fines.map((f) => f['rule_id'] as String?).whereType<String>().toSet().toList();
-    final fineIds = fines.map((f) => f['id'] as String).toList();
+    final offenderIds = fines.map((f) => safeString(f, 'offender_id')).toSet().toList();
+    final reporterIds = fines.map((f) => safeStringNullable(f, 'reporter_id')).whereType<String>().toSet().toList();
+    final ruleIds = fines.map((f) => safeStringNullable(f, 'rule_id')).whereType<String>().toSet().toList();
+    final fineIds = fines.map((f) => safeString(f, 'id')).toList();
 
     // Get users
     final allUserIds = {...offenderIds, ...reporterIds}.toList();
@@ -128,7 +129,7 @@ class FineService {
 
     final ruleMap = <String, Map<String, dynamic>>{};
     for (final r in rules) {
-      ruleMap[r['id'] as String] = r;
+      ruleMap[safeString(r, 'id')] = r;
     }
 
     // Get payments
@@ -140,8 +141,8 @@ class FineService {
 
     final paymentTotals = <String, double>{};
     for (final p in payments) {
-      final fineId = p['fine_id'] as String;
-      paymentTotals[fineId] = (paymentTotals[fineId] ?? 0) + (p['amount'] as num).toDouble();
+      final fineId = safeString(p, 'fine_id');
+      paymentTotals[fineId] = (paymentTotals[fineId] ?? 0) + safeDouble(p, 'amount');
     }
 
     return fines.map((f) {
@@ -171,8 +172,8 @@ class FineService {
 
     // Batch fetch users (offender + reporter in one query)
     final userIds = <String>[
-      fine['offender_id'] as String,
-      if (fine['reporter_id'] != null) fine['reporter_id'] as String,
+      safeString(fine, 'offender_id'),
+      if (fine['reporter_id'] != null) safeString(fine, 'reporter_id'),
     ];
     final userMap = await _userService.getUserMap(userIds);
     final offender = userMap[fine['offender_id']] ?? {};
@@ -197,7 +198,7 @@ class FineService {
       select: 'amount',
       filters: {'fine_id': 'eq.$fineId'},
     );
-    final paidAmount = payments.fold<double>(0, (sum, p) => sum + (p['amount'] as num).toDouble());
+    final paidAmount = payments.fold<double>(0, (sum, p) => sum + safeDouble(p, 'amount'));
 
     // Get appeal if exists
     final appeals = await _db.client.select(
@@ -382,7 +383,7 @@ class FineService {
         );
 
         if (fineResult.isNotEmpty) {
-          final currentAmount = (fineResult.first['amount'] as num).toDouble();
+          final currentAmount = safeDouble(fineResult.first, 'amount');
           await _db.client.update(
             'fines',
             {
@@ -414,7 +415,7 @@ class FineService {
 
     if (fines.isEmpty) return [];
 
-    final fineIds = fines.map((f) => f['id'] as String).toList();
+    final fineIds = fines.map((f) => safeString(f, 'id')).toList();
 
     // Get pending appeals for these fines
     final appeals = await _db.client.select(
@@ -452,7 +453,7 @@ class FineService {
     );
 
     if (fineResult.isNotEmpty) {
-      final fineAmount = (fineResult.first['amount'] as num).toDouble();
+      final fineAmount = safeDouble(fineResult.first, 'amount');
 
       // Get total paid
       final payments = await _db.client.select(
@@ -461,7 +462,7 @@ class FineService {
         filters: {'fine_id': 'eq.$fineId'},
       );
 
-      final paidAmount = payments.fold<double>(0, (sum, p) => sum + (p['amount'] as num).toDouble());
+      final paidAmount = payments.fold<double>(0, (sum, p) => sum + safeDouble(p, 'amount'));
 
       if (paidAmount >= fineAmount) {
         await _db.client.update(
@@ -489,8 +490,8 @@ class FineService {
     double totalPending = 0;
 
     for (final f in fines) {
-      final status = f['status'] as String?;
-      final amount = (f['amount'] as num).toDouble();
+      final status = safeStringNullable(f, 'status');
+      final amount = safeDouble(f, 'amount');
 
       if (status == 'pending' || status == 'appealed') {
         pendingCount++;
@@ -506,7 +507,7 @@ class FineService {
     }
 
     // Get total paid
-    final fineIds = fines.map((f) => f['id'] as String).toList();
+    final fineIds = fines.map((f) => safeString(f, 'id')).toList();
     double totalPaid = 0;
 
     if (fineIds.isNotEmpty) {
@@ -516,7 +517,7 @@ class FineService {
         filters: {'fine_id': 'in.(${fineIds.join(',')})'},
       );
 
-      totalPaid = payments.fold<double>(0, (sum, p) => sum + (p['amount'] as num).toDouble());
+      totalPaid = payments.fold<double>(0, (sum, p) => sum + safeDouble(p, 'amount'));
     }
 
     return TeamFinesSummary(
@@ -546,7 +547,7 @@ class FineService {
     );
 
     // Get all payments
-    final fineIds = fines.map((f) => f['id'] as String).toList();
+    final fineIds = fines.map((f) => safeString(f, 'id')).toList();
     final payments = fineIds.isNotEmpty
         ? await _db.client.select(
             'fine_payments',
@@ -558,8 +559,8 @@ class FineService {
     // Build payment totals per fine
     final paymentsByFine = <String, double>{};
     for (final p in payments) {
-      final fineId = p['fine_id'] as String;
-      paymentsByFine[fineId] = (paymentsByFine[fineId] ?? 0) + (p['amount'] as num).toDouble();
+      final fineId = safeString(p, 'fine_id');
+      paymentsByFine[fineId] = (paymentsByFine[fineId] ?? 0) + safeDouble(p, 'amount');
     }
 
     // Calculate per-user summaries
@@ -569,10 +570,10 @@ class FineService {
     }
 
     for (final f in fines) {
-      final offenderId = f['offender_id'] as String;
-      final status = f['status'] as String?;
-      final amount = (f['amount'] as num).toDouble();
-      final fineId = f['id'] as String;
+      final offenderId = safeString(f, 'offender_id');
+      final status = safeStringNullable(f, 'status');
+      final amount = safeDouble(f, 'amount');
+      final fineId = safeString(f, 'id');
 
       if (summaries.containsKey(offenderId)) {
         summaries[offenderId]!.fineCount++;
@@ -592,8 +593,8 @@ class FineService {
 
       results.add(UserFinesSummary(
         userId: userId,
-        userName: user['name'] as String? ?? '',
-        userAvatarUrl: user['avatar_url'] as String?,
+        userName: safeStringNullable(user, 'name') ?? '',
+        userAvatarUrl: safeStringNullable(user, 'avatar_url'),
         fineCount: data.fineCount,
         totalFines: data.totalFines,
         totalPaid: data.totalPaid,

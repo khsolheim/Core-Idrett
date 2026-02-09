@@ -3,6 +3,7 @@ import '../db/database.dart';
 import '../helpers/collection_helpers.dart';
 import '../models/activity.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class ActivityService {
   final Database _db;
@@ -121,7 +122,7 @@ class ActivityService {
     // Build all responses in memory, then batch insert
     final responses = <Map<String, dynamic>>[];
     for (final member in members) {
-      final userId = member['user_id'] as String;
+      final userId = safeString(member, 'user_id');
       for (final instanceId in instanceIds) {
         responses.add({
           'id': _uuid.v4(),
@@ -184,7 +185,7 @@ class ActivityService {
     if (activities.isEmpty) return [];
 
     // Get instance counts for each activity
-    final activityIds = activities.map((a) => a['id'] as String).toList();
+    final activityIds = activities.map((a) => safeString(a, 'id')).toList();
     final instances = await _db.client.select(
       'activity_instances',
       select: 'activity_id',
@@ -225,7 +226,7 @@ class ActivityService {
     final activityMap = <String, Map<String, dynamic>>{};
     final activityIds = <String>[];
     for (final a in activities) {
-      final id = a['id'] as String;
+      final id = safeString(a, 'id');
       activityMap[id] = a;
       activityIds.add(id);
     }
@@ -244,7 +245,7 @@ class ActivityService {
     );
 
     // Get instance IDs for response count lookup
-    final instanceIds = instances.map((i) => i['id'] as String).toList();
+    final instanceIds = instances.map((i) => safeString(i, 'id')).toList();
 
     // Get all responses for these instances
     final allResponses = instanceIds.isNotEmpty
@@ -259,8 +260,8 @@ class ActivityService {
     // Count responses per instance
     final responseCounts = <String, Map<String, int>>{};
     for (final r in allResponses) {
-      final iId = r['instance_id'] as String;
-      final resp = r['response'] as String?;
+      final iId = safeString(r, 'instance_id');
+      final resp = safeStringNullable(r, 'response');
       responseCounts[iId] ??= {'yes': 0, 'no': 0, 'maybe': 0};
       if (resp != null && responseCounts[iId]!.containsKey(resp)) {
         responseCounts[iId]![resp] = (responseCounts[iId]![resp] ?? 0) + 1;
@@ -269,7 +270,7 @@ class ActivityService {
 
     return instances.map((i) {
       final activity = activityMap[i['activity_id']] ?? {};
-      final iId = i['id'] as String;
+      final iId = safeString(i, 'id');
       final counts = responseCounts[iId] ?? {'yes': 0, 'no': 0, 'maybe': 0};
       // Use effective values (override if exists, otherwise activity value)
       final effectiveTitle = i['title_override'] ?? activity['title'];
@@ -330,7 +331,7 @@ class ActivityService {
     );
 
     // Get user info for responders
-    final userIds = responses.map((r) => r['user_id'] as String).toList();
+    final userIds = responses.map((r) => safeString(r, 'user_id')).toList();
     final userMap = await _userService.getUserMap(userIds);
 
     // Build response list with user info
@@ -425,7 +426,7 @@ class ActivityService {
       filters: {'id': 'eq.$activityId'},
     );
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 
   Future<void> deleteActivity(String activityId) async {
@@ -474,7 +475,7 @@ class ActivityService {
     final activityMap = <String, Map<String, dynamic>>{};
     final activityIds = <String>[];
     for (final a in activities) {
-      final id = a['id'] as String;
+      final id = safeString(a, 'id');
       activityMap[id] = a;
       activityIds.add(id);
     }
@@ -494,12 +495,12 @@ class ActivityService {
 
     // Filter by to date manually (since we need both gte and lte)
     final filteredInstances = instances.where((i) {
-      final date = i['date'] as String;
+      final date = safeString(i, 'date');
       return date.compareTo(toDate) <= 0;
     }).toList();
 
     // Get all responses for these instances in one query
-    final instanceIds = filteredInstances.map((i) => i['id'] as String).toList();
+    final instanceIds = filteredInstances.map((i) => safeString(i, 'id')).toList();
     final allResponses = instanceIds.isNotEmpty
         ? await _db.client.select(
             'activity_responses',
@@ -513,15 +514,15 @@ class ActivityService {
     final responseMap = <String, String?>{};
     for (final r in allResponses) {
       if (r['user_id'] == userId) {
-        responseMap[r['instance_id'] as String] = r['response'] as String?;
+        responseMap[safeString(r, 'instance_id')] = safeStringNullable(r, 'response');
       }
     }
 
     // Count responses per instance
     final responseCounts = <String, Map<String, int>>{};
     for (final r in allResponses) {
-      final iId = r['instance_id'] as String;
-      final resp = r['response'] as String?;
+      final iId = safeString(r, 'instance_id');
+      final resp = safeStringNullable(r, 'response');
       responseCounts[iId] ??= {'yes': 0, 'no': 0, 'maybe': 0};
       if (resp != null && responseCounts[iId]!.containsKey(resp)) {
         responseCounts[iId]![resp] = (responseCounts[iId]![resp] ?? 0) + 1;
@@ -530,7 +531,7 @@ class ActivityService {
 
     return filteredInstances.map((i) {
       final activity = activityMap[i['activity_id']] ?? {};
-      final iId = i['id'] as String;
+      final iId = safeString(i, 'id');
       final counts = responseCounts[iId] ?? {'yes': 0, 'no': 0, 'maybe': 0};
       // Use effective values
       final effectiveTitle = i['title_override'] ?? activity['title'];
@@ -571,6 +572,6 @@ class ActivityService {
       select: 'user_id',
       filters: {'team_id': 'eq.$teamId'},
     );
-    return members.map((m) => m['user_id'] as String).toList();
+    return members.map((m) => safeString(m, 'user_id')).toList();
   }
 }

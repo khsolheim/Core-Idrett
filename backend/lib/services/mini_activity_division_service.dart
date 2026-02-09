@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/mini_activity.dart';
+import '../helpers/parsing_helpers.dart';
 
 class MiniActivityDivisionService {
   final Database _db;
@@ -94,7 +95,7 @@ class MiniActivityDivisionService {
         select: 'id',
         filters: {'id': 'in.(${uniqueParticipantIds.join(',')})'},
       );
-      final existingUserIds = existingUsers.map((u) => u['id'] as String).toSet();
+      final existingUserIds = existingUsers.map((u) => safeString(u, 'id')).toSet();
       final invalidIds = uniqueParticipantIds.where((id) => !existingUserIds.contains(id)).toList();
 
       if (invalidIds.isNotEmpty) {
@@ -158,7 +159,7 @@ class MiniActivityDivisionService {
 
       final ratingMap = <String, double>{};
       for (final r in ratings) {
-        ratingMap[r['user_id'] as String] = (r['rating'] as num).toDouble();
+        ratingMap[safeString(r, 'user_id')] = safeDouble(r, 'rating');
       }
 
       for (final userId in uniqueParticipantIds) {
@@ -177,8 +178,8 @@ class MiniActivityDivisionService {
 
       final birthDateMap = <String, DateTime?>{};
       for (final u in users) {
-        final birthDateStr = u['birth_date'] as String?;
-        birthDateMap[u['id'] as String] = birthDateStr != null
+        final birthDateStr = safeStringNullable(u, 'birth_date');
+        birthDateMap[safeString(u, 'id')] = birthDateStr != null
             ? DateTime.tryParse(birthDateStr)
             : null;
       }
@@ -389,7 +390,7 @@ class MiniActivityDivisionService {
       );
 
       return MiniActivityHandicap(
-        id: existing.first['id'] as String,
+        id: safeString(existing.first, 'id'),
         miniActivityId: miniActivityId,
         userId: userId,
         handicapValue: handicapValue,

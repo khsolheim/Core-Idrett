@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/season.dart';
+import '../helpers/parsing_helpers.dart';
 
 class SeasonService {
   final Database _db;
@@ -205,6 +206,6 @@ class SeasonService {
     );
 
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 }

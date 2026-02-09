@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/mini_activity.dart';
+import '../helpers/parsing_helpers.dart';
 
 class MiniActivityTemplateService {
   final Database _db;
@@ -118,7 +119,7 @@ class MiniActivityTemplateService {
     );
 
     if (result.isEmpty) return;
-    final currentFavorite = result.first['is_favorite'] as bool? ?? false;
+    final currentFavorite = safeBool(result.first, 'is_favorite', defaultValue: false);
 
     await _db.client.update(
       'activity_templates',
@@ -134,7 +135,7 @@ class MiniActivityTemplateService {
       filters: {'id': 'eq.$templateId'},
     );
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 
   Future<void> deleteTemplate(String templateId) async {

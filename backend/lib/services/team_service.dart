@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/team.dart';
+import '../helpers/parsing_helpers.dart';
 
 class TeamService {
   final Database _db;
@@ -38,7 +39,7 @@ class TeamService {
     if (memberships.isEmpty) return [];
 
     // Get team IDs
-    final teamIds = memberships.map((m) => m['team_id'] as String).toList();
+    final teamIds = memberships.map((m) => safeString(m, 'team_id')).toList();
 
     // Get teams
     final teams = await _db.client.select(
@@ -50,7 +51,7 @@ class TeamService {
     // Get trainer types for members who have one
     final trainerTypeIds = memberships
         .where((m) => m['trainer_type_id'] != null)
-        .map((m) => m['trainer_type_id'] as String)
+        .map((m) => safeString(m, 'trainer_type_id'))
         .toList();
 
     Map<String, Map<String, dynamic>> trainerTypeMap = {};
@@ -60,19 +61,19 @@ class TeamService {
         filters: {'id': 'in.(${trainerTypeIds.join(',')})'},
       );
       for (final tt in trainerTypes) {
-        trainerTypeMap[tt['id'] as String] = tt;
+        trainerTypeMap[safeString(tt, 'id')] = tt;
       }
     }
 
     // Create lookup for membership data
     final membershipMap = <String, Map<String, dynamic>>{};
     for (final m in memberships) {
-      membershipMap[m['team_id'] as String] = m;
+      membershipMap[safeString(m, 'team_id')] = m;
     }
 
     return teams.map((t) {
       final membership = membershipMap[t['id']] ?? {};
-      final trainerTypeId = membership['trainer_type_id'] as String?;
+      final trainerTypeId = safeStringNullable(membership, 'trainer_type_id');
       final trainerType = trainerTypeId != null ? trainerTypeMap[trainerTypeId] : null;
 
       return {
@@ -143,11 +144,11 @@ class TeamService {
 
     final row = result.first;
     return Team(
-      id: row['id'] as String,
-      name: row['name'] as String,
-      sport: row['sport'] as String?,
-      inviteCode: row['invite_code'] as String,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      name: safeString(row, 'name'),
+      sport: safeStringNullable(row, 'sport'),
+      inviteCode: safeString(row, 'invite_code'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 
@@ -177,7 +178,7 @@ class TeamService {
 
     // Get trainer type if present
     Map<String, dynamic>? trainerType;
-    final trainerTypeId = memberData['trainer_type_id'] as String?;
+    final trainerTypeId = safeStringNullable(memberData, 'trainer_type_id');
     if (trainerTypeId != null) {
       final trainerTypes = await _db.client.select(
         'trainer_types',
@@ -221,7 +222,7 @@ class TeamService {
     if (memberships.isEmpty) return [];
 
     // Get user IDs
-    final userIds = memberships.map((m) => m['user_id'] as String).toList();
+    final userIds = memberships.map((m) => safeString(m, 'user_id')).toList();
 
     // Get users (including birth_date for age-based features)
     final users = await _db.client.select(
@@ -240,17 +241,17 @@ class TeamService {
     // Create lookups
     final userMap = <String, Map<String, dynamic>>{};
     for (final u in users) {
-      userMap[u['id'] as String] = u;
+      userMap[safeString(u, 'id')] = u;
     }
 
     final trainerTypeMap = <String, Map<String, dynamic>>{};
     for (final tt in trainerTypes) {
-      trainerTypeMap[tt['id'] as String] = tt;
+      trainerTypeMap[safeString(tt, 'id')] = tt;
     }
 
     return memberships.map((m) {
       final user = userMap[m['user_id']] ?? {};
-      final trainerTypeId = m['trainer_type_id'] as String?;
+      final trainerTypeId = safeStringNullable(m, 'trainer_type_id');
       final trainerType = trainerTypeId != null ? trainerTypeMap[trainerTypeId] : null;
 
       return {
@@ -394,7 +395,7 @@ class TeamService {
       select: 'user_id',
       filters: filters,
     );
-    return members.map((m) => m['user_id'] as String).toList();
+    return members.map((m) => safeString(m, 'user_id')).toList();
   }
 
 }

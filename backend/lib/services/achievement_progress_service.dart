@@ -3,6 +3,7 @@ import '../db/database.dart';
 import '../models/achievement.dart';
 import 'achievement_definition_service.dart';
 import 'achievement_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for tracking achievement progress and checking/awarding achievements
 class AchievementProgressService {
@@ -76,7 +77,7 @@ class AchievementProgressService {
           (currentValue / targetValue * 100).clamp(0.0, 100.0);
 
       return AchievementProgress(
-        id: existing.first['id'] as String,
+        id: safeString(existing.first, 'id'),
         userId: userId,
         achievementId: achievementId,
         teamId: teamId,
@@ -246,7 +247,7 @@ class AchievementProgressService {
         },
       );
       if (entries.isNotEmpty) {
-        totalPoints = entries.first['points'] as int? ?? 0;
+        totalPoints = safeInt(entries.first, 'points', defaultValue: 0);
       }
     }
 
@@ -287,11 +288,11 @@ class AchievementProgressService {
   ) {
     switch (criteria.type) {
       case AchievementCriteriaType.attendanceStreak:
-        final currentStreak = stats['current_attendance_streak'] as int? ?? 0;
+        final currentStreak = safeInt(stats, 'current_attendance_streak', defaultValue: 0);
         return currentStreak >= (criteria.threshold ?? 0);
 
       case AchievementCriteriaType.totalPoints:
-        final points = stats['total_points'] as int? ?? 0;
+        final points = safeInt(stats, 'total_points', defaultValue: 0);
         return points >= (criteria.threshold ?? 0);
 
       case AchievementCriteriaType.attendanceRate:
@@ -299,23 +300,23 @@ class AchievementProgressService {
         return rate >= (criteria.threshold ?? 0);
 
       case AchievementCriteriaType.miniActivityWins:
-        final wins = stats['total_wins'] as int? ?? 0;
+        final wins = safeInt(stats, 'total_wins', defaultValue: 0);
         return wins >= (criteria.threshold ?? 0);
 
       case AchievementCriteriaType.firstPlaceCount:
-        final count = stats['first_place_count'] as int? ?? 0;
+        final count = safeInt(stats, 'first_place_count', defaultValue: 0);
         return count >= (criteria.threshold ?? 0);
 
       case AchievementCriteriaType.socialAttendance:
-        final attended = stats['social_attended'] as int? ?? 0;
+        final attended = safeInt(stats, 'social_attended', defaultValue: 0);
         return attended >= (criteria.threshold ?? 0);
 
       case AchievementCriteriaType.firstAttendance:
-        final total = stats['total_attended'] as int? ?? 0;
+        final total = safeInt(stats, 'total_attended', defaultValue: 0);
         return total >= 1;
 
       case AchievementCriteriaType.totalAttendance:
-        final total = stats['total_attended'] as int? ?? 0;
+        final total = safeInt(stats, 'total_attended', defaultValue: 0);
         return total >= (criteria.threshold ?? 0);
     }
   }
@@ -327,21 +328,21 @@ class AchievementProgressService {
   ) {
     switch (criteria.type) {
       case AchievementCriteriaType.attendanceStreak:
-        return stats['current_attendance_streak'] as int?;
+        return safeIntNullable(stats, 'current_attendance_streak');
       case AchievementCriteriaType.totalPoints:
-        return stats['total_points'] as int?;
+        return safeIntNullable(stats, 'total_points');
       case AchievementCriteriaType.attendanceRate:
         return (stats['attendance_rate'] as num?)?.toInt();
       case AchievementCriteriaType.miniActivityWins:
-        return stats['total_wins'] as int?;
+        return safeIntNullable(stats, 'total_wins');
       case AchievementCriteriaType.firstPlaceCount:
-        return stats['first_place_count'] as int?;
+        return safeIntNullable(stats, 'first_place_count');
       case AchievementCriteriaType.socialAttendance:
-        return stats['social_attended'] as int?;
+        return safeIntNullable(stats, 'social_attended');
       case AchievementCriteriaType.totalAttendance:
-        return stats['total_attended'] as int?;
+        return safeIntNullable(stats, 'total_attended');
       case AchievementCriteriaType.firstAttendance:
-        return (stats['total_attended'] as int? ?? 0) >= 1 ? 1 : 0;
+        return (safeInt(stats, 'total_attended', defaultValue: 0)) >= 1 ? 1 : 0;
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for direct messages (send, get, edit, delete DMs)
 class DirectMessageService {
@@ -37,7 +38,7 @@ class DirectMessageService {
     // Get reply-to messages if any
     final replyIds = filteredMessages
         .where((m) => m['reply_to_id'] != null)
-        .map((m) => m['reply_to_id'] as String)
+        .map((m) => safeString(m, 'reply_to_id'))
         .toSet()
         .toList();
 
@@ -49,7 +50,7 @@ class DirectMessageService {
       );
       for (final r in replies) {
         final user = userMap[r['user_id']] ?? {};
-        replyMap[r['id'] as String] = {
+        replyMap[safeString(r, 'id')] = {
           ...r,
           'user_name': user['name'],
           'user_avatar_url': user['avatar_url'],
@@ -175,7 +176,7 @@ class DirectMessageService {
     );
 
     final lastReadAt = reads.isNotEmpty
-        ? DateTime.parse(reads.first['last_read_at'] as String)
+        ? requireDateTime(reads.first, 'last_read_at')
         : DateTime(1970);
 
     // Get all messages from the recipient to this user
@@ -191,7 +192,7 @@ class DirectMessageService {
 
     // Count messages after last read
     return messages.where((m) {
-      final createdAt = DateTime.parse(m['created_at'] as String);
+      final createdAt = requireDateTime(m, 'created_at');
       return createdAt.isAfter(lastReadAt);
     }).length;
   }

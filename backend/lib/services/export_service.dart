@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/export_log.dart';
+import '../helpers/parsing_helpers.dart';
 
 class ExportService {
   final Database _db;
@@ -36,7 +37,7 @@ class ExportService {
     }
 
     // Get user details
-    final userIds = entries.map((e) => e['user_id'] as String).toSet().toList();
+    final userIds = entries.map((e) => safeString(e, 'user_id')).toSet().toList();
     final users = await _db.client.select(
       'users',
       select: 'id,name',
@@ -45,7 +46,7 @@ class ExportService {
 
     final userMap = <String, String>{};
     for (final u in users) {
-      userMap[u['id'] as String] = u['name'] as String;
+      userMap[safeString(u, 'id')] = safeString(u, 'name');
     }
 
     final data = <Map<String, dynamic>>[];
@@ -92,7 +93,7 @@ class ExportService {
     }
 
     // Get user details
-    final userIds = members.map((m) => m['user_id'] as String).toList();
+    final userIds = members.map((m) => safeString(m, 'user_id')).toList();
     final users = await _db.client.select(
       'users',
       select: 'id,name',
@@ -101,7 +102,7 @@ class ExportService {
 
     final userMap = <String, String>{};
     for (final u in users) {
-      userMap[u['id'] as String] = u['name'] as String;
+      userMap[safeString(u, 'id')] = safeString(u, 'name');
     }
 
     // Get activities
@@ -136,7 +137,7 @@ class ExportService {
     }
 
     // Get participation data
-    final activityIds = activities.map((a) => a['id'] as String).toList();
+    final activityIds = activities.map((a) => safeString(a, 'id')).toList();
     final participants = await _db.client.select(
       'activity_participants',
       filters: {'instance_id': 'in.(${activityIds.join(',')})'},
@@ -149,8 +150,8 @@ class ExportService {
     }
 
     for (final p in participants) {
-      final userId = p['user_id'] as String;
-      final status = p['status'] as String?;
+      final userId = safeString(p, 'user_id');
+      final status = safeStringNullable(p, 'status');
       if (attendanceData.containsKey(userId) && status != null) {
         attendanceData[userId]![status] = (attendanceData[userId]![status] ?? 0) + 1;
       }
@@ -176,7 +177,7 @@ class ExportService {
     }).toList();
 
     // Sort by attendance rate descending
-    data.sort((a, b) => (b['attendance_rate'] as int).compareTo(a['attendance_rate'] as int));
+    data.sort((a, b) => (safeInt(b, 'attendance_rate')).compareTo(safeInt(a, 'attendance_rate')));
 
     return {
       'type': 'attendance',
@@ -225,7 +226,7 @@ class ExportService {
     }
 
     // Get user details
-    final userIds = fines.map((f) => f['user_id'] as String).toSet().toList();
+    final userIds = fines.map((f) => safeString(f, 'user_id')).toSet().toList();
     final users = await _db.client.select(
       'users',
       select: 'id,name',
@@ -234,13 +235,13 @@ class ExportService {
 
     final userMap = <String, String>{};
     for (final u in users) {
-      userMap[u['id'] as String] = u['name'] as String;
+      userMap[safeString(u, 'id')] = safeString(u, 'name');
     }
 
     // Get fine rules
     final ruleIds = fines
         .where((f) => f['rule_id'] != null)
-        .map((f) => f['rule_id'] as String)
+        .map((f) => safeString(f, 'rule_id'))
         .toSet()
         .toList();
 
@@ -252,7 +253,7 @@ class ExportService {
         filters: {'id': 'in.(${ruleIds.join(',')})'},
       );
       for (final r in rules) {
-        ruleMap[r['id'] as String] = r['name'] as String;
+        ruleMap[safeString(r, 'id')] = safeString(r, 'name');
       }
     }
 
@@ -310,7 +311,7 @@ class ExportService {
     }
 
     // Get user details
-    final userIds = members.map((m) => m['user_id'] as String).toList();
+    final userIds = members.map((m) => safeString(m, 'user_id')).toList();
     final users = await _db.client.select(
       'users',
       select: 'id,name,email,birth_date',
@@ -319,13 +320,13 @@ class ExportService {
 
     final userMap = <String, Map<String, dynamic>>{};
     for (final u in users) {
-      userMap[u['id'] as String] = u;
+      userMap[safeString(u, 'id')] = u;
     }
 
     // Get trainer types
     final trainerTypeIds = members
         .where((m) => m['trainer_type_id'] != null)
-        .map((m) => m['trainer_type_id'] as String)
+        .map((m) => safeString(m, 'trainer_type_id'))
         .toSet()
         .toList();
 
@@ -337,7 +338,7 @@ class ExportService {
         filters: {'id': 'in.(${trainerTypeIds.join(',')})'},
       );
       for (final tt in trainerTypes) {
-        trainerTypeMap[tt['id'] as String] = tt['name'] as String;
+        trainerTypeMap[safeString(tt, 'id')] = safeString(tt, 'name');
       }
     }
 
@@ -362,7 +363,7 @@ class ExportService {
     }).toList();
 
     // Sort by name
-    data.sort((a, b) => ((a['name'] as String?) ?? '').compareTo((b['name'] as String?) ?? ''));
+    data.sort((a, b) => ((safeStringNullable(a, 'name')) ?? '').compareTo((safeStringNullable(b, 'name')) ?? ''));
 
     return {
       'type': 'members',
@@ -403,7 +404,7 @@ class ExportService {
     // Get template details
     final templateIds = activities
         .where((a) => a['template_id'] != null)
-        .map((a) => a['template_id'] as String)
+        .map((a) => safeString(a, 'template_id'))
         .toSet()
         .toList();
 
@@ -415,12 +416,12 @@ class ExportService {
         filters: {'id': 'in.(${templateIds.join(',')})'},
       );
       for (final t in templates) {
-        templateMap[t['id'] as String] = t;
+        templateMap[safeString(t, 'id')] = t;
       }
     }
 
     // Get participant counts
-    final activityIds = activities.map((a) => a['id'] as String).toList();
+    final activityIds = activities.map((a) => safeString(a, 'id')).toList();
     final participants = await _db.client.select(
       'activity_participants',
       select: 'instance_id,status',
@@ -430,7 +431,7 @@ class ExportService {
     final attendingCounts = <String, int>{};
     for (final p in participants) {
       if (p['status'] == 'attending') {
-        final instanceId = p['instance_id'] as String;
+        final instanceId = safeString(p, 'instance_id');
         attendingCounts[instanceId] = (attendingCounts[instanceId] ?? 0) + 1;
       }
     }
@@ -520,7 +521,7 @@ class ExportService {
     if (logs.isEmpty) return [];
 
     // Get user names
-    final userIds = logs.map((l) => l['user_id'] as String).toSet().toList();
+    final userIds = logs.map((l) => safeString(l, 'user_id')).toSet().toList();
     final users = await _db.client.select(
       'users',
       select: 'id,name',
@@ -529,7 +530,7 @@ class ExportService {
 
     final userMap = <String, String>{};
     for (final u in users) {
-      userMap[u['id'] as String] = u['name'] as String;
+      userMap[safeString(u, 'id')] = safeString(u, 'name');
     }
 
     return logs.map((l) => ExportLog.fromMap({

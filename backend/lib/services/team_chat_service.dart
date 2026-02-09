@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for team chat messages (send, get, edit, delete)
 class TeamChatService {
@@ -38,13 +39,13 @@ class TeamChatService {
     final filteredMessages = messages;
 
     // Get user info
-    final userIds = filteredMessages.map((m) => m['user_id'] as String).toSet().toList();
+    final userIds = filteredMessages.map((m) => safeString(m, 'user_id')).toSet().toList();
     final userMap = await _userService.getUserMap(userIds);
 
     // Get reply-to messages if any
     final replyIds = filteredMessages
         .where((m) => m['reply_to_id'] != null)
-        .map((m) => m['reply_to_id'] as String)
+        .map((m) => safeString(m, 'reply_to_id'))
         .toSet()
         .toList();
 
@@ -56,7 +57,7 @@ class TeamChatService {
       );
       for (final r in replies) {
         final user = userMap[r['user_id']] ?? {};
-        replyMap[r['id'] as String] = {
+        replyMap[safeString(r, 'id')] = {
           ...r,
           'user_name': user['name'],
           'user_avatar_url': user['avatar_url'],

@@ -4,6 +4,7 @@ import '../models/mini_activity.dart';
 import '../models/mini_activity_statistics.dart';
 import 'leaderboard_service.dart';
 import 'season_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class MiniActivityResultService {
   final Database _db;
@@ -106,19 +107,19 @@ class MiniActivityResultService {
 
     if (miniResult.isEmpty) return;
     final miniActivity = miniResult.first;
-    final miniActivityName = miniActivity['name'] as String? ?? 'Mini-aktivitet';
+    final miniActivityName = safeStringNullable(miniActivity, 'name') ?? 'Mini-aktivitet';
 
     // Use activity-specific point values if set
-    int winPoints = miniActivity['win_points'] as int? ?? 3;
-    int drawPoints = miniActivity['draw_points'] as int? ?? 1;
-    int lossPoints = miniActivity['loss_points'] as int? ?? 0;
+    int winPoints = safeInt(miniActivity, 'win_points', defaultValue: 3);
+    int drawPoints = safeInt(miniActivity, 'draw_points', defaultValue: 1);
+    int lossPoints = safeInt(miniActivity, 'loss_points', defaultValue: 0);
 
     // Resolve teamId: directly from mini-activity, or via instance -> activity chain
     String? teamId;
     if (miniActivity['team_id'] != null) {
-      teamId = miniActivity['team_id'] as String;
+      teamId = safeString(miniActivity, 'team_id');
     } else if (miniActivity['instance_id'] != null) {
-      teamId = await _resolveTeamIdFromInstance(miniActivity['instance_id'] as String);
+      teamId = await _resolveTeamIdFromInstance(safeString(miniActivity, 'instance_id'));
     }
 
     // If we have a teamId, try team settings for default point values
@@ -157,12 +158,12 @@ class MiniActivityResultService {
     final teamsWithScores = teamsResult.where((t) => t['final_score'] != null).toList();
     if (teamsWithScores.isEmpty) return;
 
-    final highestScore = teamsWithScores.first['final_score'] as int;
-    final lowestScore = teamsWithScores.last['final_score'] as int;
+    final highestScore = safeInt(teamsWithScores.first, 'final_score');
+    final lowestScore = safeInt(teamsWithScores.last, 'final_score');
 
     for (final team in teamsWithScores) {
-      final score = team['final_score'] as int;
-      final teamDbId = team['id'] as String;
+      final score = safeInt(team, 'final_score');
+      final teamDbId = safeString(team, 'id');
 
       int pointsToAward;
       String resultDescription;
@@ -188,10 +189,10 @@ class MiniActivityResultService {
       );
 
       for (final p in teamParticipants) {
-        final userId = p['user_id'] as String;
+        final userId = safeString(p, 'user_id');
 
         // Update mini-activity participant points
-        final currentPoints = (p['points'] as int?) ?? 0;
+        final currentPoints = (safeIntNullable(p, 'points')) ?? 0;
         await _db.client.update(
           'mini_activity_participants',
           {'points': currentPoints + pointsToAward},
@@ -245,10 +246,10 @@ class MiniActivityResultService {
     if (miniResult.isEmpty) return;
 
     final miniActivity = miniResult.first;
-    final winPoints = miniActivity['win_points'] as int? ?? 3;
-    final drawPoints = miniActivity['draw_points'] as int? ?? 1;
-    final lossPoints = miniActivity['loss_points'] as int? ?? 0;
-    final miniActivityName = miniActivity['name'] as String? ?? 'Mini-aktivitet';
+    final winPoints = safeInt(miniActivity, 'win_points', defaultValue: 3);
+    final drawPoints = safeInt(miniActivity, 'draw_points', defaultValue: 1);
+    final lossPoints = safeInt(miniActivity, 'loss_points', defaultValue: 0);
+    final miniActivityName = safeStringNullable(miniActivity, 'name') ?? 'Mini-aktivitet';
 
     // Get all teams
     final teams = await _db.client.select(
@@ -290,7 +291,7 @@ class MiniActivityResultService {
       }
 
       for (final team in teams) {
-        final teamDbId = team['id'] as String;
+        final teamDbId = safeString(team, 'id');
         final isWinner = teamDbId == winnerTeamId;
         final isDraw = winnerTeamId == null;
 
@@ -314,10 +315,10 @@ class MiniActivityResultService {
         );
 
         for (final p in teamParticipants) {
-          final userId = p['user_id'] as String;
+          final userId = safeString(p, 'user_id');
 
           // Update mini-activity participant points
-          final currentPoints = (p['points'] as int?) ?? 0;
+          final currentPoints = (safeIntNullable(p, 'points')) ?? 0;
           await _db.client.update(
             'mini_activity_participants',
             {'points': currentPoints + pointsToAward},
@@ -358,7 +359,7 @@ class MiniActivityResultService {
     );
 
     if (instanceResult.isEmpty) return null;
-    final activityId = instanceResult.first['activity_id'] as String;
+    final activityId = safeString(instanceResult.first, 'activity_id');
 
     final activityResult = await _db.client.select(
       'activities',
@@ -367,7 +368,7 @@ class MiniActivityResultService {
     );
 
     if (activityResult.isEmpty) return null;
-    return activityResult.first['team_id'] as String?;
+    return safeStringNullable(activityResult.first, 'team_id');
   }
 
   /// Get team_id for a mini-activity (looks up via team_id field or instance chain)
@@ -383,11 +384,11 @@ class MiniActivityResultService {
 
     // First check if team_id is set directly (standalone mini-activity)
     if (miniActivity['team_id'] != null) {
-      return miniActivity['team_id'] as String;
+      return safeString(miniActivity, 'team_id');
     }
 
     // Otherwise, look up through instance -> activity -> team
-    final instanceId = miniActivity['instance_id'] as String?;
+    final instanceId = safeStringNullable(miniActivity, 'instance_id');
     if (instanceId == null) return null;
 
     return _resolveTeamIdFromInstance(instanceId);

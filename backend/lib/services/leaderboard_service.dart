@@ -4,6 +4,7 @@ import '../models/season.dart';
 import '../models/mini_activity_statistics.dart';
 import 'leaderboard_entry_service.dart';
 import 'team_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class LeaderboardService {
   final Database _db;
@@ -254,7 +255,7 @@ class LeaderboardService {
     );
 
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 
   // ============ CATEGORY-BASED LEADERBOARDS ============
@@ -382,7 +383,7 @@ class LeaderboardService {
       offset: offset,
     );
 
-    final userIds = result.map((r) => r['user_id'] as String).toSet().toList();
+    final userIds = result.map((r) => safeString(r, 'user_id')).toSet().toList();
     final users = await _db.client.select(
       'users',
       select: 'id,avatar_url',
@@ -390,22 +391,22 @@ class LeaderboardService {
     );
     final avatarMap = <String, String?>{};
     for (final u in users) {
-      avatarMap[u['id'] as String] = u['avatar_url'] as String?;
+      avatarMap[safeString(u, 'id')] = safeStringNullable(u, 'avatar_url');
     }
 
     return result.map((row) {
       return LeaderboardEntry(
-        id: row['user_id'] as String,
+        id: safeString(row, 'user_id'),
         leaderboardId: leaderboard!.id,
-        userId: row['user_id'] as String,
-        points: row['points'] as int? ?? 0,
+        userId: safeString(row, 'user_id'),
+        points: safeInt(row, 'points', defaultValue: 0),
         updatedAt: DateTime.now(),
-        userName: row['user_name'] as String?,
-        userAvatarUrl: avatarMap[row['user_id'] as String],
-        rank: row['rank'] as int?,
+        userName: safeStringNullable(row, 'user_name'),
+        userAvatarUrl: avatarMap[safeString(row, 'user_id')],
+        rank: safeIntNullable(row, 'rank'),
         attendanceRate: (row['attendance_rate'] as num?)?.toDouble(),
-        currentStreak: row['current_streak'] as int?,
-        optedOut: row['leaderboard_opt_out'] as bool?,
+        currentStreak: safeIntNullable(row, 'current_streak'),
+        optedOut: safeBoolNullable(row, 'leaderboard_opt_out'),
       );
     }).toList();
   }
@@ -441,16 +442,16 @@ class LeaderboardService {
 
     final row = result.first;
     return LeaderboardEntry(
-      id: row['user_id'] as String,
+      id: safeString(row, 'user_id'),
       leaderboardId: leaderboard.id,
-      userId: row['user_id'] as String,
-      points: row['points'] as int? ?? 0,
+      userId: safeString(row, 'user_id'),
+      points: safeInt(row, 'points', defaultValue: 0),
       updatedAt: DateTime.now(),
-      userName: row['user_name'] as String?,
-      rank: row['rank'] as int?,
+      userName: safeStringNullable(row, 'user_name'),
+      rank: safeIntNullable(row, 'rank'),
       attendanceRate: (row['attendance_rate'] as num?)?.toDouble(),
-      currentStreak: row['current_streak'] as int?,
-      optedOut: row['leaderboard_opt_out'] as bool?,
+      currentStreak: safeIntNullable(row, 'current_streak'),
+      optedOut: safeBoolNullable(row, 'leaderboard_opt_out'),
     );
   }
 
@@ -484,7 +485,7 @@ class LeaderboardService {
 
     final trendMap = <String, Map<String, dynamic>>{};
     for (final t in trends) {
-      trendMap[t['user_id'] as String] = t;
+      trendMap[safeString(t, 'user_id')] = t;
     }
 
     return entries.map((entry) {
@@ -503,7 +504,7 @@ class LeaderboardService {
         attendanceRate: entry.attendanceRate,
         currentStreak: entry.currentStreak,
         optedOut: entry.optedOut,
-        trend: trend['trend'] as String?,
+        trend: safeStringNullable(trend, 'trend'),
         rankChange: (trend['point_change'] as num?)?.toInt(),
       );
     }).toList();
@@ -633,9 +634,9 @@ class LeaderboardService {
     // Build lookup: leaderboardId -> userId -> points
     final entryLookup = <String, Map<String, int>>{};
     for (final e in allEntries) {
-      final lbId = e['leaderboard_id'] as String;
-      final uId = e['user_id'] as String;
-      final pts = e['points'] as int? ?? 0;
+      final lbId = safeString(e, 'leaderboard_id');
+      final uId = safeString(e, 'user_id');
+      final pts = safeInt(e, 'points', defaultValue: 0);
       entryLookup.putIfAbsent(lbId, () => {})[uId] = pts;
     }
 

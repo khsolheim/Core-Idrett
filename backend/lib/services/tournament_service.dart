@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/tournament.dart';
 import 'tournament_group_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class TournamentService {
   final Database _db;
@@ -74,7 +75,7 @@ class TournamentService {
       filters: {'id': 'eq.${tournament.miniActivityId}'},
     );
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 
   /// Get the team_id for a mini_activity.
@@ -85,7 +86,7 @@ class TournamentService {
       filters: {'id': 'eq.$miniActivityId'},
     );
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 
   Future<void> updateTournamentStatus(String tournamentId, TournamentStatus status) async {
@@ -264,8 +265,8 @@ class TournamentService {
 
     await recordMatchResult(
       matchId: matchId,
-      teamAScore: match['team_a_score'] as int? ?? 0,
-      teamBScore: match['team_b_score'] as int? ?? 0,
+      teamAScore: safeInt(match, 'team_a_score', defaultValue: 0),
+      teamBScore: safeInt(match, 'team_b_score', defaultValue: 0),
       winnerId: winnerId,
     );
 

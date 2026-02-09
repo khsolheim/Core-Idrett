@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/achievement.dart';
 import 'achievement_definition_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for user achievement queries, awarding, and team stats
 class AchievementService {
@@ -185,7 +186,7 @@ class AchievementService {
     };
 
     for (final row in result) {
-      final tier = row['tier'] as String? ?? 'bronze';
+      final tier = safeStringNullable(row, 'tier') ?? 'bronze';
       counts[tier] = (counts[tier] ?? 0) + 1;
       counts['total'] = (counts['total'] ?? 0) + 1;
     }

@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/mini_activity_statistics.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class MiniActivityStatisticsService {
   final Database _db;
@@ -422,7 +423,7 @@ class MiniActivityStatisticsService {
     List<LeaderboardPointSource> pointSources = [];
     if (leaderboardResult.isNotEmpty) {
       pointSources = await getPointSourcesForEntry(
-        leaderboardResult.first['id'] as String,
+        safeString(leaderboardResult.first, 'id'),
       );
     }
 
@@ -483,11 +484,11 @@ class MiniActivityStatisticsService {
     required List<Map<String, dynamic>> results, // [{userId, placement, points, teamName, teammates, wasWinner}]
   }) async {
     for (final result in results) {
-      final userId = result['user_id'] as String;
-      final placement = result['placement'] as int?;
-      final points = result['points'] as int? ?? 0;
-      final wasWinner = result['was_winner'] as bool? ?? false;
-      final teamName = result['team_name'] as String?;
+      final userId = safeString(result, 'user_id');
+      final placement = safeIntNullable(result, 'placement');
+      final points = safeInt(result, 'points', defaultValue: 0);
+      final wasWinner = safeBool(result, 'was_winner', defaultValue: false);
+      final teamName = safeStringNullable(result, 'team_name');
       final teammates = result['teammates'] as List<Map<String, dynamic>>?;
 
       // Update player stats
@@ -519,13 +520,13 @@ class MiniActivityStatisticsService {
       final result1 = results[0];
       final result2 = results[1];
 
-      final winner1 = result1['was_winner'] as bool? ?? false;
-      final winner2 = result2['was_winner'] as bool? ?? false;
+      final winner1 = safeBool(result1, 'was_winner', defaultValue: false);
+      final winner2 = safeBool(result2, 'was_winner', defaultValue: false);
 
       await recordHeadToHeadResult(
         teamId: teamId,
-        winnerId: winner1 ? result1['user_id'] as String : result2['user_id'] as String,
-        loserId: winner1 ? result2['user_id'] as String : result1['user_id'] as String,
+        winnerId: winner1 ? safeString(result1, 'user_id') : safeString(result2, 'user_id'),
+        loserId: winner1 ? safeString(result2, 'user_id') : safeString(result1, 'user_id'),
         isDraw: !winner1 && !winner2,
       );
     }

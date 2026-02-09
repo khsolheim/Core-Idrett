@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/notification.dart';
+import '../helpers/parsing_helpers.dart';
 
 class NotificationService {
   final Database _db;
@@ -199,15 +200,15 @@ class NotificationService {
       );
 
       final teamOptedOutIds =
-          teamOptedOut.map((r) => r['user_id'] as String).toSet();
+          teamOptedOut.map((r) => safeString(r, 'user_id')).toSet();
 
       // Combine preferences: team settings override global
       final enabledUsers = <String>{};
       for (final r in teamPrefs) {
-        enabledUsers.add(r['user_id'] as String);
+        enabledUsers.add(safeString(r, 'user_id'));
       }
       for (final r in globalPrefs) {
-        final userId = r['user_id'] as String;
+        final userId = safeString(r, 'user_id');
         if (!teamOptedOutIds.contains(userId)) {
           enabledUsers.add(userId);
         }
@@ -221,7 +222,7 @@ class NotificationService {
         select: 'user_id',
         filters: {...filters, 'team_id': 'is.null'},
       );
-      return result.map((r) => r['user_id'] as String).toList();
+      return result.map((r) => safeString(r, 'user_id')).toList();
     }
   }
 
@@ -280,8 +281,8 @@ class NotificationService {
         final result = jsonDecode(response.body);
         return FcmSendResult(
           success: true,
-          successCount: result['success'] as int? ?? 0,
-          failureCount: result['failure'] as int? ?? 0,
+          successCount: safeInt(result, 'success', defaultValue: 0),
+          failureCount: safeInt(result, 'failure', defaultValue: 0),
         );
       } else {
         return FcmSendResult(

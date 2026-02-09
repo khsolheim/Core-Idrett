@@ -1,5 +1,6 @@
 import '../db/database.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class DashboardService {
   final Database _db;
@@ -29,7 +30,7 @@ class DashboardService {
 
       if (instances.isNotEmpty) {
         final instance = instances.first;
-        final activity = instance['activities'] as Map<String, dynamic>?;
+        final activity = safeMapNullable(instance, 'activities');
 
         // Build the response with activity details
         nextActivity = {
@@ -62,7 +63,7 @@ class DashboardService {
 
       if (entries.isNotEmpty) {
         // Get user details
-        final userIds = entries.map((e) => e['user_id'] as String).toList();
+        final userIds = entries.map((e) => safeString(e, 'user_id')).toList();
         final userMap = await _userService.getUserMap(userIds);
 
         int rank = 1;
@@ -98,7 +99,7 @@ class DashboardService {
 
       String? lastReadAt;
       if (lastRead.isNotEmpty) {
-        lastReadAt = lastRead.first['last_read_at'] as String?;
+        lastReadAt = safeStringNullable(lastRead.first, 'last_read_at');
       }
 
       // Count messages after last read

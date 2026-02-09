@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/test.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class TestService {
   final Database _db;
@@ -114,7 +115,7 @@ class TestService {
     );
 
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 
   // ============ TEST RESULTS ============
@@ -142,7 +143,7 @@ class TestService {
     if (results.isEmpty) return [];
 
     // Get user info
-    final userIds = results.map((r) => r['user_id'] as String).toSet().toList();
+    final userIds = results.map((r) => safeString(r, 'user_id')).toSet().toList();
     final userMap = await _userService.getUserMap(userIds);
 
     // Get template info
@@ -151,15 +152,15 @@ class TestService {
     return results.map((r) {
       final user = userMap[r['user_id']] ?? {};
       return TestResult(
-        id: r['id'] as String,
-        testTemplateId: r['test_template_id'] as String,
-        userId: r['user_id'] as String,
-        instanceId: r['instance_id'] as String?,
-        value: (r['value'] as num).toDouble(),
-        recordedAt: DateTime.parse(r['recorded_at'] as String),
-        notes: r['notes'] as String?,
-        userName: user['name'] as String?,
-        userAvatarUrl: user['avatar_url'] as String?,
+        id: safeString(r, 'id'),
+        testTemplateId: safeString(r, 'test_template_id'),
+        userId: safeString(r, 'user_id'),
+        instanceId: safeStringNullable(r, 'instance_id'),
+        value: safeDouble(r, 'value'),
+        recordedAt: requireDateTime(r, 'recorded_at'),
+        notes: safeStringNullable(r, 'notes'),
+        userName: safeStringNullable(user, 'name'),
+        userAvatarUrl: safeStringNullable(user, 'avatar_url'),
         testName: template?.name,
         testUnit: template?.unit,
       );
@@ -197,13 +198,13 @@ class TestService {
     return results.map((r) {
       final template = templateMap[r['test_template_id']];
       return TestResult(
-        id: r['id'] as String,
-        testTemplateId: r['test_template_id'] as String,
-        userId: r['user_id'] as String,
-        instanceId: r['instance_id'] as String?,
-        value: (r['value'] as num).toDouble(),
-        recordedAt: DateTime.parse(r['recorded_at'] as String),
-        notes: r['notes'] as String?,
+        id: safeString(r, 'id'),
+        testTemplateId: safeString(r, 'test_template_id'),
+        userId: safeString(r, 'user_id'),
+        instanceId: safeStringNullable(r, 'instance_id'),
+        value: safeDouble(r, 'value'),
+        recordedAt: requireDateTime(r, 'recorded_at'),
+        notes: safeStringNullable(r, 'notes'),
         testName: template?.name,
         testUnit: template?.unit,
       );
@@ -229,8 +230,8 @@ class TestService {
     // Find best result per user
     final bestResults = <String, Map<String, dynamic>>{};
     for (final r in results) {
-      final userId = r['user_id'] as String;
-      final value = (r['value'] as num).toDouble();
+      final userId = safeString(r, 'user_id');
+      final value = safeDouble(r, 'value');
 
       if (!bestResults.containsKey(userId)) {
         bestResults[userId] = r;
@@ -248,15 +249,15 @@ class TestService {
     // Sort by best value
     final sorted = bestResults.values.toList();
     sorted.sort((a, b) {
-      final aVal = (a['value'] as num).toDouble();
-      final bVal = (b['value'] as num).toDouble();
+      final aVal = safeDouble(a, 'value');
+      final bVal = safeDouble(b, 'value');
       return template.higherIsBetter
           ? bVal.compareTo(aVal)
           : aVal.compareTo(bVal);
     });
 
     // Get user info
-    final userIds = sorted.map((r) => r['user_id'] as String).toList();
+    final userIds = sorted.map((r) => safeString(r, 'user_id')).toList();
     final userMap = await _userService.getUserMap(userIds);
 
     // Build ranking
@@ -320,10 +321,10 @@ class TestService {
     for (final r in results) {
       final result = await recordResult(
         testTemplateId: testTemplateId,
-        userId: r['user_id'] as String,
+        userId: safeString(r, 'user_id'),
         instanceId: instanceId,
-        value: (r['value'] as num).toDouble(),
-        notes: r['notes'] as String?,
+        value: safeDouble(r, 'value'),
+        notes: safeStringNullable(r, 'notes'),
       );
       recorded.add(result);
     }
@@ -373,13 +374,13 @@ class TestService {
     if (results.isEmpty) return null;
 
     return TestResult(
-      id: results.first['id'] as String,
-      testTemplateId: results.first['test_template_id'] as String,
-      userId: results.first['user_id'] as String,
-      instanceId: results.first['instance_id'] as String?,
-      value: (results.first['value'] as num).toDouble(),
-      recordedAt: DateTime.parse(results.first['recorded_at'] as String),
-      notes: results.first['notes'] as String?,
+      id: safeString(results.first, 'id'),
+      testTemplateId: safeString(results.first, 'test_template_id'),
+      userId: safeString(results.first, 'user_id'),
+      instanceId: safeStringNullable(results.first, 'instance_id'),
+      value: safeDouble(results.first, 'value'),
+      recordedAt: requireDateTime(results.first, 'recorded_at'),
+      notes: safeStringNullable(results.first, 'notes'),
       testName: template.name,
       testUnit: template.unit,
     );
@@ -404,13 +405,13 @@ class TestService {
     );
 
     return results.map((r) => TestResult(
-      id: r['id'] as String,
-      testTemplateId: r['test_template_id'] as String,
-      userId: r['user_id'] as String,
-      instanceId: r['instance_id'] as String?,
-      value: (r['value'] as num).toDouble(),
-      recordedAt: DateTime.parse(r['recorded_at'] as String),
-      notes: r['notes'] as String?,
+      id: safeString(r, 'id'),
+      testTemplateId: safeString(r, 'test_template_id'),
+      userId: safeString(r, 'user_id'),
+      instanceId: safeStringNullable(r, 'instance_id'),
+      value: safeDouble(r, 'value'),
+      recordedAt: requireDateTime(r, 'recorded_at'),
+      notes: safeStringNullable(r, 'notes'),
       testName: template?.name,
       testUnit: template?.unit,
     )).toList();

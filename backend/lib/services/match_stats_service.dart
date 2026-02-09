@@ -1,6 +1,7 @@
 import '../db/database.dart';
 import '../models/statistics.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for recording and retrieving match statistics
 class MatchStatsService {
@@ -76,7 +77,7 @@ class MatchStatsService {
     if (stats.isEmpty) return [];
 
     // Get user info
-    final userIds = stats.map((s) => s['user_id'] as String).toList();
+    final userIds = stats.map((s) => safeString(s, 'user_id')).toList();
     final userMap = await _userService.getUserMap(userIds);
 
     return stats.map((s) {
@@ -109,7 +110,7 @@ class MatchStatsService {
 
     if (activities.isEmpty) return;
 
-    final teamId = activities.first['team_id'] as String;
+    final teamId = safeString(activities.first, 'team_id');
     final year = DateTime.now().year;
 
     // Check for existing season stats
@@ -127,8 +128,8 @@ class MatchStatsService {
       await _db.client.update(
         'season_stats',
         {
-          'total_goals': (current['total_goals'] as int? ?? 0) + goals,
-          'total_assists': (current['total_assists'] as int? ?? 0) + assists,
+          'total_goals': (safeInt(current, 'total_goals', defaultValue: 0)) + goals,
+          'total_assists': (safeInt(current, 'total_assists', defaultValue: 0)) + assists,
         },
         filters: {
           'user_id': 'eq.$userId',

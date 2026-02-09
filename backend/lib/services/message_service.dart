@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for conversation aggregation (getAllConversations, markAsRead, etc.)
 class MessageService {
@@ -52,7 +53,7 @@ class MessageService {
     );
 
     final lastReadAt = reads.isNotEmpty
-        ? DateTime.parse(reads.first['last_read_at'] as String)
+        ? requireDateTime(reads.first, 'last_read_at')
         : DateTime(1970);
 
     // Count messages after last read
@@ -97,7 +98,7 @@ class MessageService {
       select: 'id,name',
       filters: {'id': 'eq.$teamId'},
     );
-    final teamName = teams.isNotEmpty ? teams.first['name'] as String? : 'Lag-chat';
+    final teamName = teams.isNotEmpty ? safeStringNullable(teams.first, 'name') : 'Lag-chat';
 
     conversations.add({
       'type': 'team',
@@ -124,7 +125,7 @@ class MessageService {
       filters: {'team_id': 'eq.$teamId'},
     );
     final teamMemberIds = teamMembers
-        .map((m) => m['user_id'] as String)
+        .map((m) => safeString(m, 'user_id'))
         .where((id) => id != userId)
         .toSet();
 
@@ -141,9 +142,9 @@ class MessageService {
 
       // Filter to only direct messages with team members
       final directMessages = allMessages.where((m) {
-        final recipientId = m['recipient_id'] as String?;
+        final recipientId = safeStringNullable(m, 'recipient_id');
         if (recipientId == null) return false;
-        final senderId = m['user_id'] as String;
+        final senderId = safeString(m, 'user_id');
         final partnerId = senderId == userId ? recipientId : senderId;
         return teamMemberIds.contains(partnerId);
       }).toList();
@@ -151,8 +152,8 @@ class MessageService {
       // Group by conversation partner
       final conversationMap = <String, Map<String, dynamic>>{};
       for (final msg in directMessages) {
-        final senderId = msg['user_id'] as String;
-        final recipientId = msg['recipient_id'] as String;
+        final senderId = safeString(msg, 'user_id');
+        final recipientId = safeString(msg, 'recipient_id');
         final partnerId = senderId == userId ? recipientId : senderId;
 
         if (!conversationMap.containsKey(partnerId)) {
@@ -175,19 +176,19 @@ class MessageService {
         );
         final readMap = <String, DateTime>{};
         for (final r in allReads) {
-          final rid = r['recipient_id'] as String;
-          readMap[rid] = DateTime.parse(r['last_read_at'] as String);
+          final rid = safeString(r, 'recipient_id');
+          readMap[rid] = requireDateTime(r, 'last_read_at');
         }
 
         // Count unread per partner from the direct messages we already have
         final unreadCounts = <String, int>{};
         for (final msg in directMessages) {
-          final senderId = msg['user_id'] as String;
-          final recipientId = msg['recipient_id'] as String;
+          final senderId = safeString(msg, 'user_id');
+          final recipientId = safeString(msg, 'recipient_id');
           // Only count messages FROM partner TO us
           if (recipientId == userId) {
             final lastRead = readMap[senderId] ?? DateTime(1970);
-            final msgTime = DateTime.parse(msg['created_at'] as String);
+            final msgTime = requireDateTime(msg, 'created_at');
             if (msgTime.isAfter(lastRead) && msg['is_deleted'] != true) {
               unreadCounts[senderId] = (unreadCounts[senderId] ?? 0) + 1;
             }
@@ -218,8 +219,8 @@ class MessageService {
 
     // Sort by last message time (most recent first), with team chat first if no messages
     conversations.sort((a, b) {
-      final aTime = a['last_message_at'] as String?;
-      final bTime = b['last_message_at'] as String?;
+      final aTime = safeStringNullable(a, 'last_message_at');
+      final bTime = safeStringNullable(b, 'last_message_at');
       if (aTime == null && bTime == null) {
         // Team chat comes first
         return a['type'] == 'team' ? -1 : 1;
@@ -246,8 +247,8 @@ class MessageService {
     // Group by conversation partner
     final conversationMap = <String, Map<String, dynamic>>{};
     for (final msg in directMessages) {
-      final senderId = msg['user_id'] as String;
-      final recipientId = msg['recipient_id'] as String;
+      final senderId = safeString(msg, 'user_id');
+      final recipientId = safeString(msg, 'recipient_id');
       final partnerId = senderId == userId ? recipientId : senderId;
 
       if (!conversationMap.containsKey(partnerId)) {
@@ -271,18 +272,18 @@ class MessageService {
     );
     final readMap = <String, DateTime>{};
     for (final r in allReads) {
-      final rid = r['recipient_id'] as String;
-      readMap[rid] = DateTime.parse(r['last_read_at'] as String);
+      final rid = safeString(r, 'recipient_id');
+      readMap[rid] = requireDateTime(r, 'last_read_at');
     }
 
     // Count unread per partner from the direct messages we already have
     final unreadCounts = <String, int>{};
     for (final msg in directMessages) {
-      final senderId = msg['user_id'] as String;
-      final recipientId = msg['recipient_id'] as String;
+      final senderId = safeString(msg, 'user_id');
+      final recipientId = safeString(msg, 'recipient_id');
       if (recipientId == userId) {
         final lastRead = readMap[senderId] ?? DateTime(1970);
-        final msgTime = DateTime.parse(msg['created_at'] as String);
+        final msgTime = requireDateTime(msg, 'created_at');
         if (msgTime.isAfter(lastRead) && msg['is_deleted'] != true) {
           unreadCounts[senderId] = (unreadCounts[senderId] ?? 0) + 1;
         }
@@ -311,8 +312,8 @@ class MessageService {
 
     // Sort by last message time (most recent first)
     conversations.sort((a, b) {
-      final aTime = a['last_message_at'] as String?;
-      final bTime = b['last_message_at'] as String?;
+      final aTime = safeStringNullable(a, 'last_message_at');
+      final bTime = safeStringNullable(b, 'last_message_at');
       if (aTime == null && bTime == null) return 0;
       if (aTime == null) return 1;
       if (bTime == null) return -1;

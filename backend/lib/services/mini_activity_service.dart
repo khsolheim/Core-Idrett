@@ -3,6 +3,7 @@ import '../db/database.dart';
 import '../helpers/collection_helpers.dart';
 import '../models/mini_activity.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class MiniActivityService {
   final Database _db;
@@ -236,7 +237,7 @@ class MiniActivityService {
 
     if (miniActivities.isEmpty) return [];
 
-    final miniActivityIds = miniActivities.map((m) => m['id'] as String).toList();
+    final miniActivityIds = miniActivities.map((m) => safeString(m, 'id')).toList();
 
     // Get team counts
     final teams = await _db.client.select(
@@ -257,7 +258,7 @@ class MiniActivityService {
     final participantCounts = groupByCount(participants, 'mini_activity_id');
 
     return miniActivities.map((ma) {
-      final id = ma['id'] as String;
+      final id = safeString(ma, 'id');
       return {
         ...ma,
         'team_count': teamCounts[id] ?? 0,
@@ -288,7 +289,7 @@ class MiniActivityService {
 
     if (miniActivities.isEmpty) return [];
 
-    final miniActivityIds = miniActivities.map((m) => m['id'] as String).toList();
+    final miniActivityIds = miniActivities.map((m) => safeString(m, 'id')).toList();
 
     // Get team counts
     final teams = await _db.client.select(
@@ -309,7 +310,7 @@ class MiniActivityService {
     final participantCounts = groupByCount(participants, 'mini_activity_id');
 
     return miniActivities.map((ma) {
-      final id = ma['id'] as String;
+      final id = safeString(ma, 'id');
       return {
         ...ma,
         'team_count': teamCounts[id] ?? 0,
@@ -335,7 +336,7 @@ class MiniActivityService {
     );
 
     // Get participants for teams
-    final teamIds = teamsResult.map((t) => t['id'] as String).toList();
+    final teamIds = teamsResult.map((t) => safeString(t, 'id')).toList();
     final allParticipants = teamIds.isNotEmpty
         ? await _db.client.select(
             'mini_activity_participants',
@@ -355,8 +356,8 @@ class MiniActivityService {
 
     // Batch fetch ALL user info in one query
     final allUserIds = <String>{
-      ...allParticipants.map((p) => p['user_id'] as String),
-      ...individualParticipantsResult.map((p) => p['user_id'] as String),
+      ...allParticipants.map((p) => safeString(p, 'user_id')),
+      ...individualParticipantsResult.map((p) => safeString(p, 'user_id')),
     }.toList();
 
     final userMap = await _userService.getUserMap(allUserIds);
@@ -443,7 +444,7 @@ class MiniActivityService {
     if (miniActivities.isEmpty) return [];
 
     // Batch fetch ALL teams for all mini-activities in one query
-    final allMaIds = miniActivities.map((m) => m['id'] as String).toList();
+    final allMaIds = miniActivities.map((m) => safeString(m, 'id')).toList();
     final allTeams = await _db.client.select(
       'mini_activity_teams',
       filters: {'mini_activity_id': 'in.(${allMaIds.join(",")})'},
@@ -453,14 +454,14 @@ class MiniActivityService {
     // Group teams by mini_activity_id
     final teamsByMa = <String, List<Map<String, dynamic>>>{};
     for (final t in allTeams) {
-      final maId = t['mini_activity_id'] as String;
+      final maId = safeString(t, 'mini_activity_id');
       teamsByMa.putIfAbsent(maId, () => []).add(t);
     }
 
     final result = <Map<String, dynamic>>[];
 
     for (final ma in miniActivities) {
-      final miniActivityId = ma['id'] as String;
+      final miniActivityId = safeString(ma, 'id');
       final teams = teamsByMa[miniActivityId] ?? [];
 
       final hasResult = teams.any((t) => t['final_score'] != null) ||

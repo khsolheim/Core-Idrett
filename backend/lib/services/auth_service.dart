@@ -4,6 +4,7 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/user.dart';
+import '../helpers/parsing_helpers.dart';
 
 class AuthService {
   final Database _db;
@@ -45,11 +46,11 @@ class AuthService {
 
     final row = result.first;
     final user = User(
-      id: row['id'] as String,
-      email: row['email'] as String,
-      name: row['name'] as String,
-      avatarUrl: row['avatar_url'] as String?,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      email: safeString(row, 'email'),
+      name: safeString(row, 'name'),
+      avatarUrl: safeStringNullable(row, 'avatar_url'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
 
     final token = _generateToken(user);
@@ -71,18 +72,18 @@ class AuthService {
     }
 
     final row = result.first;
-    final passwordHash = row['password_hash'] as String;
+    final passwordHash = safeString(row, 'password_hash');
 
     if (!BCrypt.checkpw(password, passwordHash)) {
       throw AuthException('Ugyldig e-post eller passord');
     }
 
     final user = User(
-      id: row['id'] as String,
-      email: row['email'] as String,
-      name: row['name'] as String,
-      avatarUrl: row['avatar_url'] as String?,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      email: safeString(row, 'email'),
+      name: safeString(row, 'name'),
+      avatarUrl: safeStringNullable(row, 'avatar_url'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
 
     final token = _generateToken(user);
@@ -106,7 +107,7 @@ class AuthService {
       throw AuthException('Ugyldig invitasjonskode');
     }
 
-    final teamId = teamResult.first['id'] as String;
+    final teamId = safeString(teamResult.first, 'id');
 
     // Register user
     final result = await register(email: email, password: password, name: name);
@@ -125,7 +126,7 @@ class AuthService {
   Future<User?> getUserFromToken(String token) async {
     try {
       final jwt = JWT.verify(token, SecretKey(_jwtSecret));
-      final userId = jwt.payload['sub'] as String;
+      final userId = safeString(jwt.payload, 'sub');
 
       final result = await _db.client.select(
         'users',
@@ -137,11 +138,11 @@ class AuthService {
 
       final row = result.first;
       return User(
-        id: row['id'] as String,
-        email: row['email'] as String,
-        name: row['name'] as String,
-        avatarUrl: row['avatar_url'] as String?,
-        createdAt: DateTime.parse(row['created_at'] as String),
+        id: safeString(row, 'id'),
+        email: safeString(row, 'email'),
+        name: safeString(row, 'name'),
+        avatarUrl: safeStringNullable(row, 'avatar_url'),
+        createdAt: requireDateTime(row, 'created_at'),
       );
     } catch (e) {
       return null;
@@ -164,7 +165,7 @@ class AuthService {
       throw AuthException('Bruker ikke funnet');
     }
 
-    final passwordHash = result.first['password_hash'] as String;
+    final passwordHash = safeString(result.first, 'password_hash');
 
     if (!BCrypt.checkpw(currentPassword, passwordHash)) {
       throw AuthException('Feil navaerende passord');
@@ -201,11 +202,11 @@ class AuthService {
 
     final row = result.first;
     return User(
-      id: row['id'] as String,
-      email: row['email'] as String,
-      name: row['name'] as String,
-      avatarUrl: row['avatar_url'] as String?,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      id: safeString(row, 'id'),
+      email: safeString(row, 'email'),
+      name: safeString(row, 'name'),
+      avatarUrl: safeStringNullable(row, 'avatar_url'),
+      createdAt: requireDateTime(row, 'created_at'),
     );
   }
 

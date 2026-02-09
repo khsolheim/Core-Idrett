@@ -1,4 +1,5 @@
 import '../db/database.dart';
+import '../helpers/parsing_helpers.dart';
 
 class UserService {
   final Database _db;
@@ -18,7 +19,7 @@ class UserService {
 
     final userMap = <String, Map<String, dynamic>>{};
     for (final u in users) {
-      userMap[u['id'] as String] = u;
+      userMap[safeString(u, 'id')] = u;
     }
     return userMap;
   }

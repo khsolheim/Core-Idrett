@@ -3,6 +3,7 @@ import '../db/database.dart';
 import '../models/season.dart';
 import '../models/mini_activity_statistics.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class LeaderboardEntryService {
   final Database _db;
@@ -30,7 +31,7 @@ class LeaderboardEntryService {
     if (entries.isEmpty) return [];
 
     // Get user info
-    final userIds = entries.map((e) => e['user_id'] as String).toSet().toList();
+    final userIds = entries.map((e) => safeString(e, 'user_id')).toSet().toList();
     final userMap = await _userService.getUserMap(userIds);
 
     // Build entries with rank
@@ -41,7 +42,7 @@ class LeaderboardEntryService {
 
     for (int i = 0; i < entries.length; i++) {
       final e = entries[i];
-      final points = e['points'] as int? ?? 0;
+      final points = safeInt(e, 'points', defaultValue: 0);
       final user = userMap[e['user_id']] ?? {};
 
       // Handle ties (same points = same rank)
@@ -54,13 +55,13 @@ class LeaderboardEntryService {
       lastPoints = points;
 
       final entry = LeaderboardEntry(
-        id: e['id'] as String,
-        leaderboardId: e['leaderboard_id'] as String,
-        userId: e['user_id'] as String,
+        id: safeString(e, 'id'),
+        leaderboardId: safeString(e, 'leaderboard_id'),
+        userId: safeString(e, 'user_id'),
         points: points,
-        updatedAt: DateTime.parse(e['updated_at'] as String),
-        userName: user['name'] as String?,
-        userAvatarUrl: user['avatar_url'] as String?,
+        updatedAt: requireDateTime(e, 'updated_at'),
+        userName: safeStringNullable(user, 'name'),
+        userAvatarUrl: safeStringNullable(user, 'avatar_url'),
         rank: currentRank,
       );
 
@@ -138,7 +139,7 @@ class LeaderboardEntryService {
       );
     } else {
       // Update existing entry
-      final currentPoints = existing.first['points'] as int? ?? 0;
+      final currentPoints = safeInt(existing.first, 'points', defaultValue: 0);
       final newPoints = addToExisting ? currentPoints + points : points;
 
       await _db.client.update(
@@ -154,7 +155,7 @@ class LeaderboardEntryService {
       );
 
       return LeaderboardEntry(
-        id: existing.first['id'] as String,
+        id: safeString(existing.first, 'id'),
         leaderboardId: leaderboardId,
         userId: userId,
         points: newPoints,
@@ -220,8 +221,8 @@ class LeaderboardEntryService {
       });
     } else {
       // Update existing entry
-      entryId = existing.first['id'] as String;
-      final currentPoints = existing.first['points'] as int? ?? 0;
+      entryId = safeString(existing.first, 'id');
+      final currentPoints = safeInt(existing.first, 'points', defaultValue: 0);
       newPoints = currentPoints + points;
 
       await _db.client.update(
@@ -346,7 +347,7 @@ class LeaderboardEntryService {
       );
 
       return MiniActivityPointConfig(
-        id: existing.first['id'] as String,
+        id: safeString(existing.first, 'id'),
         miniActivityId: miniActivityId,
         leaderboardId: leaderboardId,
         distributionType: distributionType,

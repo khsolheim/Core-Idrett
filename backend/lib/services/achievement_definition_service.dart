@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/achievement.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for managing achievement definitions (CRUD)
 class AchievementDefinitionService {
@@ -201,6 +202,6 @@ class AchievementDefinitionService {
     );
 
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 }

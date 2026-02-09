@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/points_config.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Adjustment types for manual point adjustments
 enum AdjustmentType {
@@ -337,7 +338,7 @@ class PointsConfigService {
     var filteredResults = result;
     if (year != null || month != null) {
       filteredResults = result.where((row) {
-        final awardedAt = DateTime.parse(row['awarded_at'] as String);
+        final awardedAt = requireDateTime(row, 'awarded_at');
         if (year != null && awardedAt.year != year) return false;
         if (month != null && awardedAt.month != month) return false;
         return true;
@@ -345,7 +346,7 @@ class PointsConfigService {
     }
 
     final totalBase = filteredResults.fold<int>(
-        0, (sum, row) => sum + (row['base_points'] as int? ?? 0));
+        0, (sum, row) => sum + (safeInt(row, 'base_points', defaultValue: 0)));
     final totalWeighted = filteredResults.fold<double>(
         0.0,
         (sum, row) =>
@@ -353,8 +354,8 @@ class PointsConfigService {
 
     final byType = <String, int>{};
     for (final row in filteredResults) {
-      final type = row['activity_type'] as String;
-      byType[type] = (byType[type] ?? 0) + (row['base_points'] as int? ?? 0);
+      final type = safeString(row, 'activity_type');
+      byType[type] = (byType[type] ?? 0) + (safeInt(row, 'base_points', defaultValue: 0));
     }
 
     return {
@@ -391,7 +392,7 @@ class PointsConfigService {
     );
 
     if (result.isEmpty) return false;
-    return result.first['leaderboard_opt_out'] as bool? ?? false;
+    return safeBool(result.first, 'leaderboard_opt_out', defaultValue: false);
   }
 
   // ============ MANUAL POINT ADJUSTMENTS ============

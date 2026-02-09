@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/tournament.dart';
+import '../helpers/parsing_helpers.dart';
 
 class TournamentGroupService {
   final Database _db;
@@ -140,13 +141,13 @@ class TournamentGroupService {
     await _db.client.update(
       'group_standings',
       {
-        'played': (standing['played'] as int) + 1,
-        'won': (standing['won'] as int) + (won ? 1 : 0),
-        'drawn': (standing['drawn'] as int) + (drawn ? 1 : 0),
-        'lost': (standing['lost'] as int) + (lost ? 1 : 0),
-        'goals_for': (standing['goals_for'] as int) + goalsFor,
-        'goals_against': (standing['goals_against'] as int) + goalsAgainst,
-        'points': (standing['points'] as int) + pointsAwarded,
+        'played': (safeInt(standing, 'played')) + 1,
+        'won': (safeInt(standing, 'won')) + (won ? 1 : 0),
+        'drawn': (safeInt(standing, 'drawn')) + (drawn ? 1 : 0),
+        'lost': (safeInt(standing, 'lost')) + (lost ? 1 : 0),
+        'goals_for': (safeInt(standing, 'goals_for')) + goalsFor,
+        'goals_against': (safeInt(standing, 'goals_against')) + goalsAgainst,
+        'points': (safeInt(standing, 'points')) + pointsAwarded,
         'updated_at': DateTime.now().toIso8601String(),
       },
       filters: {
@@ -268,9 +269,9 @@ class TournamentGroupService {
     );
 
     // Update standings
-    final groupId = match['group_id'] as String;
-    final teamAId = match['team_a_id'] as String;
-    final teamBId = match['team_b_id'] as String;
+    final groupId = safeString(match, 'group_id');
+    final teamAId = safeString(match, 'team_a_id');
+    final teamBId = safeString(match, 'team_b_id');
 
     if (teamAScore > teamBScore) {
       // Team A wins
@@ -417,8 +418,8 @@ class TournamentGroupService {
     if (roundResult.isEmpty) return [];
     final round = roundResult.first;
 
-    final advanceCount = round['advance_count'] as int;
-    final sortDirection = round['sort_direction'] as String;
+    final advanceCount = safeInt(round, 'advance_count');
+    final sortDirection = safeString(round, 'sort_direction');
 
     // Get results sorted
     final order = sortDirection == 'desc' ? 'result_value.desc' : 'result_value.asc';

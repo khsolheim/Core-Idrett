@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/absence.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for managing absence categories and records
 class AbsenceService {
@@ -155,7 +156,7 @@ class AbsenceService {
         },
       );
 
-      final updated = await getAbsenceById(existing.first['id'] as String);
+      final updated = await getAbsenceById(safeString(existing.first, 'id'));
       return updated!;
     }
 
@@ -302,8 +303,8 @@ class AbsenceService {
 
     if (result.isEmpty) return false;
 
-    final status = AbsenceStatus.fromString(result.first['status'] as String);
-    final countsAsValid = result.first['counts_as_valid'] as bool? ?? false;
+    final status = AbsenceStatus.fromString(safeString(result.first, 'status'));
+    final countsAsValid = safeBool(result.first, 'counts_as_valid', defaultValue: false);
 
     return status.isApproved && countsAsValid;
   }
@@ -331,7 +332,7 @@ class AbsenceService {
     );
 
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 
   /// Get team ID for a category (for authorization checks)
@@ -343,7 +344,7 @@ class AbsenceService {
     );
 
     if (result.isEmpty) return null;
-    return result.first['team_id'] as String?;
+    return safeStringNullable(result.first, 'team_id');
   }
 
   /// Get absence summary for a team

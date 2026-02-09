@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import '../db/database.dart';
 import '../models/statistics.dart';
+import '../helpers/parsing_helpers.dart';
 
 /// Service for managing player ELO ratings
 class PlayerRatingService {
@@ -83,7 +84,7 @@ class PlayerRatingService {
 
     final ratingsMap = <String, Map<String, dynamic>>{};
     for (final r in existingRatings) {
-      ratingsMap[r['user_id'] as String] = r;
+      ratingsMap[safeString(r, 'user_id')] = r;
     }
 
     // Ensure all players have ratings (create missing ones)
@@ -107,7 +108,7 @@ class PlayerRatingService {
         final current = ratingsMap[playerId]!;
         await _db.client.update(
           'player_ratings',
-          {'draws': (current['draws'] as int? ?? 0) + 1},
+          {'draws': (safeInt(current, 'draws', defaultValue: 0)) + 1},
           filters: {
             'user_id': 'eq.$playerId',
             'team_id': 'eq.$teamId',
@@ -145,7 +146,7 @@ class PlayerRatingService {
         'player_ratings',
         {
           'rating': (current['rating'] as num? ?? 1000) + winnerChange,
-          'wins': (current['wins'] as int? ?? 0) + 1,
+          'wins': (safeInt(current, 'wins', defaultValue: 0)) + 1,
         },
         filters: {
           'user_id': 'eq.$playerId',
@@ -162,7 +163,7 @@ class PlayerRatingService {
         'player_ratings',
         {
           'rating': newRating,
-          'losses': (current['losses'] as int? ?? 0) + 1,
+          'losses': (safeInt(current, 'losses', defaultValue: 0)) + 1,
         },
         filters: {
           'user_id': 'eq.$playerId',

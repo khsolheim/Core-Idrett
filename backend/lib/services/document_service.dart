@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 import '../db/database.dart';
 import '../models/document.dart';
 import 'user_service.dart';
+import '../helpers/parsing_helpers.dart';
 
 class DocumentService {
   final Database _db;
@@ -36,7 +37,7 @@ class DocumentService {
 
     // Get uploader details
     if (result.isNotEmpty) {
-      final uploaderIds = result.map((d) => d['uploaded_by'] as String).toSet().toList();
+      final uploaderIds = result.map((d) => safeString(d, 'uploaded_by')).toSet().toList();
       final userMap = await _userService.getUserMap(uploaderIds);
 
       return result.map((row) {
@@ -107,7 +108,7 @@ class DocumentService {
     });
 
     // Fetch with joined data
-    return (await getDocument(result.first['id'] as String))!;
+    return (await getDocument(safeString(result.first, 'id')))!;
   }
 
   /// Update document metadata
@@ -166,7 +167,7 @@ class DocumentService {
     // Count categories manually since REST API doesn't support GROUP BY
     final categoryCounts = <String, int>{};
     for (final row in result) {
-      final cat = row['category'] as String?;
+      final cat = safeStringNullable(row, 'category');
       if (cat != null) {
         categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1;
       }
@@ -175,7 +176,7 @@ class DocumentService {
     return categoryCounts.entries.map((e) => {
       'category': e.key,
       'count': e.value,
-    }).toList()..sort((a, b) => (a['category'] as String).compareTo(b['category'] as String));
+    }).toList()..sort((a, b) => (safeString(a, 'category')).compareTo(safeString(b, 'category')));
   }
 
   /// Check if user can manage documents (is admin or uploader)

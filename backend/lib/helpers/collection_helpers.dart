@@ -1,3 +1,5 @@
+import 'parsing_helpers.dart';
+
 /// Counts occurrences of a key value across a list of maps.
 ///
 /// For each item in [items], extracts the value of [key] as a String
@@ -11,7 +13,7 @@
 Map<String, int> groupByCount(List<Map<String, dynamic>> items, String key) {
   final counts = <String, int>{};
   for (final item in items) {
-    final id = item[key] as String;
+    final id = safeString(item, key);
     counts[id] = (counts[id] ?? 0) + 1;
   }
   return counts;
@@ -31,7 +33,7 @@ Map<String, List<Map<String, dynamic>>> groupBy(
   List<Map<String, dynamic>> items, String key) {
   final groups = <String, List<Map<String, dynamic>>>{};
   for (final item in items) {
-    final id = item[key] as String;
+    final id = safeString(item, key);
     groups.putIfAbsent(id, () => []).add(item);
   }
   return groups;
