@@ -90,10 +90,11 @@ Plans:
   4. All fine mutation endpoints enforce fine_boss permission check
   5. All handler inputs validated before reaching service layer
   6. Backend analyze shows zero security warnings
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 04-01: [Plan details TBD during planning]
+- [ ] 04-01-PLAN.md — Consolidate admin role check + create permission helpers + enforce fine_boss on fine mutations
+- [ ] 04-02-PLAN.md — Add shelf_limiter rate limiting to auth, message/fine mutation, and export endpoints
 
 ### Phase 5: Frontend Widget Extraction
 **Goal**: Break down large frontend widget files into focused, composable components
