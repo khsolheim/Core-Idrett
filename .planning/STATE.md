@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 3 of 10 (Backend Service Splitting)
-Plan: 2 of 4 (Fine and Activity services split)
+Plan: 3 of 4 (Export and Mini-Activity Statistics services split)
 Status: In progress
-Last activity: 2026-02-09 — Plan 03-02 complete, split FineService (615→3 services) and ActivityService (577→2 services)
+Last activity: 2026-02-09 — Plan 03-03 complete, split ExportService (541→2 services) and MiniActivityStatisticsService (534→3 services)
 
-Progress: [████████▓░] 56% (9 of 16 total plans across all phases)
+Progress: [█████████░] 63% (10 of 16 total plans across all phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: ~16 minutes
-- Total execution time: ~2.7 hours
+- Total plans completed: 10
+- Average duration: ~15 minutes
+- Total execution time: ~2.8 hours
 
 **By Phase:**
 
@@ -29,7 +29,7 @@ Progress: [████████▓░] 56% (9 of 16 total plans across all p
 |-------|-------|------------|----------|
 | 01    | 4/4   | ~3.5h      | ~50m     |
 | 02    | 4/4   | ~21m       | ~5m      |
-| 03    | 2/4   | ~13m       | ~6.5m    |
+| 03    | 3/4   | ~19m       | ~6.3m    |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -41,9 +41,10 @@ Progress: [████████▓░] 56% (9 of 16 total plans across all p
 - Plan 02-04: Handler layer migration (10 min, 32 handlers, ~250 casts)
 - Plan 03-01: Tournament + Leaderboard service splitting (7 min, 2 services → 7 sub-services)
 - Plan 03-02: Fine + Activity service splitting (6 min, 2 services → 5 sub-services)
-- Trend: Service splitting executions very fast and consistent (~6-7 min), automated refactorings maintain test coverage
+- Plan 03-03: Export + Mini-Activity Statistics service splitting (6 min, 2 services → 5 sub-services)
+- Trend: Service splitting executions very fast and consistent (~6 min), automated refactorings maintain test coverage
 
-*Updated 2026-02-09 after plan 03-02 complete*
+*Updated 2026-02-09 after plan 03-03 complete*
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - Fine service split into 3 sub-services — Rules, CRUD+Appeals+Payments, Summaries (03-02)
 - Activity service split into 2 sub-services — CRUD+Generation, Query (03-02)
 - Accept slight LOC overage for complex services — FineCrudService 402 LOC (target 320), ActivityQueryService 364 LOC (target 310) maintained cohesion over strict size limits (03-02)
+- Export service split into 2 sub-services — Data exports (5 methods), Utility/CSV/Logging (03-03)
+- Mini-Activity Statistics service split into 3 sub-services — Player stats, H2H+History+PointSources, Aggregation+Leaderboard (03-03)
+- Stats aggregation composes from other services — Avoids duplication while maintaining separation (03-03)
 
 ### Pending Todos
 
@@ -87,7 +91,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 03-02 execution)
-Stopped at: Plan 03-02 complete — Fine + Activity services split, 268 tests passing
+Last session: 2026-02-09 (Plan 03-03 execution)
+Stopped at: Plan 03-03 complete — Export + Mini-Activity Statistics services split, 268 tests passing
 Resume file: None
-Next: Plan 03-03 execution → /gsd:execute-plan 03-03
+Next: Plan 03-04 execution → /gsd:execute-plan 03-04
