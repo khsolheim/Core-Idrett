@@ -52,10 +52,13 @@ Plans:
   3. All DateTime parsing uses tryParse() with null fallback handling
   4. All query result access checks emptiness or uses firstOrNull to avoid exceptions
   5. Backend analyze shows zero type safety warnings in services and handlers
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 02-01: [Plan details TBD during planning]
+- [ ] 02-01-PLAN.md — Create parsing_helpers.dart (TDD) + fix LeaderboardEntry key mismatch
+- [ ] 02-02-PLAN.md — Migrate all 24 model fromJson to safe parsing helpers
+- [ ] 02-03-PLAN.md — Migrate all 34 service files to safe casts + guard .first accesses
+- [ ] 02-04-PLAN.md — Migrate all 32 handler files to safe casts + final verification
 
 ### Phase 3: Backend Service Splitting
 **Goal**: Break down large backend service files into focused sub-services with clear boundaries
