@@ -15,7 +15,7 @@ Future<Map<String, dynamic>?> requireTeamMember(
   return await teamService.getTeamById(teamId, userId);
 }
 
-/// Check if user has admin permissions using flag system (with backwards compatibility).
+/// Check if user has admin permissions using boolean flag system.
 bool isAdmin(Map<String, dynamic> team) {
-  return team['user_is_admin'] == true || team['user_role'] == 'admin';
+  return team['user_is_admin'] == true;
 }
