@@ -6,6 +6,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class TeamSettingsHandler {
   final TeamService _teamService;
   final TeamMemberService _memberService;
@@ -62,7 +63,7 @@ class TeamSettingsHandler {
       }
 
       final data = await parseBody(request);
-      final name = data['name'] as String?;
+      final name = safeStringNullable(data, 'name');
 
       if (name == null || name.isEmpty) {
         return resp.badRequest('Navn er påkrevd');
@@ -135,12 +136,12 @@ class TeamSettingsHandler {
 
       final settings = await _teamService.updateTeamSettings(
         teamId: teamId,
-        attendancePoints: data['attendance_points'] as int?,
-        winPoints: data['win_points'] as int?,
-        drawPoints: data['draw_points'] as int?,
-        lossPoints: data['loss_points'] as int?,
-        appealFee: data['appeal_fee'] != null ? (data['appeal_fee'] as num).toDouble() : null,
-        gameDayMultiplier: data['game_day_multiplier'] != null ? (data['game_day_multiplier'] as num).toDouble() : null,
+        attendancePoints: safeIntNullable(data, 'attendance_points'),
+        winPoints: safeIntNullable(data, 'win_points'),
+        drawPoints: safeIntNullable(data, 'draw_points'),
+        lossPoints: safeIntNullable(data, 'loss_points'),
+        appealFee: safeDoubleNullable(data, 'appeal_fee'),
+        gameDayMultiplier: safeDoubleNullable(data, 'game_day_multiplier'),
       );
 
       return resp.ok(settings);

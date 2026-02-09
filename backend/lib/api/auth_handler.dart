@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class AuthHandler {
   final AuthService _authService;
 
@@ -34,9 +35,9 @@ class AuthHandler {
     try {
       final data = await parseBody(request);
 
-      final email = data['email'] as String?;
-      final password = data['password'] as String?;
-      final name = data['name'] as String?;
+      final email = safeStringNullable(data, 'email');
+      final password = safeStringNullable(data, 'password');
+      final name = safeStringNullable(data, 'name');
 
       if (email == null || password == null || name == null) {
         return resp.badRequest('Mangler påkrevde felt');
@@ -63,8 +64,8 @@ class AuthHandler {
     try {
       final data = await parseBody(request);
 
-      final email = data['email'] as String?;
-      final password = data['password'] as String?;
+      final email = safeStringNullable(data, 'email');
+      final password = safeStringNullable(data, 'password');
 
       if (email == null || password == null) {
         return resp.badRequest('Mangler e-post eller passord');
@@ -90,9 +91,9 @@ class AuthHandler {
     try {
       final data = await parseBody(request);
 
-      final email = data['email'] as String?;
-      final password = data['password'] as String?;
-      final name = data['name'] as String?;
+      final email = safeStringNullable(data, 'email');
+      final password = safeStringNullable(data, 'password');
+      final name = safeStringNullable(data, 'name');
 
       if (email == null || password == null || name == null) {
         return resp.badRequest('Mangler påkrevde felt');
@@ -134,8 +135,8 @@ class AuthHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
-      final avatarUrl = data['avatar_url'] as String?;
+      final name = safeStringNullable(data, 'name');
+      final avatarUrl = safeStringNullable(data, 'avatar_url');
 
       if (name == null && avatarUrl == null) {
         return resp.badRequest('Ingen felt å oppdatere');
@@ -164,8 +165,8 @@ class AuthHandler {
 
       final data = await parseBody(request);
 
-      final currentPassword = data['current_password'] as String?;
-      final newPassword = data['new_password'] as String?;
+      final currentPassword = safeStringNullable(data, 'current_password');
+      final newPassword = safeStringNullable(data, 'new_password');
 
       if (currentPassword == null || newPassword == null) {
         return resp.badRequest('Mangler pakrevde felt');

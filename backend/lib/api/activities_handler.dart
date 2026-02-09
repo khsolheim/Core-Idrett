@@ -8,6 +8,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class ActivitiesHandler {
   final ActivityService _activityService;
   final ActivityInstanceService _activityInstanceService;
@@ -75,9 +76,9 @@ class ActivitiesHandler {
 
       final data = await parseBody(request);
 
-      final title = data['title'] as String?;
-      final type = data['type'] as String?;
-      final firstDate = data['first_date'] as String?;
+      final title = safeStringNullable(data, 'title');
+      final type = safeStringNullable(data, 'type');
+      final firstDate = safeStringNullable(data, 'first_date');
 
       if (title == null || type == null || firstDate == null) {
         return resp.badRequest('Mangler påkrevde felt (title, type, first_date)');
@@ -100,16 +101,16 @@ class ActivitiesHandler {
         teamId: teamId,
         title: title,
         type: type,
-        location: data['location'] as String?,
-        description: data['description'] as String?,
-        recurrenceType: data['recurrence_type'] as String? ?? 'once',
+        location: safeStringNullable(data, 'location'),
+        description: safeStringNullable(data, 'description'),
+        recurrenceType: safeStringNullable(data, 'recurrence_type') ?? 'once',
         recurrenceEndDate: recurrenceEndDate,
-        responseType: data['response_type'] as String? ?? 'yes_no',
-        responseDeadlineHours: data['response_deadline_hours'] as int?,
+        responseType: safeStringNullable(data, 'response_type') ?? 'yes_no',
+        responseDeadlineHours: safeIntNullable(data, 'response_deadline_hours'),
         createdBy: userId,
         firstDate: firstDateParsed,
-        startTime: data['start_time'] as String?,
-        endTime: data['end_time'] as String?,
+        startTime: safeStringNullable(data, 'start_time'),
+        endTime: safeStringNullable(data, 'end_time'),
       );
 
       return resp.ok(activity.toJson());
@@ -222,8 +223,8 @@ class ActivitiesHandler {
 
       final data = await parseBody(request);
 
-      final title = data['title'] as String?;
-      final type = data['type'] as String?;
+      final title = safeStringNullable(data, 'title');
+      final type = safeStringNullable(data, 'type');
 
       if (title == null || type == null) {
         return resp.badRequest('Mangler påkrevde felt (title, type)');
@@ -233,8 +234,8 @@ class ActivitiesHandler {
         activityId: activityId,
         title: title,
         type: type,
-        location: data['location'] as String?,
-        description: data['description'] as String?,
+        location: safeStringNullable(data, 'location'),
+        description: safeStringNullable(data, 'description'),
       );
 
       return resp.ok(activity.toJson());

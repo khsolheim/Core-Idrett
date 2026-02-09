@@ -7,6 +7,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class ActivityInstancesHandler {
   final ActivityService _activityService;
   final ActivityInstanceService _activityInstanceService;
@@ -71,8 +72,8 @@ class ActivityInstancesHandler {
 
       final data = await parseBody(request);
 
-      final response = data['response'] as String?;
-      final comment = data['comment'] as String?;
+      final response = safeStringNullable(data, 'response');
+      final comment = safeStringNullable(data, 'comment');
 
       if (response != null && !['yes', 'no', 'maybe'].contains(response)) {
         return resp.badRequest('Ugyldig svar');
@@ -110,7 +111,7 @@ class ActivityInstancesHandler {
 
       final data = await parseBody(request);
 
-      final status = data['status'] as String?;
+      final status = safeStringNullable(data, 'status');
       if (status == null || !['scheduled', 'completed', 'cancelled'].contains(status)) {
         return resp.badRequest('Ugyldig status');
       }
@@ -118,7 +119,7 @@ class ActivityInstancesHandler {
       await _activityInstanceService.updateInstanceStatus(
         instanceId,
         status,
-        reason: data['reason'] as String?,
+        reason: safeStringNullable(data, 'reason'),
       );
 
       return resp.ok({'success': true});
@@ -150,7 +151,7 @@ class ActivityInstancesHandler {
       }
 
       final teamId = instanceInfo['team_id'] as String;
-      final createdBy = instanceInfo['created_by'] as String?;
+      final createdBy = safeStringNullable(instanceInfo, 'created_by');
 
       if (!await _canManageInstance(userId, teamId, createdBy)) {
         return resp.forbidden('Du har ikke tilgang til å redigere denne aktiviteten');
@@ -158,7 +159,7 @@ class ActivityInstancesHandler {
 
       final data = await parseBody(request);
 
-      final editScope = data['edit_scope'] as String?;
+      final editScope = safeStringNullable(data, 'edit_scope');
       if (editScope == null || !['single', 'this_and_future'].contains(editScope)) {
         return resp.badRequest('Mangler eller ugyldig edit_scope (single | this_and_future)');
       }
@@ -169,22 +170,22 @@ class ActivityInstancesHandler {
         result = await _activityInstanceService.editSingleInstance(
           instanceId: instanceId,
           userId: userId,
-          title: data['title'] as String?,
-          location: data['location'] as String?,
-          description: data['description'] as String?,
-          startTime: data['start_time'] as String?,
-          endTime: data['end_time'] as String?,
+          title: safeStringNullable(data, 'title'),
+          location: safeStringNullable(data, 'location'),
+          description: safeStringNullable(data, 'description'),
+          startTime: safeStringNullable(data, 'start_time'),
+          endTime: safeStringNullable(data, 'end_time'),
           date: data['date'] != null ? DateTime.tryParse(data['date'] as String) : null,
         );
       } else {
         result = await _activityInstanceService.editFutureInstances(
           instanceId: instanceId,
           userId: userId,
-          title: data['title'] as String?,
-          location: data['location'] as String?,
-          description: data['description'] as String?,
-          startTime: data['start_time'] as String?,
-          endTime: data['end_time'] as String?,
+          title: safeStringNullable(data, 'title'),
+          location: safeStringNullable(data, 'location'),
+          description: safeStringNullable(data, 'description'),
+          startTime: safeStringNullable(data, 'start_time'),
+          endTime: safeStringNullable(data, 'end_time'),
         );
       }
 
@@ -210,7 +211,7 @@ class ActivityInstancesHandler {
       }
 
       final teamId = instanceInfo['team_id'] as String;
-      final createdBy = instanceInfo['created_by'] as String?;
+      final createdBy = safeStringNullable(instanceInfo, 'created_by');
 
       if (!await _canManageInstance(userId, teamId, createdBy)) {
         return resp.forbidden('Du har ikke tilgang til å slette denne aktiviteten');
@@ -218,7 +219,7 @@ class ActivityInstancesHandler {
 
       final data = await parseBody(request);
 
-      final deleteScope = data['delete_scope'] as String?;
+      final deleteScope = safeStringNullable(data, 'delete_scope');
       if (deleteScope == null || !['single', 'this_and_future'].contains(deleteScope)) {
         return resp.badRequest('Mangler eller ugyldig delete_scope (single | this_and_future)');
       }

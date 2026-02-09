@@ -8,6 +8,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class TeamsHandler {
   final TeamService _teamService;
   final TeamMemberService _memberService;
@@ -66,8 +67,8 @@ class TeamsHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
-      final sport = data['sport'] as String?;
+      final name = safeStringNullable(data, 'name');
+      final sport = safeStringNullable(data, 'sport');
 
       if (name == null || name.isEmpty) {
         return resp.badRequest('Lagnavn er påkrevd');
@@ -117,8 +118,8 @@ class TeamsHandler {
 
       final data = await parseBody(request);
 
-      final name = data['name'] as String?;
-      final sport = data['sport'] as String?;
+      final name = safeStringNullable(data, 'name');
+      final sport = safeStringNullable(data, 'sport');
 
       if (name == null && sport == null) {
         return resp.badRequest('Ingen felt å oppdatere');
@@ -224,10 +225,10 @@ class TeamsHandler {
 
       final data = await parseBody(request);
 
-      final isAdminFlag = data['is_admin'] as bool?;
-      final isFineBoss = data['is_fine_boss'] as bool?;
-      final isCoach = data['is_coach'] as bool?;
-      final trainerTypeId = data['trainer_type_id'] as String?;
+      final isAdminFlag = safeBoolNullable(data, 'is_admin');
+      final isFineBoss = safeBoolNullable(data, 'is_fine_boss');
+      final isCoach = safeBoolNullable(data, 'is_coach');
+      final trainerTypeId = safeStringNullable(data, 'trainer_type_id');
       final clearTrainerType = data.containsKey('trainer_type_id') && trainerTypeId == null;
 
       await _memberService.updateMemberPermissions(
@@ -315,7 +316,7 @@ class TeamsHandler {
       }
 
       final data = await parseBody(request);
-      final isInjured = data['is_injured'] as bool?;
+      final isInjured = safeBoolNullable(data, 'is_injured');
 
       if (isInjured == null) {
         return resp.badRequest('is_injured er pakrevd');
