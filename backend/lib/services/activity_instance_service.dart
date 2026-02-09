@@ -7,7 +7,7 @@ import '../helpers/parsing_helpers.dart';
 
 class ActivityInstanceService {
   final Database _db;
-  final LeaderboardService _leaderboardService;
+  final LeaderboardCrudService _leaderboardService;
   final SeasonService _seasonService;
   final _uuid = const Uuid();
 

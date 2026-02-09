@@ -10,10 +10,15 @@ import 'leaderboard_entries_handler.dart';
 
 import '../helpers/parsing_helpers.dart';
 class LeaderboardsHandler {
-  final LeaderboardService _leaderboardService;
+  final LeaderboardCrudService _crudService;
+  final LeaderboardRankingService _rankingService;
   final TeamService _teamService;
 
-  LeaderboardsHandler(this._leaderboardService, this._teamService);
+  LeaderboardsHandler(
+    this._crudService,
+    this._rankingService,
+    this._teamService,
+  );
 
   Router get router {
     final router = Router();
@@ -31,7 +36,7 @@ class LeaderboardsHandler {
     router.delete('/<leaderboardId>', _deleteLeaderboard);
 
     // Mount entries and point config handler
-    final entriesHandler = LeaderboardEntriesHandler(_leaderboardService, _teamService);
+    final entriesHandler = LeaderboardEntriesHandler(_crudService, _teamService);
     router.mount('/', entriesHandler.router.call);
 
     return router;
@@ -50,7 +55,7 @@ class LeaderboardsHandler {
       }
 
       final seasonId = request.url.queryParameters['season_id'];
-      final leaderboards = await _leaderboardService.getLeaderboardsForTeam(
+      final leaderboards = await _crudService.getLeaderboardsForTeam(
         teamId,
         seasonId: seasonId,
       );
@@ -75,14 +80,14 @@ class LeaderboardsHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final leaderboard = await _leaderboardService.getMainLeaderboard(teamId);
+      final leaderboard = await _crudService.getMainLeaderboard(teamId);
 
       if (leaderboard == null) {
         return resp.notFound('Ingen hovedranking funnet');
       }
 
       // Also get entries
-      final entries = await _leaderboardService.getLeaderboardEntries(
+      final entries = await _crudService.getLeaderboardEntries(
         leaderboard.id,
         limit: 50,
       );
@@ -103,7 +108,7 @@ class LeaderboardsHandler {
         return resp.unauthorized();
       }
 
-      final leaderboard = await _leaderboardService.getLeaderboardById(leaderboardId);
+      final leaderboard = await _crudService.getLeaderboardById(leaderboardId);
       if (leaderboard == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -142,7 +147,7 @@ class LeaderboardsHandler {
         return resp.badRequest('Navn er pakrevd');
       }
 
-      final leaderboard = await _leaderboardService.createLeaderboard(
+      final leaderboard = await _crudService.createLeaderboard(
         teamId: teamId,
         seasonId: safeStringNullable(body, 'season_id'),
         name: name,
@@ -164,7 +169,7 @@ class LeaderboardsHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      final teamId = await _crudService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -180,7 +185,7 @@ class LeaderboardsHandler {
 
       final body = await parseBody(request);
 
-      final leaderboard = await _leaderboardService.updateLeaderboard(
+      final leaderboard = await _crudService.updateLeaderboard(
         leaderboardId: leaderboardId,
         name: safeStringNullable(body, 'name'),
         description: safeStringNullable(body, 'description'),
@@ -206,7 +211,7 @@ class LeaderboardsHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      final teamId = await _crudService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -220,7 +225,7 @@ class LeaderboardsHandler {
         return resp.forbidden('Kun admin kan slette leaderboards');
       }
 
-      await _leaderboardService.deleteLeaderboard(leaderboardId);
+      await _crudService.deleteLeaderboard(leaderboardId);
 
       return resp.ok({'success': true});
     } catch (e) {
@@ -256,7 +261,7 @@ class LeaderboardsHandler {
         ).firstOrNull;
       }
 
-      final entries = await _leaderboardService.getRankedEntries(
+      final entries = await _rankingService.getRankedEntries(
         teamId,
         category: category,
         seasonId: seasonId,
@@ -297,7 +302,7 @@ class LeaderboardsHandler {
         ).firstOrNull;
       }
 
-      final entries = await _leaderboardService.getLeaderboardWithTrends(
+      final entries = await _rankingService.getLeaderboardWithTrends(
         teamId,
         category: category,
         seasonId: seasonId,
@@ -330,7 +335,7 @@ class LeaderboardsHandler {
 
       final seasonId = request.url.queryParameters['season_id'];
 
-      final entry = await _leaderboardService.getUserRankedPosition(
+      final entry = await _rankingService.getUserRankedPosition(
         teamId,
         targetUserId,
         seasonId: seasonId,
@@ -366,7 +371,7 @@ class LeaderboardsHandler {
       final monthParam = request.url.queryParameters['month'];
       final limitParam = request.url.queryParameters['limit'];
 
-      final stats = await _leaderboardService.getUserMonthlyStats(
+      final stats = await _rankingService.getUserMonthlyStats(
         teamId,
         targetUserId,
         year: yearParam != null ? int.tryParse(yearParam) : null,

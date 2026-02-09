@@ -8,10 +8,10 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class LeaderboardEntriesHandler {
-  final LeaderboardService _leaderboardService;
+  final LeaderboardCrudService _crudService;
   final TeamService _teamService;
 
-  LeaderboardEntriesHandler(this._leaderboardService, this._teamService);
+  LeaderboardEntriesHandler(this._crudService, this._teamService);
 
   Router get router {
     final router = Router();
@@ -37,7 +37,7 @@ class LeaderboardEntriesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      final teamId = await _crudService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -50,7 +50,7 @@ class LeaderboardEntriesHandler {
       final limitParam = request.url.queryParameters['limit'];
       final offsetParam = request.url.queryParameters['offset'];
 
-      final entries = await _leaderboardService.getLeaderboardEntries(
+      final entries = await _crudService.getLeaderboardEntries(
         leaderboardId,
         limit: limitParam != null ? int.tryParse(limitParam) : null,
         offset: offsetParam != null ? int.tryParse(offsetParam) ?? 0 : 0,
@@ -71,7 +71,7 @@ class LeaderboardEntriesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      final teamId = await _crudService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -81,7 +81,7 @@ class LeaderboardEntriesHandler {
         return resp.forbidden('Ingen tilgang til dette leaderboardet');
       }
 
-      final entry = await _leaderboardService.getUserEntry(leaderboardId, targetUserId);
+      final entry = await _crudService.getUserEntry(leaderboardId, targetUserId);
 
       if (entry == null) {
         return resp.notFound('Bruker ikke funnet i leaderboard');
@@ -100,7 +100,7 @@ class LeaderboardEntriesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      final teamId = await _crudService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -122,7 +122,7 @@ class LeaderboardEntriesHandler {
         final points = safeIntNullable(body, 'points') ?? 0;
         final addToExisting = safeBoolNullable(body, 'add_to_existing') ?? true;
 
-        final entry = await _leaderboardService.upsertEntry(
+        final entry = await _crudService.upsertEntry(
           leaderboardId: leaderboardId,
           userId: targetUserId,
           points: points,
@@ -133,7 +133,7 @@ class LeaderboardEntriesHandler {
       } else if (body['user_points'] != null) {
         final userPoints = Map<String, int>.from(body['user_points'] as Map);
 
-        await _leaderboardService.addPointsToUsers(
+        await _crudService.addPointsToUsers(
           leaderboardId: leaderboardId,
           userPoints: userPoints,
         );
@@ -154,7 +154,7 @@ class LeaderboardEntriesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      final teamId = await _crudService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -168,7 +168,7 @@ class LeaderboardEntriesHandler {
         return resp.forbidden('Kun admin kan nullstille leaderboard');
       }
 
-      await _leaderboardService.resetLeaderboard(leaderboardId);
+      await _crudService.resetLeaderboard(leaderboardId);
 
       return resp.ok({'success': true});
     } catch (e) {
@@ -183,7 +183,7 @@ class LeaderboardEntriesHandler {
         return resp.unauthorized();
       }
 
-      final configs = await _leaderboardService.getPointConfigsForMiniActivity(miniActivityId);
+      final configs = await _crudService.getPointConfigsForMiniActivity(miniActivityId);
 
       return resp.ok({
         'configs': configs.map((c) => c.toJson()).toList(),
@@ -208,7 +208,7 @@ class LeaderboardEntriesHandler {
       }
 
       // Verify admin access to leaderboard's team
-      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      final teamId = await _crudService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -222,7 +222,7 @@ class LeaderboardEntriesHandler {
         return resp.forbidden('Kun admin kan konfigurere poeng');
       }
 
-      final config = await _leaderboardService.upsertPointConfig(
+      final config = await _crudService.upsertPointConfig(
         miniActivityId: miniActivityId,
         leaderboardId: leaderboardId,
         distributionType: safeStringNullable(body, 'distribution_type') ?? 'winner_only',
@@ -249,7 +249,7 @@ class LeaderboardEntriesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _leaderboardService.getTeamIdForLeaderboard(leaderboardId);
+      final teamId = await _crudService.getTeamIdForLeaderboard(leaderboardId);
       if (teamId == null) {
         return resp.notFound('Leaderboard ikke funnet');
       }
@@ -263,7 +263,7 @@ class LeaderboardEntriesHandler {
         return resp.forbidden('Kun admin kan fjerne poengkonfigurasjon');
       }
 
-      await _leaderboardService.deletePointConfig(miniActivityId, leaderboardId);
+      await _crudService.deletePointConfig(miniActivityId, leaderboardId);
 
       return resp.ok({'success': true});
     } catch (e) {

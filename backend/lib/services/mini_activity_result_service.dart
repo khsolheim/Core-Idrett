@@ -8,7 +8,7 @@ import '../helpers/parsing_helpers.dart';
 
 class MiniActivityResultService {
   final Database _db;
-  final LeaderboardService _leaderboardService;
+  final LeaderboardCrudService _leaderboardService;
   final SeasonService _seasonService;
   final _uuid = const Uuid();
 

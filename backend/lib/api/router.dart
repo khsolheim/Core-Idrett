@@ -64,13 +64,17 @@ Router createRouter(Database db) {
   final teamMemberService = TeamMemberService(db);
   final seasonService = SeasonService(db);
   final leaderboardEntryService = LeaderboardEntryService(db, userService);
-  final leaderboardService = LeaderboardService(db, leaderboardEntryService, teamService);
+  final leaderboardCrudService = LeaderboardCrudService(db, leaderboardEntryService);
+  final leaderboardCategoryService = LeaderboardCategoryService(db);
+  final leaderboardRankingService = LeaderboardRankingService(
+    db, leaderboardCrudService, leaderboardCategoryService, teamService,
+  );
   final activityService = ActivityService(db, userService);
-  final activityInstanceService = ActivityInstanceService(db, leaderboardService, seasonService);
+  final activityInstanceService = ActivityInstanceService(db, leaderboardCrudService, seasonService);
   final miniActivityService = MiniActivityService(db, userService);
   final miniActivityTemplateService = MiniActivityTemplateService(db);
   final miniActivityDivisionService = MiniActivityDivisionService(db);
-  final miniActivityResultService = MiniActivityResultService(db, leaderboardService, seasonService);
+  final miniActivityResultService = MiniActivityResultService(db, leaderboardCrudService, seasonService);
   final playerRatingService = PlayerRatingService(db);
   final matchStatsService = MatchStatsService(db, userService);
   final statisticsService = StatisticsService(db, userService, teamService, playerRatingService);
@@ -151,7 +155,9 @@ Router createRouter(Database db) {
   final seasonsHandler = SeasonsHandler(seasonService, teamService);
   router.mount('/seasons', const Pipeline().addMiddleware(auth).addHandler(seasonsHandler.router.call).call);
 
-  final leaderboardsHandler = LeaderboardsHandler(leaderboardService, teamService);
+  final leaderboardsHandler = LeaderboardsHandler(
+    leaderboardCrudService, leaderboardRankingService, teamService,
+  );
   router.mount('/leaderboards', const Pipeline().addMiddleware(auth).addHandler(leaderboardsHandler.router.call).call);
 
   final pointsConfigHandler = PointsConfigHandler(pointsConfigService, teamService);
