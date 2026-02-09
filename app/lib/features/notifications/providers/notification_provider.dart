@@ -8,6 +8,7 @@ import '../../../core/errors/app_exceptions.dart';
 import '../../../data/models/notification.dart';
 import '../data/notification_local_data_source.dart';
 import '../data/notification_repository.dart';
+import '../services/foreground_notification_service.dart';
 
 // FCM token provider
 final fcmTokenProvider = NotifierProvider<FcmTokenNotifier, String?>(() {
@@ -17,6 +18,7 @@ final fcmTokenProvider = NotifierProvider<FcmTokenNotifier, String?>(() {
 class FcmTokenNotifier extends Notifier<String?> {
   late final NotificationRepository _repo;
   late final NotificationLocalDataSource _localDataSource;
+  late final ForegroundNotificationService _foregroundService;
   bool _initialized = false;
 
   static const _retryOptions = RetryOptions(
@@ -30,6 +32,7 @@ class FcmTokenNotifier extends Notifier<String?> {
   String? build() {
     _repo = ref.watch(notificationRepositoryProvider);
     _localDataSource = ref.watch(notificationLocalDataSourceProvider);
+    _foregroundService = ref.watch(foregroundNotificationServiceProvider);
     return null;
   }
 
@@ -49,6 +52,18 @@ class FcmTokenNotifier extends Notifier<String?> {
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional) {
+      // Configure iOS to show notifications when app is in foreground
+      if (Platform.isIOS) {
+        await messaging.setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      }
+
+      // Initialize local notifications for foreground display
+      await _foregroundService.initialize();
+
       // Get the token
       final token = await messaging.getToken();
       if (token != null) {
@@ -125,13 +140,8 @@ class FcmTokenNotifier extends Notifier<String?> {
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
-    // This is called when the app is in the foreground
-    // You can show a local notification or update UI here
-    // For now, we just log it
-    final notification = message.notification;
-    if (notification != null) {
-      // Could trigger a local notification or update a badge count
-    }
+    // Display foreground notification via flutter_local_notifications
+    _foregroundService.showNotification(message);
   }
 
   Future<void> removeToken() async {
