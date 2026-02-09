@@ -10,11 +10,17 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class ActivitiesHandler {
-  final ActivityService _activityService;
+  final ActivityCrudService _crudService;
+  final ActivityQueryService _queryService;
   final ActivityInstanceService _activityInstanceService;
   final TeamService _teamService;
 
-  ActivitiesHandler(this._activityService, this._activityInstanceService, this._teamService);
+  ActivitiesHandler(
+    this._crudService,
+    this._queryService,
+    this._activityInstanceService,
+    this._teamService,
+  );
 
   Router get router {
     final router = Router();
@@ -31,7 +37,7 @@ class ActivitiesHandler {
 
     // Mount instance routes
     final instancesHandler = ActivityInstancesHandler(
-      _activityService,
+      _queryService,
       _activityInstanceService,
       _teamService,
     );
@@ -51,7 +57,7 @@ class ActivitiesHandler {
         return resp.forbidden('Ingen tilgang til dette laget');
       }
 
-      final activities = await _activityService.getActivitiesForTeam(teamId);
+      final activities = await _queryService.getActivitiesForTeam(teamId);
       return resp.ok(activities);
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -97,7 +103,7 @@ class ActivitiesHandler {
         }
       }
 
-      final activity = await _activityService.createActivity(
+      final activity = await _crudService.createActivity(
         teamId: teamId,
         title: title,
         type: type,
@@ -133,7 +139,7 @@ class ActivitiesHandler {
       final limitParam = request.url.queryParameters['limit'];
       final limit = limitParam != null ? int.tryParse(limitParam) ?? 20 : 20;
 
-      final instances = await _activityService.getUpcomingInstances(teamId, limit: limit);
+      final instances = await _queryService.getUpcomingInstances(teamId, limit: limit);
       return resp.ok(instances);
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -168,7 +174,7 @@ class ActivitiesHandler {
         return resp.badRequest('Ugyldig datoformat for to');
       }
 
-      final instances = await _activityService.getInstancesByDateRange(
+      final instances = await _queryService.getInstancesByDateRange(
         teamId,
         from: from,
         to: to,
@@ -187,7 +193,7 @@ class ActivitiesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _activityService.getTeamIdForActivity(activityId);
+      final teamId = await _crudService.getTeamIdForActivity(activityId);
       if (teamId == null) {
         return resp.notFound('Aktivitet ikke funnet');
       }
@@ -197,7 +203,7 @@ class ActivitiesHandler {
         return resp.forbidden('Kun administratorer kan slette aktiviteter');
       }
 
-      await _activityService.deleteActivity(activityId);
+      await _crudService.deleteActivity(activityId);
       return resp.ok({'success': true});
     } catch (e) {
       return resp.serverError('En feil oppstod');
@@ -211,7 +217,7 @@ class ActivitiesHandler {
         return resp.unauthorized();
       }
 
-      final teamId = await _activityService.getTeamIdForActivity(activityId);
+      final teamId = await _crudService.getTeamIdForActivity(activityId);
       if (teamId == null) {
         return resp.notFound('Aktivitet ikke funnet');
       }
@@ -230,7 +236,7 @@ class ActivitiesHandler {
         return resp.badRequest('Mangler påkrevde felt (title, type)');
       }
 
-      final activity = await _activityService.updateActivity(
+      final activity = await _crudService.updateActivity(
         activityId: activityId,
         title: title,
         type: type,

@@ -9,12 +9,12 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class ActivityInstancesHandler {
-  final ActivityService _activityService;
+  final ActivityQueryService _queryService;
   final ActivityInstanceService _activityInstanceService;
   final TeamService _teamService;
 
   ActivityInstancesHandler(
-    this._activityService,
+    this._queryService,
     this._activityInstanceService,
     this._teamService,
   );
@@ -39,7 +39,7 @@ class ActivityInstancesHandler {
         return resp.unauthorized();
       }
 
-      final instance = await _activityService.getInstanceWithResponses(instanceId, userId);
+      final instance = await _queryService.getInstanceWithResponses(instanceId, userId);
       if (instance == null) {
         return resp.notFound('Aktivitet ikke funnet');
       }
@@ -61,7 +61,7 @@ class ActivityInstancesHandler {
         return resp.unauthorized();
       }
 
-      final instance = await _activityService.getInstanceWithResponses(instanceId, userId);
+      final instance = await _queryService.getInstanceWithResponses(instanceId, userId);
       if (instance == null) {
         return resp.notFound('Aktivitet ikke funnet');
       }
@@ -99,7 +99,7 @@ class ActivityInstancesHandler {
         return resp.unauthorized();
       }
 
-      final instance = await _activityService.getInstanceWithResponses(instanceId, userId);
+      final instance = await _queryService.getInstanceWithResponses(instanceId, userId);
       if (instance == null) {
         return resp.notFound('Aktivitet ikke funnet');
       }

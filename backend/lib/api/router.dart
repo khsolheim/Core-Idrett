@@ -69,7 +69,8 @@ Router createRouter(Database db) {
   final leaderboardRankingService = LeaderboardRankingService(
     db, leaderboardCrudService, leaderboardCategoryService, teamService,
   );
-  final activityService = ActivityService(db, userService);
+  final activityCrudService = ActivityCrudService(db);
+  final activityQueryService = ActivityQueryService(db, userService);
   final activityInstanceService = ActivityInstanceService(db, leaderboardCrudService, seasonService);
   final miniActivityService = MiniActivityService(db, userService);
   final miniActivityTemplateService = MiniActivityTemplateService(db);
@@ -120,7 +121,7 @@ Router createRouter(Database db) {
   final teamsHandler = TeamsHandler(teamService, teamMemberService, dashboardService);
   router.mount('/teams', const Pipeline().addMiddleware(auth).addHandler(teamsHandler.router.call).call);
 
-  final activitiesHandler = ActivitiesHandler(activityService, activityInstanceService, teamService);
+  final activitiesHandler = ActivitiesHandler(activityCrudService, activityQueryService, activityInstanceService, teamService);
   router.mount('/activities', const Pipeline().addMiddleware(auth).addHandler(activitiesHandler.router.call).call);
 
   final miniActivitiesHandler = MiniActivitiesHandler(
