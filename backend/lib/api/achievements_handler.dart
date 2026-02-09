@@ -252,7 +252,7 @@ class AchievementsHandler {
 
       await _definitionService.deleteDefinition(definitionId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Prestasjon slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette achievement');
     }

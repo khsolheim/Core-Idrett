@@ -156,7 +156,7 @@ class AbsenceCategoriesHandler {
 
       await _absenceService.deleteCategory(categoryId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Kategori slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette fraværskategori');
     }

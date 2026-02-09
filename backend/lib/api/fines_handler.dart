@@ -157,7 +157,7 @@ class FinesHandler {
         return resp.notFound('Bøteregel ikke funnet');
       }
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Bøteregel slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette bøteregel');
     }

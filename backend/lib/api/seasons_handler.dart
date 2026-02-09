@@ -248,7 +248,7 @@ class SeasonsHandler {
         );
       }
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Sesong slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette sesong');
     }

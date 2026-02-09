@@ -240,7 +240,7 @@ class TeamsHandler {
         clearTrainerType: clearTrainerType,
       );
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Tillatelser oppdatert'});
     } catch (e) {
       return resp.serverError();
     }
@@ -259,7 +259,7 @@ class TeamsHandler {
       }
 
       await _memberService.deactivateMember(memberId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Medlem deaktivert'});
     } catch (e) {
       return resp.serverError();
     }
@@ -278,7 +278,7 @@ class TeamsHandler {
       }
 
       await _memberService.reactivateMember(memberId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Medlem reaktivert'});
     } catch (e) {
       return resp.serverError();
     }
@@ -297,7 +297,7 @@ class TeamsHandler {
       }
 
       await _memberService.removeMember(memberId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Medlem fjernet'});
     } catch (e) {
       return resp.serverError();
     }
@@ -323,7 +323,7 @@ class TeamsHandler {
       }
 
       await _memberService.setMemberInjuredStatus(memberId, isInjured);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Status oppdatert'});
     } catch (e) {
       return resp.serverError();
     }

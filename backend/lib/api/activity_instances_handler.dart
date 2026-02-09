@@ -86,7 +86,7 @@ class ActivityInstancesHandler {
         comment: comment,
       );
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Registrert'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -122,7 +122,7 @@ class ActivityInstancesHandler {
         reason: safeStringNullable(data, 'reason'),
       );
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Oppdatert'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -269,9 +269,9 @@ class ActivityInstancesHandler {
       final pointsAwarded = await _activityInstanceService.awardAttendancePoints(instanceId);
 
       return resp.ok({
-        'success': true,
+        'message': 'Registrert',
         'points_awarded_to': pointsAwarded,
-        'message': 'Oppmøtepoeng tildelt til $pointsAwarded spillere',
+        'description': 'Oppmøtepoeng tildelt til $pointsAwarded spillere',
       });
     } catch (e) {
       final errorMsg = e.toString();

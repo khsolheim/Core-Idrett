@@ -259,7 +259,7 @@ class AbsenceHandler {
 
       await _absenceService.deleteAbsence(absenceId);
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Fravær slettet'});
     } catch (e) {
       return resp.serverError('Kunne ikke slette fravær');
     }

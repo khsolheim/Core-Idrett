@@ -216,7 +216,7 @@ class DocumentsHandler {
         return resp.notFound('Document not found');
       }
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Dokument slettet'});
     } catch (e) {
       return resp.serverError('Failed to delete document');
     }

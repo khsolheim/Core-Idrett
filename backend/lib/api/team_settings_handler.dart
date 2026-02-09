@@ -93,7 +93,7 @@ class TeamSettingsHandler {
       }
 
       await _memberService.deleteTrainerType(trainerTypeId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Trenertype slettet'});
     } catch (e) {
       return resp.serverError();
     }

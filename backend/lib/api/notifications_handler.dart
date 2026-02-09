@@ -72,7 +72,7 @@ class NotificationsHandler {
       }
 
       await _notificationService.removeToken(userId, token);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Token fjernet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }

@@ -204,7 +204,7 @@ class ActivitiesHandler {
       }
 
       await _crudService.deleteActivity(activityId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Aktivitet slettet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }

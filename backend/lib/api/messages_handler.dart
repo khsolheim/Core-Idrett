@@ -165,7 +165,7 @@ class MessagesHandler {
         return resp.notFound('Melding ikke funnet eller du har ikke tilgang');
       }
 
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Melding slettet'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -184,7 +184,7 @@ class MessagesHandler {
       }
 
       await _messageService.markAsRead(userId, teamId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Markert som lest'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
@@ -312,7 +312,7 @@ class MessagesHandler {
       }
 
       await _directMessageService.markDirectAsRead(userId, recipientId);
-      return resp.ok({'success': true});
+      return resp.ok({'message': 'Markert som lest'});
     } catch (e) {
       return resp.serverError('En feil oppstod');
     }
