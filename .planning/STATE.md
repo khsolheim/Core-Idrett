@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Koden skal være lett å forstå, endre, og utvide — uten å krasje på uventede data.
-**Current focus:** Phase 5 - Frontend Widget Extraction (complete)
+**Current focus:** Phase 5 - Frontend Widget Extraction (in progress)
 
 ## Current Position
 
 Phase: 5 of 10 (Frontend Widget Extraction)
-Plan: 4 of 4 (Phase complete - all widget extraction targets met)
-Status: Complete
-Last activity: 2026-02-09 — Plan 05-04 complete, split edit_team_members_tab (423→88 LOC) and dashboard_info_widgets (420→5 LOC barrel), 6 new widget files
+Plan: 3 of 4 (In progress)
+Status: Active
+Last activity: 2026-02-09 — Plan 05-03 complete, split mini_activity_detail_content (436→307 LOC) and stats_widgets (429→4 LOC barrel), 5 new widget files
 
-Progress: [██████████] 100% (17 of 17 total plans across phases 01-05)
+Progress: [█████████░] 88% (15 of 17 total plans across phases 01-05)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
-- Average duration: ~11 minutes
-- Total execution time: ~3.1 hours
+- Total plans completed: 15
+- Average duration: ~12 minutes
+- Total execution time: ~3 hours
 
 **By Phase:**
 
@@ -31,7 +31,7 @@ Progress: [██████████] 100% (17 of 17 total plans across pha
 | 02    | 4/4   | ~21m       | ~5m      |
 | 03    | 4/4   | ~25m       | ~6.25m   |
 | 04    | 2/2   | ~4m        | ~2m      |
-| 05    | 4/4   | ~9m        | ~2.25m   |
+| 05    | 3/4   | ~12m       | ~4m      |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -49,12 +49,10 @@ Progress: [██████████] 100% (17 of 17 total plans across pha
 - Plan 04-02: Rate limiting middleware (2 min, shelf_limiter for auth/mutation/export endpoints, Phase 4 complete)
 - Plan 05-01: Test detail widget extraction (234 min, test_detail_screen 590→211 LOC, 3 new widget files)
 - Plan 05-02: Export & activity detail widget extraction (3 min, export_screen 470→219 LOC, activity_detail_screen 456→178 LOC, 3 new widget files)
-- Plan 05-03: Mini-activity detail dialogs extraction (2 min, 2 new widget files, ResultBadge widget)
-- Plan 05-04: Team widget files split (3 min, edit_team_members_tab 423→88 LOC, dashboard_info_widgets 420→5 LOC barrel, 6 new widget files, Phase 5 complete)
-- Trend: Phase 5 complete — widget extraction very fast (avg 2.25 min), clean splits maintaining functionality
+- Plan 05-03: Mini-activity widget extraction (5 min, mini_activity_detail_content 436→307 LOC, stats_widgets→barrel, 5 new widget files)
+- Trend: Phase 5 in progress — widget extraction fast and clean, maintaining functionality while reducing file sizes
 
-*Updated 2026-02-09 after plan 05-04 complete (Phase 5 complete)*
-| Phase 05-frontend-widget-extraction P03 | 278 | 2 tasks | 9 files |
+*Updated 2026-02-09 after plan 05-03 complete*
 
 ## Accumulated Context
 
@@ -106,9 +104,9 @@ Recent decisions affecting current work:
 - [Phase 05-02]: Extract ActivityDetailContent as single 286 LOC file - keeps response/attendance/mini-activity logic together
 - [Phase 05-01]: Convert message_widgets.dart to barrel file - preserves existing imports without breaking changes
 - [Phase 05-01]: Make private widgets public for better composition and independent testing
-- [Phase 05-04]: Dialog helpers as standalone functions - cleaner separation than class methods for reusable actions
-- [Phase 05-04]: Convert dashboard_info_widgets to barrel file - preserves existing imports while enabling focused files
-- Phase 5 complete: Widget extraction — 13 new widget files created, 5 large files reduced under 350 LOC target (05-01 to 05-04)
+- [Phase 05-03]: Dialog helpers as standalone functions with explicit parameters - improves testability and makes dependencies clear
+- [Phase 05-03]: Convert stats_widgets to barrel file - preserves existing imports while enabling focused widget files
+- [Phase 05-03]: Group related widgets in same file - PlayerStatsCard + CompactStatsCard stay together for cohesion
 
 ### Pending Todos
 
@@ -120,8 +118,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 05-04 execution)
-Stopped at: Completed 05-04-PLAN.md — Phase 5 complete, all widget extraction targets met
+Last session: 2026-02-09 (Plan 05-03 execution)
+Stopped at: Completed 05-03-PLAN.md — Mini-activity widget extraction complete
 Resume file: None
-Next: Phase 6 or other refactoring phase
-Next: Phase 5 Plan 03 (tournament and statistics screen splitting)
+Next: Phase 5 Plan 04 (team detail widget extraction)
