@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 8 of 10 (Push Notification Hardening)
-Plan: 1 of 3 (Complete)
+Plan: 2 of 3 (Complete)
 Status: In Progress
-Last activity: 2026-02-09 — Plan 08-01 complete, installed foundation services (FCM token persistence + local notifications), Firebase config deferred
+Last activity: 2026-02-09 — Plan 08-02 complete, FCM token retry and persistence with exponential backoff
 
-Progress: [███████████░] 92% (22 of 24 total plans across phases 01-08)
+Progress: [███████████░] 96% (23 of 24 total plans across phases 01-08)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: ~10 minutes
-- Total execution time: ~3.8 hours
+- Total execution time: ~4.1 hours
 
 **By Phase:**
 
@@ -34,7 +34,7 @@ Progress: [███████████░] 92% (22 of 24 total plans acros
 | 05    | 3/4   | ~12m       | ~4m      |
 | 06    | 3/3   | ~30m       | ~10m     |
 | 07    | 4/4   | ~20m       | ~5m      |
-| 08    | 1/3   | ~10m       | ~10m     |
+| 08    | 2/3   | ~29m       | ~14.5m   |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -62,9 +62,11 @@ Progress: [███████████░] 92% (22 of 24 total plans acros
 - Plan 07-04: AppSpacing constants and EmptyStateWidget standardization (6 min, added 8px grid constants, replaced custom empty states in 5 screens, -39 net LOC)
 - Trend: Phase 7 complete — code consistency patterns established across backend and frontend, -194 net LOC through standardization
 - Plan 08-01: Push notification foundation services (10 min, installed flutter_local_notifications + retry + flutter_secure_storage, Firebase initialization with graceful failure, NotificationLocalDataSource for secure token persistence, ForegroundNotificationService for local notifications, Firebase config deferred by user)
+- Plan 08-02: FCM token retry and persistence (19 min, exponential backoff with 8 attempts, selective retry on network/timeout/server errors, fire-and-forget with unawaited, stale token recovery on startup, epoch 0 for failed registrations)
 
-*Updated 2026-02-09 after plan 08-01 complete*
+*Updated 2026-02-09 after plan 08-02 complete*
 | Phase 08 P01 | 10 | 2 tasks | 6 files |
+| Phase 08 P02 | 19 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -140,6 +142,12 @@ Recent decisions affecting current work:
 - [Phase 08-01]: Secure token storage with FlutterSecureStorage - more secure than SharedPreferences for FCM tokens, encrypted iOS keychain + Android keystore
 - [Phase 08-01]: 24-hour token reregistration threshold - balances server load with token freshness via timestamp tracking
 - [Phase 08-01]: Firebase configuration deferred - user skipped Task 2 checkpoint, code ready for Plans 08-02/08-03, Firebase config via flutterfire CLI can happen later
+- [Phase 08]: FCM retry with exponential backoff - 8 attempts, 400ms-60s delay with 0.25 jitter, selective retry on network/timeout/server errors only
+- [Phase 08]: Fire-and-forget token registration - unawaited() ensures registration never blocks app startup or UI thread
+- [Phase 08]: Failed registrations save token with epoch 0 - triggers automatic reregistration on next startup via stale token recovery
+- [Phase 08]: FCM retry with exponential backoff - 8 attempts, 400ms-60s delay with 0.25 jitter, selective retry on network/timeout/server errors only
+- [Phase 08]: Fire-and-forget token registration - unawaited() ensures registration never blocks app startup or UI thread
+- [Phase 08]: Failed registrations save token with epoch 0 - triggers automatic reregistration on next startup via stale token recovery
 
 ### Pending Todos
 
