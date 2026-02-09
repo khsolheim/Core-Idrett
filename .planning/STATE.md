@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 3 of 10 (Backend Service Splitting)
-Plan: 1 of 4 (Tournament and Leaderboard services split)
+Plan: 2 of 4 (Fine and Activity services split)
 Status: In progress
-Last activity: 2026-02-09 — Plan 03-01 complete, split 2 largest services (tournament 758→4 services, leaderboard 702→3 services)
+Last activity: 2026-02-09 — Plan 03-02 complete, split FineService (615→3 services) and ActivityService (577→2 services)
 
-Progress: [████████░░] 50% (8 of 16 total plans across all phases)
+Progress: [████████▓░] 56% (9 of 16 total plans across all phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: ~18 minutes
-- Total execution time: ~2.6 hours
+- Total plans completed: 9
+- Average duration: ~16 minutes
+- Total execution time: ~2.7 hours
 
 **By Phase:**
 
@@ -29,7 +29,7 @@ Progress: [████████░░] 50% (8 of 16 total plans across all p
 |-------|-------|------------|----------|
 | 01    | 4/4   | ~3.5h      | ~50m     |
 | 02    | 4/4   | ~21m       | ~5m      |
-| 03    | 1/4   | ~7m        | ~7m      |
+| 03    | 2/4   | ~13m       | ~6.5m    |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -40,9 +40,10 @@ Progress: [████████░░] 50% (8 of 16 total plans across all p
 - Plan 02-03: Backend service migration (7 min, Python script automation)
 - Plan 02-04: Handler layer migration (10 min, 32 handlers, ~250 casts)
 - Plan 03-01: Tournament + Leaderboard service splitting (7 min, 2 services → 7 sub-services)
-- Trend: TDD execution very fast; automated migrations and refactorings consistently fast
+- Plan 03-02: Fine + Activity service splitting (6 min, 2 services → 5 sub-services)
+- Trend: Service splitting executions very fast and consistent (~6-7 min), automated refactorings maintain test coverage
 
-*Updated 2026-02-09 after plan 03-01 complete*
+*Updated 2026-02-09 after plan 03-02 complete*
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - Service splitting with barrel exports — split large services while maintaining import paths (03-01)
 - Tournament service split into 4 sub-services — CRUD, Rounds, Matches, Bracket (03-01)
 - Leaderboard service split into 3 sub-services — CRUD/forwarding, Category, Ranking (03-01)
+- Fine service split into 3 sub-services — Rules, CRUD+Appeals+Payments, Summaries (03-02)
+- Activity service split into 2 sub-services — CRUD+Generation, Query (03-02)
+- Accept slight LOC overage for complex services — FineCrudService 402 LOC (target 320), ActivityQueryService 364 LOC (target 310) maintained cohesion over strict size limits (03-02)
 
 ### Pending Todos
 
@@ -83,7 +87,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 03-01 execution)
-Stopped at: Plan 03-01 complete — Tournament + Leaderboard services split, 268 tests passing
+Last session: 2026-02-09 (Plan 03-02 execution)
+Stopped at: Plan 03-02 complete — Fine + Activity services split, 268 tests passing
 Resume file: None
-Next: Plan 03-02 execution → /gsd:execute-plan 03-02
+Next: Plan 03-03 execution → /gsd:execute-plan 03-03
