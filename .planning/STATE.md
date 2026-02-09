@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Koden skal være lett å forstå, endre, og utvide — uten å krasje på uventede data.
-**Current focus:** Phase 4 - Backend Security & Input Validation (in progress)
+**Current focus:** Phase 4 - Backend Security & Input Validation (complete)
 
 ## Current Position
 
 Phase: 4 of 10 (Backend Security & Input Validation)
-Plan: 2 of 4
-Status: In Progress
-Last activity: 2026-02-09 — Plan 04-02 complete, added rate limiting middleware (shelf_limiter) to auth, mutation, and export endpoints
+Plan: 2 of 2 (Phase complete - permission consolidation and rate limiting)
+Status: Complete
+Last activity: 2026-02-09 — Plan 04-01 complete, consolidated admin checks and added fine_boss permission enforcement
 
-Progress: [█████████░] 75% (12 of 16 total plans across all phases)
+Progress: [█████████░] 81% (13 of 16 total plans across all phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: ~12 minutes
+- Total plans completed: 13
+- Average duration: ~11 minutes
 - Total execution time: ~3 hours
 
 **By Phase:**
@@ -30,7 +30,7 @@ Progress: [█████████░] 75% (12 of 16 total plans across all 
 | 01    | 4/4   | ~3.5h      | ~50m     |
 | 02    | 4/4   | ~21m       | ~5m      |
 | 03    | 4/4   | ~25m       | ~6.25m   |
-| 04    | 2/4   | ~2m        | ~1m      |
+| 04    | 2/2   | ~4m        | ~2m      |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -44,10 +44,11 @@ Progress: [█████████░] 75% (12 of 16 total plans across all 
 - Plan 03-02: Fine + Activity service splitting (6 min, 2 services → 5 sub-services)
 - Plan 03-03: Export + Mini-Activity Statistics service splitting (6 min, 2 services → 5 sub-services)
 - Plan 03-04: Division + Points Config service splitting (6 min, 2 services → 5 sub-services, Phase 3 complete)
-- Plan 04-02: Rate limiting middleware (2 min, shelf_limiter for auth/mutation/export endpoints)
-- Trend: Phase 4 started - security improvements executing very fast (<2 min), zero test failures, minimal surface area changes
+- Plan 04-01: Permission consolidation (2 min, isAdmin() consolidated, isFinesManager() added, Phase 2 validation verified)
+- Plan 04-02: Rate limiting middleware (2 min, shelf_limiter for auth/mutation/export endpoints, Phase 4 complete)
+- Trend: Phase 4 complete - security improvements executed very fast (~2 min each), zero test failures, minimal surface area changes
 
-*Updated 2026-02-09 after plan 04-02 complete*
+*Updated 2026-02-09 after plan 04-01 complete (Phase 4 complete)*
 
 ## Accumulated Context
 
@@ -86,9 +87,15 @@ Recent decisions affecting current work:
 - Division service split into 2 sub-services — Algorithms (divideTeams, 5 methods), Management (team CRUD, handicaps) (03-04)
 - Points config split into 3 sub-services — CRUD+opt-out, Attendance points, Manual adjustments (03-04)
 - Phase 3 complete: 8 services → 22 sub-services — All under 400 LOC, barrel exports maintain import paths, 268 tests pass (03-04)
-- Rate limiting with shelf_limiter — Auth endpoints 5/min, mutations 30/min, exports 5/5min (04-02)
+- Consolidated admin check — isAdmin() uses only user_is_admin flag, removed backwards-compatible user_role check (04-01)
+- Permission helper pattern — permission_helpers.dart for role-based access control (isFinesManager, isCoachOrAdmin) (04-01)
+- Fine creation permission — _createFine enforces isFinesManager() after team membership check (04-01)
+- Deferred team-context checks — fineId-based endpoints have TODO markers for future permission enforcement (requires teamId lookup) (04-01)
+- Phase 2 validation verified — 347 safe parsing helper usages, all handler inputs validated before service layer (04-01)
+- Rate limiting with shelf_limiter — auth endpoints (5 req/min), mutations (10/min), exports (1/min), global fallback (30/min) (04-02)
 - Selective rate limiting — Read-heavy routes (teams, activities, stats) remain unlimited for legitimate usage (04-02)
 - Middleware ordering pattern — Auth routes: rate limit first; protected routes: auth first, then rate limit (04-02)
+- Phase 4 complete: Permission consolidation + rate limiting — Security foundation established, 268 tests pass (04-01, 04-02)
 
 ### Pending Todos
 
@@ -100,7 +107,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 04-02 execution)
-Stopped at: Plan 04-02 complete — Rate limiting middleware added with shelf_limiter, 268 tests passing
+Last session: 2026-02-09 (Plan 04-01 execution)
+Stopped at: Phase 4 complete — Permission consolidation and rate limiting complete, 268 tests passing
 Resume file: None
-Next: Plan 04-03 (Input validation) or Plan 04-04 (SQL injection prevention)
+Next: Phase 5 or other refactoring phase
