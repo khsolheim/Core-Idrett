@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Koden skal være lett å forstå, endre, og utvide — uten å krasje på uventede data.
-**Current focus:** Phase 4 - Backend Security & Input Validation (complete)
+**Current focus:** Phase 5 - Frontend Widget Extraction (in progress)
 
 ## Current Position
 
-Phase: 4 of 10 (Backend Security & Input Validation)
-Plan: 2 of 2 (Phase complete - permission consolidation and rate limiting)
-Status: Complete
-Last activity: 2026-02-09 — Plan 04-01 complete, consolidated admin checks and added fine_boss permission enforcement
+Phase: 5 of 10 (Frontend Widget Extraction)
+Plan: 2 of 4 (export & activity detail screens split)
+Status: In Progress
+Last activity: 2026-02-09 — Plan 05-02 complete, split export_screen (470→219 LOC) and activity_detail_screen (456→178 LOC)
 
-Progress: [█████████░] 81% (13 of 16 total plans across all phases)
+Progress: [█████████░] 87% (14 of 16 total plans across all phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: ~11 minutes
+- Total plans completed: 14
+- Average duration: ~10 minutes
 - Total execution time: ~3 hours
 
 **By Phase:**
@@ -31,6 +31,7 @@ Progress: [█████████░] 81% (13 of 16 total plans across all 
 | 02    | 4/4   | ~21m       | ~5m      |
 | 03    | 4/4   | ~25m       | ~6.25m   |
 | 04    | 2/2   | ~4m        | ~2m      |
+| 05    | 2/4   | ~3m        | ~3m      |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -46,9 +47,10 @@ Progress: [█████████░] 81% (13 of 16 total plans across all 
 - Plan 03-04: Division + Points Config service splitting (6 min, 2 services → 5 sub-services, Phase 3 complete)
 - Plan 04-01: Permission consolidation (2 min, isAdmin() consolidated, isFinesManager() added, Phase 2 validation verified)
 - Plan 04-02: Rate limiting middleware (2 min, shelf_limiter for auth/mutation/export endpoints, Phase 4 complete)
-- Trend: Phase 4 complete - security improvements executed very fast (~2 min each), zero test failures, minimal surface area changes
+- Plan 05-02: Export & activity detail widget extraction (3 min, export_screen 470→219 LOC, activity_detail_screen 456→178 LOC, 4 new widget files)
+- Trend: Phase 5 widget extraction fast (~3 min), clean splits maintaining functionality
 
-*Updated 2026-02-09 after plan 04-01 complete (Phase 4 complete)*
+*Updated 2026-02-09 after plan 05-02 complete*
 
 ## Accumulated Context
 
@@ -96,6 +98,8 @@ Recent decisions affecting current work:
 - Selective rate limiting — Read-heavy routes (teams, activities, stats) remain unlimited for legitimate usage (04-02)
 - Middleware ordering pattern — Auth routes: rate limit first; protected routes: auth first, then rate limit (04-02)
 - Phase 4 complete: Permission consolidation + rate limiting — Security foundation established, 268 tests pass (04-01, 04-02)
+- [Phase 05-02]: Keep tightly coupled state methods (_performExport, _shareCsv) in screen for cohesion
+- [Phase 05-02]: Extract ActivityDetailContent as single 286 LOC file - keeps response/attendance/mini-activity logic together
 
 ### Pending Todos
 
@@ -107,7 +111,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 04-01 execution)
-Stopped at: Phase 4 complete — Permission consolidation and rate limiting complete, 268 tests passing
+Last session: 2026-02-09 (Plan 05-02 execution)
+Stopped at: Completed 05-02-PLAN.md — export_screen and activity_detail_screen split complete
 Resume file: None
-Next: Phase 5 or other refactoring phase
+Next: Phase 5 Plan 03 (tournament and statistics screen splitting)
