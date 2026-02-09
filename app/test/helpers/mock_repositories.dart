@@ -16,6 +16,10 @@ import 'package:core_idrett/features/activities/data/activity_repository.dart';
 import 'package:core_idrett/features/fines/data/fines_repository.dart';
 import 'package:core_idrett/features/fines/providers/fines_provider.dart';
 import 'package:core_idrett/features/chat/data/chat_repository.dart';
+import 'package:core_idrett/features/export/data/export_repository.dart';
+import 'package:core_idrett/data/models/export_log.dart';
+import 'package:core_idrett/features/mini_activities/data/tournament_repository.dart';
+import 'package:core_idrett/data/models/tournament.dart';
 
 // ============ Mock Classes ============
 
@@ -31,6 +35,10 @@ class MockFinesRepository extends Mock implements FinesRepository {}
 
 class MockChatRepository extends Mock implements ChatRepository {}
 
+class MockExportRepository extends Mock implements ExportRepository {}
+
+class MockTournamentRepository extends Mock implements TournamentRepository {}
+
 // ============ Register Fallback Values ============
 
 void registerFallbackValues() {
@@ -38,6 +46,8 @@ void registerFallbackValues() {
   registerFallbackValue(RecurrenceType.once);
   registerFallbackValue(ResponseType.yesNo);
   registerFallbackValue(UserResponse.yes);
+  registerFallbackValue(ExportType.leaderboard);
+  registerFallbackValue(TournamentType.singleElimination);
 }
 
 // ============ Mock Providers Setup ============
@@ -50,6 +60,8 @@ class MockProviders {
   final MockActivityRepository activityRepository;
   final MockFinesRepository finesRepository;
   final MockChatRepository chatRepository;
+  final MockExportRepository exportRepository;
+  final MockTournamentRepository tournamentRepository;
 
   MockProviders()
       : apiClient = MockApiClient(),
@@ -57,7 +69,9 @@ class MockProviders {
         teamRepository = MockTeamRepository(),
         activityRepository = MockActivityRepository(),
         finesRepository = MockFinesRepository(),
-        chatRepository = MockChatRepository();
+        chatRepository = MockChatRepository(),
+        exportRepository = MockExportRepository(),
+        tournamentRepository = MockTournamentRepository();
 
   /// Get all provider overrides for ProviderScope
   List<Object> get overrides => [
@@ -67,6 +81,8 @@ class MockProviders {
         activityRepositoryProvider.overrideWithValue(activityRepository),
         finesRepositoryProvider.overrideWithValue(finesRepository),
         chatRepositoryProvider.overrideWithValue(chatRepository),
+        exportRepositoryProvider.overrideWithValue(exportRepository),
+        tournamentRepositoryProvider.overrideWithValue(tournamentRepository),
       ];
 
   /// Setup default successful auth state
@@ -197,6 +213,28 @@ class MockProviders {
               pendingCount: pendingCount,
               paidCount: paidCount,
             ));
+  }
+
+  /// Setup export history
+  void setupExportHistory(String teamId, List<ExportLog> logs) {
+    when(() => exportRepository.getExportHistory(teamId, limit: any(named: 'limit')))
+        .thenAnswer((_) async => logs);
+  }
+
+  /// Setup export data
+  void setupExportLeaderboard(String teamId, ExportData data) {
+    when(() => exportRepository.exportLeaderboard(
+      teamId,
+      format: any(named: 'format'),
+      seasonId: any(named: 'seasonId'),
+      leaderboardId: any(named: 'leaderboardId'),
+    )).thenAnswer((_) async => data);
+  }
+
+  /// Setup tournament fetch
+  void setupGetTournament(Tournament tournament) {
+    when(() => tournamentRepository.getTournament(tournament.id))
+        .thenAnswer((_) async => tournament);
   }
 }
 
