@@ -10,25 +10,25 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 2 of 10 (Type Safety & Validation)
-Plan: 3 of 4 (Backend Services migrated to safe parsing)
-Status: Phase 2 execution in progress
-Last activity: 2026-02-09 — Plan 02-03 complete, all 34 backend services migrated (268 tests passing)
+Plan: 4 of 4 (Phase 2 COMPLETE - Handler layer fully migrated)
+Status: Phase 2 complete ✅
+Last activity: 2026-02-09 — Plan 02-04 complete, all 32 backend handlers migrated to safe parsing (268 tests passing)
 
-Progress: [████████░░] 37% (6 of 16 total plans across all phases)
+Progress: [████████░░] 44% (7 of 16 total plans across all phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: ~22 minutes
-- Total execution time: ~2.3 hours
+- Total plans completed: 7
+- Average duration: ~20 minutes
+- Total execution time: ~2.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total Time | Avg/Plan |
 |-------|-------|------------|----------|
 | 01    | 4/4   | ~3.5h      | ~50m     |
-| 02    | 2/4   | 11m        | ~6m      |
+| 02    | 4/4   | ~21m       | ~5m      |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -37,9 +37,10 @@ Progress: [████████░░] 37% (6 of 16 total plans across all p
 - Plan 01-04: Frontend roundtrip tests — 148 tests (25 min across 2 agents)
 - Plan 02-01: Safe parsing helpers + LeaderboardEntry fix (4 min)
 - Plan 02-03: Backend service migration (7 min, Python script automation)
-- Trend: TDD execution very fast; automated migrations even faster
+- Plan 02-04: Handler layer migration (10 min, 32 handlers, ~250 casts)
+- Trend: TDD execution very fast; automated migrations fastest approach
 
-*Updated 2026-02-09 after plan 02-03 complete*
+*Updated 2026-02-09 after plan 02-04 complete (Phase 2 complete)*
 
 ## Accumulated Context
 
@@ -61,8 +62,11 @@ Recent decisions affecting current work:
 - FormatException for parsing errors — aligns with Dart core library conventions (02-01)
 - Dual-type DateTime helpers — handle both DateTime objects and ISO strings from Supabase (02-01)
 - Database vs JSON layer separation — DB uses leaderboard_opt_out, API JSON uses opted_out (02-01)
-- Python-based automated migration — regex transformation for large-scale refactoring (02-03)
+- Python-based automated migration — regex transformation for large-scale refactoring (02-03, 02-04)
 - Null-conditional casts are safe — patterns like `(value as num?)?.toDouble()` don't need migration (02-03)
+- Enum conversions kept as-is — fromString methods already validate input (02-04)
+- Internal service response casts preserved — service layer returns validated data (02-04)
+- DateTime.parse replaced with tryParse — safe parsing for date strings in tournament handlers (02-04)
 
 ### Pending Todos
 
@@ -74,7 +78,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (plan 02-03 execution complete)
-Stopped at: Phase 2, Plan 3 complete — all 34 backend services migrated to safe parsing
+Last session: 2026-02-09 (plan 02-04 execution complete)
+Stopped at: Phase 2 COMPLETE — all 32 backend handlers migrated to safe parsing
 Resume file: None
-Next: Plan 02-04 (Handler Layer Migration)
+Next: Phase 3 - Error Handling & Resilience
