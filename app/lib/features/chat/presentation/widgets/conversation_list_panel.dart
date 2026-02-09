@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/conversation.dart';
+import '../../../../shared/widgets/widgets.dart';
 import '../../providers/unified_chat_provider.dart';
 import 'message_widgets.dart';
 
@@ -37,7 +38,6 @@ class ConversationListPanelState extends ConsumerState<ConversationListPanel> {
   Widget build(BuildContext context) {
     final conversationsAsync =
         ref.watch(filteredConversationsProvider(widget.teamId));
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: widget.showAppBar
@@ -105,22 +105,10 @@ class ConversationListPanelState extends ConsumerState<ConversationListPanel> {
                   ref.invalidate(allConversationsProvider(widget.teamId)),
               data: (conversations) {
                 if (conversations.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: theme.colorScheme.outline,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Ingen samtaler',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
+                  return const EmptyStateWidget(
+                    icon: Icons.forum_outlined,
+                    title: 'Ingen samtaler',
+                    subtitle: 'Start en ny samtale',
                   );
                 }
 

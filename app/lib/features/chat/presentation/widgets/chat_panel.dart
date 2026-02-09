@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/conversation.dart';
 import '../../../../data/models/message.dart';
+import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/unified_chat_provider.dart';
 import '../../providers/chat_provider.dart';
@@ -244,29 +245,10 @@ class ChatPanelState extends ConsumerState<ChatPanel> {
               },
               data: (messages) {
                 if (messages.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: theme.colorScheme.outline,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Ingen meldinger enna',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Vær den forste til a skrive!',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
+                  return const EmptyStateWidget(
+                    icon: Icons.chat_outlined,
+                    title: 'Ingen meldinger',
+                    subtitle: 'Start en samtale',
                   );
                 }
 

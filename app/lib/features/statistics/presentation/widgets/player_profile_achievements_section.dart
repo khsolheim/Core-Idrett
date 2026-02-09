@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/achievement.dart';
+import '../../../../shared/widgets/widgets.dart';
 import '../../../achievements/providers/achievement_provider.dart';
 
 class PlayerProfileAchievementsSection extends ConsumerWidget {
@@ -44,23 +45,12 @@ class PlayerProfileAchievementsSection extends ConsumerWidget {
                   ),
                   data: (achievements) {
                     if (achievements.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.emoji_events_outlined,
-                              size: 48,
-                              color: theme.colorScheme.outline,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Ingen achievements ennå',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.outline,
-                              ),
-                            ),
-                          ],
+                      return const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: EmptyStateWidget(
+                          icon: Icons.emoji_events_outlined,
+                          title: 'Ingen achievements',
+                          subtitle: 'Ingen achievements å vise ennå',
                         ),
                       );
                     }

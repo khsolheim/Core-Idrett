@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/async_value_extensions.dart';
 import '../../../../data/models/conversation.dart';
+import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../teams/providers/team_provider.dart';
 import '../../providers/unified_chat_provider.dart';
@@ -57,13 +58,10 @@ class NewConversationSheet extends ConsumerWidget {
                       .toList();
 
                   if (otherMembers.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'Ingen lagkamerater a sende melding til',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
+                    return const EmptyStateWidget(
+                      icon: Icons.group_outlined,
+                      title: 'Ingen medlemmer',
+                      subtitle: 'Ingen medlemmer å vise',
                     );
                   }
 

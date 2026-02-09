@@ -7,8 +7,9 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/extensions/async_value_extensions.dart';
 import '../../../core/services/error_display_service.dart';
 import '../../../data/models/export_log.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../providers/export_provider.dart';
-import 'widgets/widgets.dart';
+import 'widgets/widgets.dart' as export_widgets;
 
 class ExportScreen extends ConsumerStatefulWidget {
   final String teamId;
@@ -51,7 +52,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
               return const SizedBox.shrink();
             }
 
-            return ExportOptionCard(
+            return export_widgets.ExportOptionCard(
               type: type,
               isExporting: exportState.isExporting && exportState.currentType == type.value,
               onExport: () => _showExportDialog(type),
@@ -71,18 +72,10 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
             onRetry: () => ref.invalidate(exportHistoryProvider(widget.teamId)),
             data: (history) {
               if (history.isEmpty) {
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Center(
-                      child: Text(
-                        'Ingen eksporter enna',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                    ),
-                  ),
+                return const EmptyStateWidget(
+                  icon: Icons.download_outlined,
+                  title: 'Ingen eksporter',
+                  subtitle: 'Ingen eksporthistorikk å vise',
                 );
               }
 
@@ -94,7 +87,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                   separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final log = history[index];
-                    return ExportHistoryTile(log: log);
+                    return export_widgets.ExportHistoryTile(log: log);
                   },
                 ),
               );
@@ -108,7 +101,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
   void _showExportDialog(ExportType type) {
     showDialog(
       context: context,
-      builder: (context) => ExportDialog(
+      builder: (context) => export_widgets.ExportDialog(
         teamId: widget.teamId,
         type: type,
         onExport: (format, params) => _performExport(type, format, params),
@@ -207,7 +200,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
   void _showExportPreview(ExportData data) {
     showDialog(
       context: context,
-      builder: (context) => ExportPreviewDialog(data: data),
+      builder: (context) => export_widgets.ExportPreviewDialog(data: data),
     );
   }
 }
