@@ -8,10 +8,17 @@ import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
 class FinesHandler {
-  final FineService _fineService;
+  final FineRuleService _ruleService;
+  final FineCrudService _crudService;
+  final FineSummaryService _summaryService;
   final TeamService _teamService;
 
-  FinesHandler(this._fineService, this._teamService);
+  FinesHandler(
+    this._ruleService,
+    this._crudService,
+    this._summaryService,
+    this._teamService,
+  );
 
   Router get router {
     final router = Router();
@@ -54,7 +61,7 @@ class FinesHandler {
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
 
       final activeOnly = request.url.queryParameters['active'] == 'true';
-      final rules = await _fineService.getFineRules(teamId, activeOnly: activeOnly ? true : null);
+      final rules = await _ruleService.getFineRules(teamId, activeOnly: activeOnly ? true : null);
 
       return resp.ok({'rules': rules.map((r) => r.toJson()).toList()});
     } catch (e) {
@@ -86,7 +93,7 @@ class FinesHandler {
         return resp.badRequest('amount er påkrevd');
       }
 
-      final rule = await _fineService.createFineRule(
+      final rule = await _ruleService.createFineRule(
         teamId: teamId,
         name: name,
         amount: amountRaw.toDouble(),
@@ -106,7 +113,7 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
-      final rule = await _fineService.updateFineRule(
+      final rule = await _ruleService.updateFineRule(
         ruleId: ruleId,
         name: body['name'],
         amount: body['amount'] != null ? safeDouble(body, 'amount') : null,
@@ -129,7 +136,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
-      final success = await _fineService.deleteFineRule(ruleId);
+      final success = await _ruleService.deleteFineRule(ruleId);
 
       if (!success) {
         return resp.notFound('Bøteregel ikke funnet');
@@ -155,7 +162,7 @@ class FinesHandler {
       final limit = int.tryParse(request.url.queryParameters['limit'] ?? '') ?? 50;
       final offset = int.tryParse(request.url.queryParameters['offset'] ?? '') ?? 0;
 
-      final fines = await _fineService.getFines(
+      final fines = await _crudService.getFines(
         teamId,
         status: status,
         offenderId: offenderId,
@@ -189,7 +196,7 @@ class FinesHandler {
         return resp.badRequest('amount er påkrevd');
       }
 
-      final fine = await _fineService.createFine(
+      final fine = await _crudService.createFine(
         teamId: teamId,
         offenderId: offenderId,
         reporterId: userId,
@@ -211,7 +218,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
-      final fine = await _fineService.getFine(fineId);
+      final fine = await _crudService.getFine(fineId);
 
       if (fine == null) {
         return resp.notFound('Bøte ikke funnet');
@@ -228,7 +235,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
-      final fine = await _fineService.approveFine(fineId, userId);
+      final fine = await _crudService.approveFine(fineId, userId);
 
       if (fine == null) {
         return resp.badRequest('Kunne ikke godkjenne bøte (kanskje allerede behandlet)');
@@ -245,7 +252,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
-      final fine = await _fineService.rejectFine(fineId, userId);
+      final fine = await _crudService.rejectFine(fineId, userId);
 
       if (fine == null) {
         return resp.badRequest('Kunne ikke avvise bøte (kanskje allerede behandlet)');
@@ -265,7 +272,7 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
-      final appeal = await _fineService.createAppeal(
+      final appeal = await _crudService.createAppeal(
         fineId: fineId,
         reason: body['reason'],
       );
@@ -287,7 +294,7 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
-      final appeal = await _fineService.resolveAppeal(
+      final appeal = await _crudService.resolveAppeal(
         appealId: appealId,
         decidedBy: userId,
         accepted: body['accepted'] == true,
@@ -312,7 +319,7 @@ class FinesHandler {
       final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
 
-      final appeals = await _fineService.getPendingAppeals(teamId);
+      final appeals = await _crudService.getPendingAppeals(teamId);
 
       return resp.ok({'appeals': appeals.map((a) => a.toJson()).toList()});
     } catch (e) {
@@ -333,7 +340,7 @@ class FinesHandler {
         return resp.badRequest('amount er påkrevd');
       }
 
-      final payment = await _fineService.recordPayment(
+      final payment = await _crudService.recordPayment(
         fineId: fineId,
         amount: amountRaw.toDouble(),
         registeredBy: userId,
@@ -354,7 +361,7 @@ class FinesHandler {
       final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
 
-      final summary = await _fineService.getTeamSummary(teamId);
+      final summary = await _summaryService.getTeamSummary(teamId);
 
       return resp.ok(summary.toJson());
     } catch (e) {
@@ -370,7 +377,7 @@ class FinesHandler {
       final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
 
-      final summaries = await _fineService.getUserSummaries(teamId);
+      final summaries = await _summaryService.getUserSummaries(teamId);
 
       return resp.ok({'summaries': summaries.map((s) => s.toJson()).toList()});
     } catch (e) {

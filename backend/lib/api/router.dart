@@ -78,7 +78,9 @@ Router createRouter(Database db) {
   final playerRatingService = PlayerRatingService(db);
   final matchStatsService = MatchStatsService(db, userService);
   final statisticsService = StatisticsService(db, userService, teamService, playerRatingService);
-  final fineService = FineService(db, userService, teamService);
+  final fineRuleService = FineRuleService(db);
+  final fineCrudService = FineCrudService(db, userService);
+  final fineSummaryService = FineSummaryService(db, userService, teamService);
   final testService = TestService(db, userService);
   final notificationService = NotificationService(db);
   final teamChatService = TeamChatService(db, userService);
@@ -149,7 +151,7 @@ Router createRouter(Database db) {
   final statisticsHandler = StatisticsHandler(statisticsService, matchStatsService, teamService);
   router.mount('/statistics', const Pipeline().addMiddleware(auth).addHandler(statisticsHandler.router.call).call);
 
-  final finesHandler = FinesHandler(fineService, teamService);
+  final finesHandler = FinesHandler(fineRuleService, fineCrudService, fineSummaryService, teamService);
   router.mount('/fines', const Pipeline().addMiddleware(auth).addHandler(finesHandler.router.call).call);
 
   final seasonsHandler = SeasonsHandler(seasonService, teamService);
