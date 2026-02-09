@@ -144,10 +144,13 @@ Plans:
   4. All frontend error feedback uses ErrorDisplayService.showWarning() without raw SnackBars
   5. All API endpoints return consistent response shapes with data envelope and error codes
   6. All frontend widgets follow consistent spacing and padding from theme
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 07-01: [Plan details TBD during planning]
+- [ ] 07-01-PLAN.md -- Backend handler auth formatting + Norwegian error messages (CONS-01, CONS-02)
+- [ ] 07-02-PLAN.md -- Backend API response shape standardization (CONS-05)
+- [ ] 07-03-PLAN.md -- Frontend SnackBar migration to ErrorDisplayService (CONS-04)
+- [ ] 07-04-PLAN.md -- Frontend spacing constants + EmptyStateWidget gaps (CONS-03, CONS-06)
 
 ### Phase 8: Push Notification Hardening
 **Goal**: Fix FCM token management and foreground notification display
