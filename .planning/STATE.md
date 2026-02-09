@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 6 of 10 (Feature Test Coverage)
-Plan: 1 of 3 (Complete)
+Plan: 2 of 3 (Complete)
 Status: Active
-Last activity: 2026-02-09 — Plan 06-01 complete, export and statistics service tests with mocktail, 54 tests, zero-division edge cases verified
+Last activity: 2026-02-09 — Plan 06-02 complete, tournament bracket and fine service tests with mocktail, 39 tests covering bracket generation and payment reconciliation
 
-Progress: [█████████░] 89% (16 of 18 total plans across phases 01-06)
+Progress: [█████████░] 94% (17 of 18 total plans across phases 01-06)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
-- Average duration: ~11.5 minutes
-- Total execution time: ~3.1 hours
+- Total plans completed: 17
+- Average duration: ~11 minutes
+- Total execution time: ~3.2 hours
 
 **By Phase:**
 
@@ -32,7 +32,7 @@ Progress: [█████████░] 89% (16 of 18 total plans across phas
 | 03    | 4/4   | ~25m       | ~6.25m   |
 | 04    | 2/2   | ~4m        | ~2m      |
 | 05    | 3/4   | ~12m       | ~4m      |
-| 06    | 1/3   | ~5m        | ~5m      |
+| 06    | 2/3   | ~11m       | ~5.5m    |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -52,9 +52,10 @@ Progress: [█████████░] 89% (16 of 18 total plans across phas
 - Plan 05-02: Export & activity detail widget extraction (3 min, export_screen 470→219 LOC, activity_detail_screen 456→178 LOC, 3 new widget files)
 - Plan 05-03: Mini-activity widget extraction (5 min, mini_activity_detail_content 436→307 LOC, stats_widgets→barrel, 5 new widget files)
 - Plan 06-01: Export and statistics service tests (5 min, mocktail setup, 54 tests covering all export types + statistics edge cases)
-- Trend: Phase 6 started — service test coverage with mocktail, comprehensive edge case validation
+- Plan 06-02: Tournament bracket and fine service tests (6 min, 39 tests covering bracket generation 2-16 teams + payment reconciliation)
+- Trend: Phase 6 in progress — comprehensive service testing with mocktail, critical financial and tournament logic validated
 
-*Updated 2026-02-09 after plan 06-01 complete*
+*Updated 2026-02-09 after plan 06-02 complete*
 
 ## Accumulated Context
 
@@ -112,6 +113,10 @@ Recent decisions affecting current work:
 - [Phase 06-01]: Use mocktail for service mocking - provides clean mock syntax without code generation
 - [Phase 06-01]: Mock Database and SupabaseClient separately - allows precise control over query responses
 - [Phase 06-01]: Explicit edge case testing for zero-division - prevents NaN/Infinity bugs in attendance calculations
+- [Phase 06-02]: Mocktail counter pattern for unique IDs - ensures each mock call generates unique ID (roundCounter++, matchCounter++)
+- [Phase 06-02]: Test round names as implementation generates them - verifies actual behavior not expected order (insert(0) reverses)
+- [Phase 06-02]: Capture pattern for update data verification - clearer than any(named:) matchers in mocktail
+- [Phase 06-02]: Multi-step partial payment test - demonstrates cumulative payment logic in single test (30kr → 40kr → 30kr = paid)
 
 ### Pending Todos
 
@@ -123,7 +128,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 06-01 execution)
-Stopped at: Completed 06-01-PLAN.md — Export and statistics service tests complete
+Last session: 2026-02-09 (Plan 06-02 execution)
+Stopped at: Completed 06-02-PLAN.md — Tournament bracket and fine service tests complete
 Resume file: None
-Next: Phase 6 Plan 02 (activity and tournament service tests)
+Next: Phase 6 Plan 03 (final service test coverage)
