@@ -256,7 +256,7 @@ class LeaderboardEntry extends Equatable {
       rank: rank ?? row['rank'] as int?,
       attendanceRate: (row['attendance_rate'] as num?)?.toDouble(),
       currentStreak: row['current_streak'] as int?,
-      optedOut: row['leaderboard_opt_out'] as bool?,
+      optedOut: row['opted_out'] as bool?,
       trend: row['trend'] as String?,
       rankChange: row['rank_change'] as int?,
     );

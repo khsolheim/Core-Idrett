@@ -121,16 +121,12 @@ void main() {
         rank: 1,
         attendanceRate: 92.5,
         currentStreak: 5,
-        // optedOut: not set — toJson writes 'opted_out' but fromJson reads 'leaderboard_opt_out' (key mismatch)
+        optedOut: true,
         trend: 'up',
         rankChange: 2,
       );
 
       final json = original.toJson();
-      // Fix key mismatch: toJson writes 'opted_out', fromJson reads 'leaderboard_opt_out'
-      if (json.containsKey('opted_out')) {
-        json['leaderboard_opt_out'] = json.remove('opted_out');
-      }
       final decoded = LeaderboardEntry.fromJson(json);
 
       expect(decoded, equals(original));
@@ -163,7 +159,7 @@ void main() {
         rank: 3,
         attendanceRate: 85.0,
         currentStreak: 2,
-        // optedOut skipped — key mismatch between toJson/fromJson
+        optedOut: false,
         trend: 'same',
         rankChange: 0,
       );
