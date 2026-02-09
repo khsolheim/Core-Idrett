@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Koden skal være lett å forstå, endre, og utvide — uten å krasje på uventede data.
-**Current focus:** Phase 5 - Frontend Widget Extraction (in progress)
+**Current focus:** Phase 5 - Frontend Widget Extraction (complete)
 
 ## Current Position
 
 Phase: 5 of 10 (Frontend Widget Extraction)
-Plan: 2 of 4 (export & activity detail screens split)
-Status: In Progress
-Last activity: 2026-02-09 — Plan 05-02 complete, split export_screen (470→219 LOC) and activity_detail_screen (456→178 LOC)
+Plan: 4 of 4 (Phase complete - all widget extraction targets met)
+Status: Complete
+Last activity: 2026-02-09 — Plan 05-04 complete, split edit_team_members_tab (423→88 LOC) and dashboard_info_widgets (420→5 LOC barrel), 6 new widget files
 
-Progress: [█████████░] 87% (14 of 16 total plans across all phases)
+Progress: [██████████] 100% (17 of 17 total plans across phases 01-05)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: ~10 minutes
-- Total execution time: ~3 hours
+- Total plans completed: 17
+- Average duration: ~11 minutes
+- Total execution time: ~3.1 hours
 
 **By Phase:**
 
@@ -31,7 +31,7 @@ Progress: [█████████░] 87% (14 of 16 total plans across all 
 | 02    | 4/4   | ~21m       | ~5m      |
 | 03    | 4/4   | ~25m       | ~6.25m   |
 | 04    | 2/2   | ~4m        | ~2m      |
-| 05    | 2/4   | ~3m        | ~3m      |
+| 05    | 4/4   | ~9m        | ~2.25m   |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -47,10 +47,14 @@ Progress: [█████████░] 87% (14 of 16 total plans across all 
 - Plan 03-04: Division + Points Config service splitting (6 min, 2 services → 5 sub-services, Phase 3 complete)
 - Plan 04-01: Permission consolidation (2 min, isAdmin() consolidated, isFinesManager() added, Phase 2 validation verified)
 - Plan 04-02: Rate limiting middleware (2 min, shelf_limiter for auth/mutation/export endpoints, Phase 4 complete)
-- Plan 05-02: Export & activity detail widget extraction (3 min, export_screen 470→219 LOC, activity_detail_screen 456→178 LOC, 4 new widget files)
-- Trend: Phase 5 widget extraction fast (~3 min), clean splits maintaining functionality
+- Plan 05-01: Test detail widget extraction (234 min, test_detail_screen 590→211 LOC, 3 new widget files)
+- Plan 05-02: Export & activity detail widget extraction (3 min, export_screen 470→219 LOC, activity_detail_screen 456→178 LOC, 3 new widget files)
+- Plan 05-03: Mini-activity detail dialogs extraction (2 min, 2 new widget files, ResultBadge widget)
+- Plan 05-04: Team widget files split (3 min, edit_team_members_tab 423→88 LOC, dashboard_info_widgets 420→5 LOC barrel, 6 new widget files, Phase 5 complete)
+- Trend: Phase 5 complete — widget extraction very fast (avg 2.25 min), clean splits maintaining functionality
 
-*Updated 2026-02-09 after plan 05-02 complete*
+*Updated 2026-02-09 after plan 05-04 complete (Phase 5 complete)*
+| Phase 05-frontend-widget-extraction P03 | 278 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -100,6 +104,11 @@ Recent decisions affecting current work:
 - Phase 4 complete: Permission consolidation + rate limiting — Security foundation established, 268 tests pass (04-01, 04-02)
 - [Phase 05-02]: Keep tightly coupled state methods (_performExport, _shareCsv) in screen for cohesion
 - [Phase 05-02]: Extract ActivityDetailContent as single 286 LOC file - keeps response/attendance/mini-activity logic together
+- [Phase 05-01]: Convert message_widgets.dart to barrel file - preserves existing imports without breaking changes
+- [Phase 05-01]: Make private widgets public for better composition and independent testing
+- [Phase 05-04]: Dialog helpers as standalone functions - cleaner separation than class methods for reusable actions
+- [Phase 05-04]: Convert dashboard_info_widgets to barrel file - preserves existing imports while enabling focused files
+- Phase 5 complete: Widget extraction — 13 new widget files created, 5 large files reduced under 350 LOC target (05-01 to 05-04)
 
 ### Pending Todos
 
@@ -111,7 +120,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 05-02 execution)
-Stopped at: Completed 05-02-PLAN.md — export_screen and activity_detail_screen split complete
+Last session: 2026-02-09 (Plan 05-04 execution)
+Stopped at: Completed 05-04-PLAN.md — Phase 5 complete, all widget extraction targets met
 Resume file: None
+Next: Phase 6 or other refactoring phase
 Next: Phase 5 Plan 03 (tournament and statistics screen splitting)
