@@ -162,10 +162,12 @@ Plans:
   3. Foreground push notifications display via local notification or in-app banner
   4. Token registration errors logged and reported to error tracking
   5. Users receive notifications reliably in all app states (foreground, background, terminated)
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 08-01: [Plan details TBD during planning]
+- [ ] 08-01-PLAN.md — Install packages, Firebase init, foundation services (NotificationLocalDataSource, ForegroundNotificationService)
+- [ ] 08-02-PLAN.md — FCM token retry with exponential backoff, local persistence, stale token recovery, error logging
+- [ ] 08-03-PLAN.md — Foreground notification display via flutter_local_notifications, iOS presentation options
 
 ### Phase 9: Translation Completion
 **Goal**: Complete Norwegian translation of all remaining English text in user interface
