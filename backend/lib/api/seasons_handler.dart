@@ -6,6 +6,7 @@ import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class SeasonsHandler {
   final SeasonService _seasonService;
   final TeamService _teamService;
@@ -118,15 +119,15 @@ class SeasonsHandler {
       }
 
       final body = await parseBody(request);
-      final name = body['name'] as String?;
+      final name = safeStringNullable(body, 'name');
 
       if (name == null || name.isEmpty) {
         return resp.badRequest('Navn er pakrevd');
       }
 
-      final startDateStr = body['start_date'] as String?;
-      final endDateStr = body['end_date'] as String?;
-      final setActive = body['set_active'] as bool? ?? false;
+      final startDateStr = safeStringNullable(body, 'start_date');
+      final endDateStr = safeStringNullable(body, 'end_date');
+      final setActive = safeBoolNullable(body, 'set_active') ?? false;
 
       final season = await _seasonService.createSeason(
         teamId: teamId,
@@ -165,12 +166,12 @@ class SeasonsHandler {
 
       final body = await parseBody(request);
 
-      final startDateStr = body['start_date'] as String?;
-      final endDateStr = body['end_date'] as String?;
+      final startDateStr = safeStringNullable(body, 'start_date');
+      final endDateStr = safeStringNullable(body, 'end_date');
 
       final season = await _seasonService.updateSeason(
         seasonId: seasonId,
-        name: body['name'] as String?,
+        name: safeStringNullable(body, 'name'),
         startDate: startDateStr != null ? DateTime.tryParse(startDateStr) : null,
         endDate: endDateStr != null ? DateTime.tryParse(endDateStr) : null,
         clearStartDate: body['clear_start_date'] == true,
@@ -270,14 +271,14 @@ class SeasonsHandler {
       }
 
       final body = await parseBody(request);
-      final name = body['name'] as String?;
+      final name = safeStringNullable(body, 'name');
 
       if (name == null || name.isEmpty) {
         return resp.badRequest('Navn er pakrevd');
       }
 
-      final startDateStr = body['start_date'] as String?;
-      final endDateStr = body['end_date'] as String?;
+      final startDateStr = safeStringNullable(body, 'start_date');
+      final endDateStr = safeStringNullable(body, 'end_date');
 
       final season = await _seasonService.startNewSeason(
         teamId: teamId,

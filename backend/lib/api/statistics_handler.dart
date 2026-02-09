@@ -7,6 +7,7 @@ import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class StatisticsHandler {
   final StatisticsService _statisticsService;
   final MatchStatsService _matchStatsService;
@@ -121,7 +122,7 @@ class StatisticsHandler {
       if (requestUserId == null) return resp.unauthorized();
 
       final body = await parseBody(request);
-      final userId = body['user_id'] as String?;
+      final userId = safeStringNullable(body, 'user_id');
 
       if (userId == null) {
         return resp.badRequest('user_id er pakrevd');

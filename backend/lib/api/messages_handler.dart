@@ -8,6 +8,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class MessagesHandler {
   final MessageService _messageService;
   final TeamChatService _teamChatService;
@@ -89,7 +90,7 @@ class MessagesHandler {
 
       final data = await parseBody(request);
 
-      final content = data['content'] as String?;
+      final content = safeStringNullable(data, 'content');
       if (content == null || content.trim().isEmpty) {
         return resp.badRequest('Meldingen kan ikke være tom');
       }
@@ -98,7 +99,7 @@ class MessagesHandler {
         teamId: teamId,
         userId: userId,
         content: content.trim(),
-        replyToId: data['reply_to_id'] as String?,
+        replyToId: safeStringNullable(data, 'reply_to_id'),
       );
 
       return resp.ok(message);
@@ -116,7 +117,7 @@ class MessagesHandler {
 
       final data = await parseBody(request);
 
-      final content = data['content'] as String?;
+      final content = safeStringNullable(data, 'content');
       if (content == null || content.trim().isEmpty) {
         return resp.badRequest('Meldingen kan ikke være tom');
       }
@@ -285,7 +286,7 @@ class MessagesHandler {
 
       final data = await parseBody(request);
 
-      final content = data['content'] as String?;
+      final content = safeStringNullable(data, 'content');
       if (content == null || content.trim().isEmpty) {
         return resp.badRequest('Meldingen kan ikke vare tom');
       }
@@ -294,7 +295,7 @@ class MessagesHandler {
         userId: userId,
         recipientId: recipientId,
         content: content.trim(),
-        replyToId: data['reply_to_id'] as String?,
+        replyToId: safeStringNullable(data, 'reply_to_id'),
       );
 
       return resp.ok(message);

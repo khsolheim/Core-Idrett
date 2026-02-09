@@ -8,6 +8,7 @@ import '../models/document.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class DocumentsHandler {
   final DocumentService _documentService;
   final TeamService _teamService;
@@ -84,10 +85,10 @@ class DocumentsHandler {
       final body = await parseBody(request);
 
       // Validate required fields
-      final name = body['name'] as String?;
-      final filePath = body['file_path'] as String?;
-      final fileSize = body['file_size'] as int?;
-      final mimeType = body['mime_type'] as String?;
+      final name = safeStringNullable(body, 'name');
+      final filePath = safeStringNullable(body, 'file_path');
+      final fileSize = safeIntNullable(body, 'file_size');
+      final mimeType = safeStringNullable(body, 'mime_type');
 
       if (name == null || filePath == null || fileSize == null || mimeType == null) {
         return resp.badRequest('name, file_path, file_size, and mime_type are required');
@@ -97,11 +98,11 @@ class DocumentsHandler {
         teamId: teamId,
         uploadedBy: userId,
         name: name,
-        description: body['description'] as String?,
+        description: safeStringNullable(body, 'description'),
         filePath: filePath,
         fileSize: fileSize,
         mimeType: mimeType,
-        category: body['category'] as String?,
+        category: safeStringNullable(body, 'category'),
       );
 
       return resp.ok(document.toJson());
@@ -181,9 +182,9 @@ class DocumentsHandler {
 
       final document = await _documentService.updateDocument(
         documentId: documentId,
-        name: body['name'] as String?,
-        description: body['description'] as String?,
-        category: body['category'] as String?,
+        name: safeStringNullable(body, 'name'),
+        description: safeStringNullable(body, 'description'),
+        category: safeStringNullable(body, 'category'),
       );
 
       if (document == null) {
@@ -242,9 +243,9 @@ class DocumentsHandler {
         // JSON with base64 encoded file
         final body = await parseBody(request);
 
-        final fileName = body['file_name'] as String?;
-        final fileContent = body['file_content'] as String?; // base64 encoded
-        final mimeType = body['mime_type'] as String?;
+        final fileName = safeStringNullable(body, 'file_name');
+        final fileContent = safeStringNullable(body, 'file_content'); // base64 encoded
+        final mimeType = safeStringNullable(body, 'mime_type');
 
         if (fileName == null || fileContent == null || mimeType == null) {
           return resp.badRequest('file_name, file_content (base64), and mime_type are required');
@@ -259,8 +260,8 @@ class DocumentsHandler {
           fileName: fileName,
           fileBytes: fileBytes,
           mimeType: mimeType,
-          description: body['description'] as String?,
-          category: body['category'] as String?,
+          description: safeStringNullable(body, 'description'),
+          category: safeStringNullable(body, 'category'),
         );
 
         return resp.ok(document.toJson());

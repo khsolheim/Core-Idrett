@@ -6,6 +6,7 @@ import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class FinesHandler {
   final FineService _fineService;
   final TeamService _teamService;
@@ -75,12 +76,12 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
-      final name = body['name'] as String?;
+      final name = safeStringNullable(body, 'name');
       if (name == null || name.isEmpty) {
         return resp.badRequest('name er påkrevd');
       }
 
-      final amountRaw = body['amount'] as num?;
+      final amountRaw = safeNumNullable(body, 'amount');
       if (amountRaw == null) {
         return resp.badRequest('amount er påkrevd');
       }
@@ -108,7 +109,7 @@ class FinesHandler {
       final rule = await _fineService.updateFineRule(
         ruleId: ruleId,
         name: body['name'],
-        amount: body['amount'] != null ? (body['amount'] as num).toDouble() : null,
+        amount: body['amount'] != null ? safeDouble(body, 'amount') : null,
         description: body['description'],
         active: body['active'],
       );
@@ -178,12 +179,12 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
-      final offenderId = body['offender_id'] as String?;
+      final offenderId = safeStringNullable(body, 'offender_id');
       if (offenderId == null) {
         return resp.badRequest('offender_id er påkrevd');
       }
 
-      final amountRaw = body['amount'] as num?;
+      final amountRaw = safeNumNullable(body, 'amount');
       if (amountRaw == null) {
         return resp.badRequest('amount er påkrevd');
       }
@@ -290,7 +291,7 @@ class FinesHandler {
         appealId: appealId,
         decidedBy: userId,
         accepted: body['accepted'] == true,
-        extraFee: body['extra_fee'] != null ? (body['extra_fee'] as num).toDouble() : null,
+        extraFee: body['extra_fee'] != null ? safeDouble(body, 'extra_fee') : null,
       );
 
       if (appeal == null) {
@@ -327,7 +328,7 @@ class FinesHandler {
 
       final body = await parseBody(request);
 
-      final amountRaw = body['amount'] as num?;
+      final amountRaw = safeNumNullable(body, 'amount');
       if (amountRaw == null) {
         return resp.badRequest('amount er påkrevd');
       }

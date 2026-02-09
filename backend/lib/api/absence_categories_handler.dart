@@ -6,6 +6,7 @@ import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class AbsenceCategoriesHandler {
   final AbsenceService _absenceService;
   final TeamService _teamService;
@@ -67,7 +68,7 @@ class AbsenceCategoriesHandler {
       }
 
       final body = await parseBody(request);
-      final name = body['name'] as String?;
+      final name = safeStringNullable(body, 'name');
 
       if (name == null || name.isEmpty) {
         return resp.badRequest('Navn er påkrevd');
@@ -76,10 +77,10 @@ class AbsenceCategoriesHandler {
       final category = await _absenceService.createCategory(
         teamId: teamId,
         name: name,
-        description: body['description'] as String?,
-        requiresApproval: body['requires_approval'] as bool? ?? false,
-        countsAsValid: body['counts_as_valid'] as bool? ?? true,
-        sortOrder: body['sort_order'] as int? ?? 0,
+        description: safeStringNullable(body, 'description'),
+        requiresApproval: safeBoolNullable(body, 'requires_approval') ?? false,
+        countsAsValid: safeBoolNullable(body, 'counts_as_valid') ?? true,
+        sortOrder: safeIntNullable(body, 'sort_order') ?? 0,
       );
 
       return resp.ok(category.toJson());
@@ -113,12 +114,12 @@ class AbsenceCategoriesHandler {
 
       final category = await _absenceService.updateCategory(
         categoryId: categoryId,
-        name: body['name'] as String?,
-        description: body['description'] as String?,
-        requiresApproval: body['requires_approval'] as bool?,
-        countsAsValid: body['counts_as_valid'] as bool?,
-        isActive: body['is_active'] as bool?,
-        sortOrder: body['sort_order'] as int?,
+        name: safeStringNullable(body, 'name'),
+        description: safeStringNullable(body, 'description'),
+        requiresApproval: safeBoolNullable(body, 'requires_approval'),
+        countsAsValid: safeBoolNullable(body, 'counts_as_valid'),
+        isActive: safeBoolNullable(body, 'is_active'),
+        sortOrder: safeIntNullable(body, 'sort_order'),
         clearDescription: body['clear_description'] == true,
       );
 

@@ -5,6 +5,7 @@ import '../services/notification_service.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class NotificationsHandler {
   final NotificationService _notificationService;
 
@@ -33,8 +34,8 @@ class NotificationsHandler {
 
       final data = await parseBody(request);
 
-      final token = data['token'] as String?;
-      final platform = data['platform'] as String?;
+      final token = safeStringNullable(data, 'token');
+      final platform = safeStringNullable(data, 'platform');
 
       if (token == null || platform == null) {
         return resp.badRequest('Mangler token eller platform');
@@ -65,7 +66,7 @@ class NotificationsHandler {
 
       final data = await parseBody(request);
 
-      final token = data['token'] as String?;
+      final token = safeStringNullable(data, 'token');
       if (token == null) {
         return resp.badRequest('Mangler token');
       }
@@ -108,13 +109,13 @@ class NotificationsHandler {
 
       final prefs = await _notificationService.updatePreferences(
         userId: userId,
-        teamId: data['team_id'] as String?,
-        newActivity: data['new_activity'] as bool?,
-        activityReminder: data['activity_reminder'] as bool?,
-        activityCancelled: data['activity_cancelled'] as bool?,
-        newFine: data['new_fine'] as bool?,
-        fineDecision: data['fine_decision'] as bool?,
-        teamMessage: data['team_message'] as bool?,
+        teamId: safeStringNullable(data, 'team_id'),
+        newActivity: safeBoolNullable(data, 'new_activity'),
+        activityReminder: safeBoolNullable(data, 'activity_reminder'),
+        activityCancelled: safeBoolNullable(data, 'activity_cancelled'),
+        newFine: safeBoolNullable(data, 'new_fine'),
+        fineDecision: safeBoolNullable(data, 'fine_decision'),
+        teamMessage: safeBoolNullable(data, 'team_message'),
       );
 
       return resp.ok(prefs.toJson());

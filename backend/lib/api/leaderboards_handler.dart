@@ -8,6 +8,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 import 'leaderboard_entries_handler.dart';
 
+import '../helpers/parsing_helpers.dart';
 class LeaderboardsHandler {
   final LeaderboardService _leaderboardService;
   final TeamService _teamService;
@@ -135,7 +136,7 @@ class LeaderboardsHandler {
       }
 
       final body = await parseBody(request);
-      final name = body['name'] as String?;
+      final name = safeStringNullable(body, 'name');
 
       if (name == null || name.isEmpty) {
         return resp.badRequest('Navn er pakrevd');
@@ -143,11 +144,11 @@ class LeaderboardsHandler {
 
       final leaderboard = await _leaderboardService.createLeaderboard(
         teamId: teamId,
-        seasonId: body['season_id'] as String?,
+        seasonId: safeStringNullable(body, 'season_id'),
         name: name,
-        description: body['description'] as String?,
-        isMain: body['is_main'] as bool? ?? false,
-        sortOrder: body['sort_order'] as int? ?? 0,
+        description: safeStringNullable(body, 'description'),
+        isMain: safeBoolNullable(body, 'is_main') ?? false,
+        sortOrder: safeIntNullable(body, 'sort_order') ?? 0,
       );
 
       return resp.ok(leaderboard.toJson());
@@ -181,10 +182,10 @@ class LeaderboardsHandler {
 
       final leaderboard = await _leaderboardService.updateLeaderboard(
         leaderboardId: leaderboardId,
-        name: body['name'] as String?,
-        description: body['description'] as String?,
-        isMain: body['is_main'] as bool?,
-        sortOrder: body['sort_order'] as int?,
+        name: safeStringNullable(body, 'name'),
+        description: safeStringNullable(body, 'description'),
+        isMain: safeBoolNullable(body, 'is_main'),
+        sortOrder: safeIntNullable(body, 'sort_order'),
         clearDescription: body['clear_description'] == true,
       );
 

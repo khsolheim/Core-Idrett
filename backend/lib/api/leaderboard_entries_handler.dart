@@ -6,6 +6,7 @@ import 'helpers/auth_helpers.dart';
 import 'helpers/request_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class LeaderboardEntriesHandler {
   final LeaderboardService _leaderboardService;
   final TeamService _teamService;
@@ -118,8 +119,8 @@ class LeaderboardEntriesHandler {
       // Support single user or multiple users
       if (body['user_id'] != null) {
         final targetUserId = body['user_id'] as String;
-        final points = body['points'] as int? ?? 0;
-        final addToExisting = body['add_to_existing'] as bool? ?? true;
+        final points = safeIntNullable(body, 'points') ?? 0;
+        final addToExisting = safeBoolNullable(body, 'add_to_existing') ?? true;
 
         final entry = await _leaderboardService.upsertEntry(
           leaderboardId: leaderboardId,
@@ -200,7 +201,7 @@ class LeaderboardEntriesHandler {
       }
 
       final body = await parseBody(request);
-      final leaderboardId = body['leaderboard_id'] as String?;
+      final leaderboardId = safeStringNullable(body, 'leaderboard_id');
 
       if (leaderboardId == null) {
         return resp.badRequest('leaderboard_id er pakrevd');
@@ -224,11 +225,11 @@ class LeaderboardEntriesHandler {
       final config = await _leaderboardService.upsertPointConfig(
         miniActivityId: miniActivityId,
         leaderboardId: leaderboardId,
-        distributionType: body['distribution_type'] as String? ?? 'winner_only',
-        pointsFirst: body['points_first'] as int? ?? 5,
-        pointsSecond: body['points_second'] as int? ?? 3,
-        pointsThird: body['points_third'] as int? ?? 1,
-        pointsParticipation: body['points_participation'] as int? ?? 0,
+        distributionType: safeStringNullable(body, 'distribution_type') ?? 'winner_only',
+        pointsFirst: safeIntNullable(body, 'points_first') ?? 5,
+        pointsSecond: safeIntNullable(body, 'points_second') ?? 3,
+        pointsThird: safeIntNullable(body, 'points_third') ?? 1,
+        pointsParticipation: safeIntNullable(body, 'points_participation') ?? 0,
       );
 
       return resp.ok(config.toJson());

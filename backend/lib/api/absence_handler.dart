@@ -8,6 +8,7 @@ import 'absence_categories_handler.dart';
 import 'helpers/auth_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
+import '../helpers/parsing_helpers.dart';
 class AbsenceHandler {
   final AbsenceService _absenceService;
   final TeamService _teamService;
@@ -118,8 +119,8 @@ class AbsenceHandler {
       }
 
       final body = await parseBody(request);
-      final targetUserId = body['user_id'] as String? ?? userId;
-      final instanceId = body['instance_id'] as String?;
+      final targetUserId = safeStringNullable(body, 'user_id') ?? userId;
+      final instanceId = safeStringNullable(body, 'instance_id');
 
       if (instanceId == null) {
         return resp.badRequest('instance_id er påkrevd');
@@ -128,8 +129,8 @@ class AbsenceHandler {
       final absence = await _absenceService.registerAbsence(
         userId: targetUserId,
         instanceId: instanceId,
-        categoryId: body['category_id'] as String?,
-        reason: body['reason'] as String?,
+        categoryId: safeStringNullable(body, 'category_id'),
+        reason: safeStringNullable(body, 'reason'),
       );
 
       return resp.ok(absence.toJson());
@@ -219,7 +220,7 @@ class AbsenceHandler {
       final absence = await _absenceService.rejectAbsence(
         absenceId: absenceId,
         approverId: userId,
-        rejectionReason: body['rejection_reason'] as String?,
+        rejectionReason: safeStringNullable(body, 'rejection_reason'),
       );
 
       if (absence == null) {
