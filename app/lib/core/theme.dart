@@ -214,3 +214,38 @@ extension StatusColors on BuildContext {
   Color get errorColor => AppTheme.errorColor;
   Color get infoColor => AppTheme.infoColor;
 }
+
+/// Spacing constants following an 8px grid system.
+///
+/// De facto standards derived from codebase usage analysis:
+/// - List/screen padding: 16 (lg)
+/// - Item spacing: 8 (sm)
+/// - Section spacing: 24 (xl)
+/// - Card content padding: 12 (md) or 16 (lg)
+class AppSpacing {
+  AppSpacing._();
+
+  /// 2px - Minimal spacing
+  static const double xxs = 2;
+
+  /// 4px - Tight spacing
+  static const double xs = 4;
+
+  /// 8px - Default item spacing
+  static const double sm = 8;
+
+  /// 12px - Card content padding
+  static const double md = 12;
+
+  /// 16px - Screen/list padding, standard spacing
+  static const double lg = 16;
+
+  /// 24px - Section spacing
+  static const double xl = 24;
+
+  /// 32px - Large section spacing
+  static const double xxl = 32;
+
+  /// 48px - Extra large spacing
+  static const double xxxl = 48;
+}
