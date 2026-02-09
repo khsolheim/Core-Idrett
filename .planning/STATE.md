@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Koden skal være lett å forstå, endre, og utvide — uten å krasje på uventede data.
-**Current focus:** Phase 7 - Code Consistency Patterns (in progress)
+**Current focus:** Phase 8 - Push Notification Hardening (in progress)
 
 ## Current Position
 
-Phase: 7 of 10 (Code Consistency Patterns)
-Plan: 4 of 4 (Complete)
-Status: Complete
-Last activity: 2026-02-09 — Plan 07-04 complete, added AppSpacing constants and standardized EmptyStateWidget across 5 screens
+Phase: 8 of 10 (Push Notification Hardening)
+Plan: 1 of 3 (Complete)
+Status: In Progress
+Last activity: 2026-02-09 — Plan 08-01 complete, installed foundation services (FCM token persistence + local notifications), Firebase config deferred
 
-Progress: [███████████] 100% (21 of 21 total plans across phases 01-07)
+Progress: [███████████░] 92% (22 of 24 total plans across phases 01-08)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: ~10 minutes
-- Total execution time: ~3.7 hours
+- Total execution time: ~3.8 hours
 
 **By Phase:**
 
@@ -34,6 +34,7 @@ Progress: [███████████] 100% (21 of 21 total plans across 
 | 05    | 3/4   | ~12m       | ~4m      |
 | 06    | 3/3   | ~30m       | ~10m     |
 | 07    | 4/4   | ~20m       | ~5m      |
+| 08    | 1/3   | ~10m       | ~10m     |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -60,8 +61,10 @@ Progress: [███████████] 100% (21 of 21 total plans across 
 - Plan 07-03: Frontend user feedback migration (11 min, migrated all 33 files from raw ScaffoldMessenger to ErrorDisplayService, -155 LOC, automated Python script for batch patterns)
 - Plan 07-04: AppSpacing constants and EmptyStateWidget standardization (6 min, added 8px grid constants, replaced custom empty states in 5 screens, -39 net LOC)
 - Trend: Phase 7 complete — code consistency patterns established across backend and frontend, -194 net LOC through standardization
+- Plan 08-01: Push notification foundation services (10 min, installed flutter_local_notifications + retry + flutter_secure_storage, Firebase initialization with graceful failure, NotificationLocalDataSource for secure token persistence, ForegroundNotificationService for local notifications, Firebase config deferred by user)
 
-*Updated 2026-02-09 after plan 07-04 complete*
+*Updated 2026-02-09 after plan 08-01 complete*
+| Phase 08 P01 | 10 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -133,6 +136,10 @@ Recent decisions affecting current work:
 - [Phase 07-03]: Code reduction through centralization - 287 lines of SnackBar boilerplate → 132 lines of service calls (-155 LOC, -54%)
 - [Phase 07-04]: AppSpacing constants without migration - 8px grid constants defined, 300+ hard-coded values remain for incremental future migration (low risk)
 - [Phase 07-04]: EmptyStateWidget standardization - replaced custom empty states (81 lines) with centralized widget (31 uses), consistent UX across features
+- [Phase 08-01]: Firebase graceful initialization - Firebase.initializeApp() wrapped in try/catch, allows app to run without Firebase config files, FCM fails gracefully until configured
+- [Phase 08-01]: Secure token storage with FlutterSecureStorage - more secure than SharedPreferences for FCM tokens, encrypted iOS keychain + Android keystore
+- [Phase 08-01]: 24-hour token reregistration threshold - balances server load with token freshness via timestamp tracking
+- [Phase 08-01]: Firebase configuration deferred - user skipped Task 2 checkpoint, code ready for Plans 08-02/08-03, Firebase config via flutterfire CLI can happen later
 
 ### Pending Todos
 
@@ -144,7 +151,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (Plan 07-04 execution)
-Stopped at: Completed 07-04-PLAN.md — AppSpacing constants and EmptyStateWidget standardization, Phase 7 complete
+Last session: 2026-02-09 (Plan 08-01 execution)
+Stopped at: Completed 08-01-PLAN.md — Push notification foundation services installed, Firebase config deferred, ready for Plans 08-02 and 08-03
 Resume file: None
-Next: Phase 8 (next major phase)
+Next: Plan 08-02 (Token retry and persistence logic)
