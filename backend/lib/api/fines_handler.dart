@@ -4,6 +4,7 @@ import 'package:shelf_router/shelf_router.dart';
 import '../services/fine_service.dart';
 import '../services/team_service.dart';
 import 'helpers/auth_helpers.dart';
+import 'helpers/permission_helpers.dart';
 import 'helpers/response_helpers.dart' as resp;
 
 import '../helpers/parsing_helpers.dart';
@@ -111,6 +112,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
+      // TODO: Add team membership + admin permission check (requires rule->teamId lookup)
       final body = await parseBody(request);
 
       final rule = await _ruleService.updateFineRule(
@@ -136,6 +138,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
+      // TODO: Add team membership + admin permission check (requires rule->teamId lookup)
       final success = await _ruleService.deleteFineRule(ruleId);
 
       if (!success) {
@@ -183,6 +186,10 @@ class FinesHandler {
 
       final team = await requireTeamMember(_teamService, teamId, userId);
       if (team == null) return resp.forbidden('Ingen tilgang til dette laget');
+
+      if (!isFinesManager(team)) {
+        return resp.forbidden('Kun admin eller botesjef kan opprette boter');
+      }
 
       final body = await parseBody(request);
 
@@ -235,6 +242,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
+      // TODO: Add team membership + fine_boss permission check (requires fine->teamId lookup)
       final fine = await _crudService.approveFine(fineId, userId);
 
       if (fine == null) {
@@ -252,6 +260,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
+      // TODO: Add team membership + fine_boss permission check (requires fine->teamId lookup)
       final fine = await _crudService.rejectFine(fineId, userId);
 
       if (fine == null) {
@@ -292,6 +301,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
+      // TODO: Add team membership + fine_boss permission check (requires appeal->teamId lookup)
       final body = await parseBody(request);
 
       final appeal = await _crudService.resolveAppeal(
@@ -333,6 +343,7 @@ class FinesHandler {
       final userId = getUserId(request);
       if (userId == null) return resp.unauthorized();
 
+      // TODO: Add team membership + fine_boss permission check (requires fine->teamId lookup)
       final body = await parseBody(request);
 
       final amountRaw = safeNumNullable(body, 'amount');
