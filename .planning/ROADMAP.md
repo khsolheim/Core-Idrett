@@ -107,10 +107,13 @@ Plans:
   4. Dashboard info widgets extracted into separate files
   5. All split widgets maintain existing functionality and hot reload works
   6. Existing frontend tests continue passing after extraction
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 05-01: [Plan details TBD during planning]
+- [ ] 05-01-PLAN.md — Split message_widgets.dart (482 LOC) and test_detail_screen.dart (476 LOC)
+- [ ] 05-02-PLAN.md — Split export_screen.dart (470 LOC) and activity_detail_screen.dart (456 LOC)
+- [ ] 05-03-PLAN.md — Split mini_activity_detail_content.dart (436 LOC) and stats_widgets.dart (429 LOC)
+- [ ] 05-04-PLAN.md — Split edit_team_members_tab.dart (423 LOC) and dashboard_info_widgets.dart (420 LOC)
 
 ### Phase 6: Feature Test Coverage
 **Goal**: Achieve comprehensive test coverage for untested critical features
@@ -201,7 +204,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Type Safety & Validation | 4/4 | ✓ Complete | 2026-02-09 |
 | 3. Backend Service Splitting | 4/4 | ✓ Complete | 2026-02-09 |
 | 4. Backend Security & Input Validation | 2/2 | ✓ Complete | 2026-02-09 |
-| 5. Frontend Widget Extraction | 0/0 | Not started | - |
+| 5. Frontend Widget Extraction | 0/4 | Not started | - |
 | 6. Feature Test Coverage | 0/0 | Not started | - |
 | 7. Code Consistency Patterns | 0/0 | Not started | - |
 | 8. Push Notification Hardening | 0/0 | Not started | - |
