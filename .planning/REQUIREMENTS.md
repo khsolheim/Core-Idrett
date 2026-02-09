@@ -40,8 +40,8 @@ Requirements for this refactoring milestone. Each maps to roadmap phases.
 
 ### Test Coverage
 
-- [ ] **TEST-01**: Backend test infrastructure created (test helpers, mock database, test data factories)
-- [ ] **TEST-02**: Backend model serialization tests for all models (fromJson/toJson roundtrip)
+- [x] **TEST-01**: Backend test infrastructure created (test helpers, mock database, test data factories) ✓ Phase 1
+- [x] **TEST-02**: Backend model serialization tests for all models (fromJson/toJson roundtrip) ✓ Phase 1
 - [ ] **TEST-03**: Backend export service tests covering all 7 export types
 - [ ] **TEST-04**: Backend tournament service tests covering bracket generation (single-elim, round-robin, 3/5/8/16 participants)
 - [ ] **TEST-05**: Backend fine service tests covering payment reconciliation, idempotency, balance calculations
@@ -115,8 +115,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Phase 1 | Pending |
-| TEST-02 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | ✓ Complete |
+| TEST-02 | Phase 1 | ✓ Complete |
 | TYPE-01 | Phase 2 | Pending |
 | TYPE-02 | Phase 2 | Pending |
 | TYPE-03 | Phase 2 | Pending |

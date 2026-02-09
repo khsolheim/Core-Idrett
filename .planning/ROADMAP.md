@@ -12,7 +12,7 @@ This roadmap transforms Core - Idrett from a working but fragile codebase into a
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Test Infrastructure** - Foundation for safe refactoring
+- [x] **Phase 1: Test Infrastructure** - Foundation for safe refactoring ✓ (2026-02-09)
 - [ ] **Phase 2: Type Safety & Validation** - Eliminate unsafe casts and parsing
 - [ ] **Phase 3: Backend Service Splitting** - Break down large service files
 - [ ] **Phase 4: Backend Security & Input Validation** - Harden API endpoints
@@ -190,7 +190,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Test Infrastructure | 0/4 | Planned | - |
+| 1. Test Infrastructure | 4/4 | ✓ Complete | 2026-02-09 |
 | 2. Type Safety & Validation | 0/0 | Not started | - |
 | 3. Backend Service Splitting | 0/0 | Not started | - |
 | 4. Backend Security & Input Validation | 0/0 | Not started | - |
