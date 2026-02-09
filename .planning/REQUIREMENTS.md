@@ -9,12 +9,12 @@ Requirements for this refactoring milestone. Each maps to roadmap phases.
 
 ### Type Safety & Validation
 
-- [ ] **TYPE-01**: All backend unsafe `as String` casts replaced with validated parsing helpers
-- [ ] **TYPE-02**: All backend unsafe `as int`/`as num` casts replaced with validated parsing helpers
-- [ ] **TYPE-03**: All backend unsafe `as Map` casts replaced with validated parsing helpers
-- [ ] **TYPE-04**: Safe JSON field extraction helper created and used at all deserialization boundaries
-- [ ] **TYPE-05**: All `.first` calls on query results guarded with emptiness checks or `.firstOrNull`
-- [ ] **TYPE-06**: All `DateTime.parse()` calls replaced with `DateTime.tryParse()` with fallback handling
+- [x] **TYPE-01**: All backend unsafe `as String` casts replaced with validated parsing helpers ✓ Phase 2
+- [x] **TYPE-02**: All backend unsafe `as int`/`as num` casts replaced with validated parsing helpers ✓ Phase 2
+- [x] **TYPE-03**: All backend unsafe `as Map` casts replaced with validated parsing helpers ✓ Phase 2
+- [x] **TYPE-04**: Safe JSON field extraction helper created and used at all deserialization boundaries ✓ Phase 2
+- [x] **TYPE-05**: All `.first` calls on query results guarded with emptiness checks or `.firstOrNull` ✓ Phase 2
+- [x] **TYPE-06**: All `DateTime.parse()` calls replaced with `DateTime.tryParse()` with fallback handling ✓ Phase 2
 
 ### File Splitting — Backend Services
 
@@ -117,12 +117,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | TEST-01 | Phase 1 | ✓ Complete |
 | TEST-02 | Phase 1 | ✓ Complete |
-| TYPE-01 | Phase 2 | Pending |
-| TYPE-02 | Phase 2 | Pending |
-| TYPE-03 | Phase 2 | Pending |
-| TYPE-04 | Phase 2 | Pending |
-| TYPE-05 | Phase 2 | Pending |
-| TYPE-06 | Phase 2 | Pending |
+| TYPE-01 | Phase 2 | ✓ Complete |
+| TYPE-02 | Phase 2 | ✓ Complete |
+| TYPE-03 | Phase 2 | ✓ Complete |
+| TYPE-04 | Phase 2 | ✓ Complete |
+| TYPE-05 | Phase 2 | ✓ Complete |
+| TYPE-06 | Phase 2 | ✓ Complete |
 | BSPLIT-01 | Phase 3 | Pending |
 | BSPLIT-02 | Phase 3 | Pending |
 | BSPLIT-03 | Phase 3 | Pending |
