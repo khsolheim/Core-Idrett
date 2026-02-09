@@ -93,7 +93,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Consolidate admin role check + create permission helpers + enforce fine_boss on fine mutations
+- [ ] 04-01-PLAN.md — Consolidate admin role check + create permission helpers + enforce fine_boss on _createFine + verify Phase 2 input validation coverage
 - [ ] 04-02-PLAN.md — Add shelf_limiter rate limiting to auth, message/fine mutation, and export endpoints
 
 ### Phase 5: Frontend Widget Extraction
