@@ -197,10 +197,12 @@ Plans:
   4. All frontend tests pass with coverage above 80%
   5. Manual smoke test of all features reveals no regressions
   6. All 45 v1 requirements marked complete with evidence
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 10-01: [Plan details TBD during planning]
+- [ ] 10-01-PLAN.md -- Fix 12 failing frontend tests + clean 62 static analysis issues
+- [ ] 10-02-PLAN.md -- Update REQUIREMENTS.md with completion evidence for all 45 requirements
+- [ ] 10-03-PLAN.md -- Final verification document + project state closure
 
 ## Progress
 
