@@ -179,11 +179,12 @@ Plans:
   3. All placeholder text and input hints show Norwegian text
   4. Manual UI walkthrough finds zero English strings in user-facing flows
   5. Grep search for common English UI words returns zero results in lib/features
-**Plans:** 2 plans
+**Plans:** 3 plans
 
 Plans:
 - [ ] 09-01-PLAN.md — Translate remaining English UI strings (Achievements, Seeding, Chat, opt-out, Admin) to Norwegian
 - [ ] 09-02-PLAN.md — Add flutter_localizations and configure MaterialApp Norwegian locale for system dialogs
+- [ ] 09-03-PLAN.md — Gap closure: translate 4 remaining English strings (Admin, Team tab, Total, Bracket)
 
 ### Phase 10: Final Quality Pass
 **Goal**: Cross-cutting validation ensuring all quality goals achieved
