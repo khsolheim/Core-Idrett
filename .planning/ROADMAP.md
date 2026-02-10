@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Feature Test Coverage** - Test untested critical features ✓ (2026-02-09)
 - [x] **Phase 7: Code Consistency Patterns** - Enforce consistent patterns everywhere ✓ (2026-02-09)
 - [x] **Phase 8: Push Notification Hardening** - Fix FCM token and foreground issues ✓ (2026-02-10)
-- [ ] **Phase 9: Translation Completion** - Complete Norwegian translation
+- [x] **Phase 9: Translation Completion** - Complete Norwegian translation ✓ (2026-02-10)
 - [ ] **Phase 10: Final Quality Pass** - Cross-cutting validation and polish
 
 ## Phase Details
@@ -217,9 +217,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Feature Test Coverage | 3/3 | ✓ Complete | 2026-02-09 |
 | 7. Code Consistency Patterns | 4/4 | ✓ Complete | 2026-02-09 |
 | 8. Push Notification Hardening | 3/3 | ✓ Complete | 2026-02-10 |
-| 9. Translation Completion | 0/2 | Not started | - |
+| 9. Translation Completion | 3/3 | ✓ Complete | 2026-02-10 |
 | 10. Final Quality Pass | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-10 (Phase 9 planned)*
+*Last updated: 2026-02-10 (Phase 9 complete)*
