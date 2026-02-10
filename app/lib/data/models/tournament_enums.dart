@@ -101,7 +101,7 @@ enum TournamentStatus {
       case TournamentStatus.registration:
         return 'Påmelding';
       case TournamentStatus.seeding:
-        return 'Seeding';
+        return 'Trekning';
       case TournamentStatus.inProgress:
         return 'Pågår';
       case TournamentStatus.completed:

@@ -35,7 +35,7 @@ class AutomationSettingsCard extends StatelessWidget {
               ),
               const Divider(height: 1),
               SwitchListTile(
-                title: const Text('Tillat opt-out'),
+                title: const Text('Tillat reservasjon'),
                 subtitle: const Text(
                   'Spillere kan velge å skjule seg fra leaderboard',
                 ),

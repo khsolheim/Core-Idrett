@@ -56,7 +56,7 @@ class ConversationListPanelState extends ConsumerState<ConversationListPanel> {
                             .setQuery(value);
                       },
                     )
-                  : const Text('Chat'),
+                  : const Text('Meldinger'),
               actions: [
                 IconButton(
                   icon: Icon(_isSearching ? Icons.close : Icons.search),

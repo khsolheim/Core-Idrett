@@ -152,7 +152,7 @@ class _MatchResultSheetState extends ConsumerState<MatchResultSheet> {
                 children: [
                   // Walkover toggle
                   SwitchListTile(
-                    title: const Text('Walk-over'),
+                    title: const Text('Walkover'),
                     subtitle: const Text('Motstanderen møtte ikke'),
                     value: _isWalkover,
                     onChanged: (value) {

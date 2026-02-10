@@ -211,7 +211,7 @@ class ProfileScreen extends ConsumerWidget {
 
     if (team.userIsAdmin == true) {
       badges.add(_RoleBadge(
-        label: 'Admin',
+        label: 'Administrator',
         color: Theme.of(context).colorScheme.primary,
       ));
     }
