@@ -1,8 +1,8 @@
-# Core - Idrett: Refaktorering Runde 2
+# Core - Idrett
 
 ## What This Is
 
-En systematisk refaktorering av hele Core - Idrett-appen (Flutter frontend + Dart backend). Målet er å gjøre koden vedlikeholdbar, robust, og konsistent — både i struktur, feilhåndtering, og brukeropplevelse. Alle brukersynlige tekster skal være på norsk.
+En norsk idrettslagsapp (Flutter frontend + Dart backend + Supabase) for trenere, spillere og lagledere. Appen håndterer lagadministrasjon, aktiviteter, turneringer, bøtesystem, chat, statistikk, dokumenter, og push-notifikasjoner. Koden er systematisk refaktorert gjennom to runder — arkitekturen er nå robust, konsistent, og godt testet.
 
 ## Core Value
 
@@ -11,8 +11,6 @@ Koden skal være lett å forstå, endre, og utvide — uten å krasje på uvente
 ## Requirements
 
 ### Validated
-
-<!-- Eksisterende kapabiliteter som allerede fungerer. -->
 
 - ✓ Team management med roller (admin/coach/fine_boss/player) — existing
 - ✓ Aktiviteter med recurring schedules og attendance tracking — existing
@@ -27,71 +25,84 @@ Koden skal være lett å forstå, endre, og utvide — uten å krasje på uvente
 - ✓ Fraværsrapportering — existing
 - ✓ Dataeksport — existing
 - ✓ Push-notifikasjoner — existing
-- ✓ Auth middleware med requireAuth, response_helpers, auth_helpers — fase 1
-- ✓ Service cleanup (fromRow→fromJson, DB-level filtering) — fase 2
-- ✓ Backend file splitting (handlers, models, services) — fase 3, 7, 8, 9
-- ✓ Frontend provider splitting og widget extraction — fase 4, 10, 21
-- ✓ EmptyStateWidget, when2(), parseList() patterns — fase 5, 6, 12
-- ✓ Chat dedup (shared message_widgets.dart) — fase 11
-- ✓ Backend common helpers (getUserMap, getTeamMemberUserIds) — fase 13
-- ✓ Auth & error consistency (401 vs 403, no $e in serverError) — fase 14
-- ✓ Backend input validation (null checks, DateTime.tryParse) — fase 15
-- ✓ N+1 query optimization — fase 16
-- ✓ Service boundaries (DashboardService, collection_helpers) — fase 17
-- ✓ Frontend error handling (ErrorDisplayService.showWarning) — fase 18
-- ✓ Named routes (45 path-based→named) — fase 19
-- ✓ Provider optimization (.select() on ref.watch) — fase 20
-- ✓ Image caching (cached_network_image, ValueKey) — fase 22
+- ✓ Auth middleware med requireAuth, response_helpers, auth_helpers — R1 fase 1
+- ✓ Service cleanup (fromRow→fromJson, DB-level filtering) — R1 fase 2
+- ✓ Backend file splitting (handlers, models, services) — R1 fase 3, 7, 8, 9
+- ✓ Frontend provider splitting og widget extraction — R1 fase 4, 10, 21
+- ✓ EmptyStateWidget, when2(), parseList() patterns — R1 fase 5, 6, 12
+- ✓ Chat dedup (shared message_widgets.dart) — R1 fase 11
+- ✓ Backend common helpers (getUserMap, getTeamMemberUserIds) — R1 fase 13
+- ✓ Auth & error consistency (401 vs 403, no $e in serverError) — R1 fase 14
+- ✓ Backend input validation (null checks, DateTime.tryParse) — R1 fase 15
+- ✓ N+1 query optimization — R1 fase 16
+- ✓ Service boundaries (DashboardService, collection_helpers) — R1 fase 17
+- ✓ Frontend error handling (ErrorDisplayService.showWarning) — R1 fase 18
+- ✓ Named routes (45 path-based→named) — R1 fase 19
+- ✓ Provider optimization (.select() on ref.watch) — R1 fase 20
+- ✓ Image caching (cached_network_image, ValueKey) — R1 fase 22
+- ✓ Equatable models med roundtrip-tester (339 tester) — v1.0 Phase 1
+- ✓ Trygg type-parsing med validerte hjelpefunksjoner (347 brukssteder) — v1.0 Phase 2
+- ✓ Backend service-splitting (8 store → 22 fokuserte sub-services) — v1.0 Phase 3
+- ✓ Rate limiting og permission consolidation — v1.0 Phase 4
+- ✓ Frontend widget extraction (8 store filer splittet) — v1.0 Phase 5
+- ✓ Feature-tester (export, turneringer, bøter, statistikk) — v1.0 Phase 6
+- ✓ Konsistente mønstre (auth, feilmeldinger, SnackBar, spacing) — v1.0 Phase 7
+- ✓ FCM push notification hardening (retry, persistence, foreground) — v1.0 Phase 8
+- ✓ Komplett norsk oversettelse — zero English i UI — v1.0 Phase 9
+- ✓ Final quality pass — 542 tester grønne, clean analyse — v1.0 Phase 10
 
 ### Active
 
-<!-- Refaktoreringsarbeid for denne milepælen. -->
-
-- [ ] Splitte store backend service-filer (700+ LOC: tournament, leaderboard, fine, activity, export)
-- [ ] Splitte store frontend widget-filer (400+ LOC: message_widgets, test_detail, export, activity_detail, m.fl.)
-- [ ] Erstatte usikre `as String`/`as int`/`as Map` casts med trygg validering i backend
-- [ ] Legge til tester for export, turneringer, bøter, og statistikk
-- [ ] Fikse admin-rolle dual-check (user_is_admin vs user_role)
-- [ ] Implementere rate limiting på kritiske endpoints
-- [ ] Fikse FCM token-håndtering (retry-logikk, persistent state)
-- [ ] Fikse foreground push notification-visning
-- [ ] Sikre konsistente mønstre i feilhåndtering, navngivning, og struktur overalt
-- [ ] Sikre konsistent API-design (response format, statuskoder)
-- [ ] Sikre konsistent UI (widgets, spacing, layout)
-- [ ] Oversette alle gjenværende engelske frontend-tekster til norsk
+(No active requirements — next milestone not started)
 
 ### Out of Scope
 
-- Nye features (offline support, audit logging, export-kryptering) — dette er ren refaktorering
+- Nye features (offline support, audit logging, export-kryptering) — ren refaktorering ferdig
 - Database-migrasjoner eller skjemaendringer — kun applikasjonskode
-- Ytelsesoptimalisering utover det som kommer naturlig av refaktoreringen
+- Code generation (freezed, json_serializable, riverpod_generator) — v2 kandidat
+- CI/CD pipeline og coverage reporting — v2 kandidat
 - Skaleringsarbeid (paginering, caching-strategier) — separat milestone
 
 ## Context
 
-Core - Idrett er en norsk idrettslagsapp brukt av trenere, spillere og lagledere. Appen har vært gjennom 22 faser med refaktorering som ryddet opp i arkitektur, mønstre, og kodekvalitet. CONCERNS.md fra codebase-mappingen avdekket gjenværende teknisk gjeld som denne milepælen adresserer.
+Core - Idrett er en norsk idrettslagsapp med 75k LOC Dart (47k frontend + 28k backend). Appen har vært gjennom R1 (22 faser) og R2 (10 faser, v1.0) med refaktorering. Kodebasen er nå robust med:
 
-Kodebasen er ca. 30k+ linjer Dart fordelt på frontend og backend. Backend bruker Shelf-rammeverket med Handler→Service→Database-mønster. Frontend bruker Riverpod + Clean Architecture med feature-basert struktur.
+- **542 tester** (268 backend + 274 frontend), alle grønne
+- **22 fokuserte sub-services** under 400 LOC med barrel exports
+- **Konsistente mønstre** for auth, feilhåndtering, og UI
+- **Validert type-parsing** — ingen usikre casts i kodebasen
+- **Rate limiting** på auth, mutations, og export endpoints
+- **FCM push-notifikasjoner** med retry, persistent tokens, og foreground display
+- **Komplett norsk UI** — zero engelske strenger i brukergrensesnittet
 
-Eksisterende mønstre som skal følges:
-- Backend: `requireAuth` middleware, `response_helpers.dart`, `auth_helpers.dart`
-- Frontend: `when2()`, `EmptyStateWidget`, `ErrorDisplayService.showWarning()`
+Backend bruker Shelf med Handler→Service→Database-mønster. Frontend bruker Riverpod + Clean Architecture med feature-basert struktur.
+
+Mønstre som følges:
+- Backend: `requireAuth` middleware, `response_helpers.dart`, `auth_helpers.dart`, `permission_helpers.dart`
+- Frontend: `when2()`, `EmptyStateWidget`, `ErrorDisplayService.showWarning()`, `AppSpacing` constants
 - Filsplitting: barrel exports, `router.mount('/', subHandler.router.call)`
 
 ## Constraints
 
 - **Tech stack**: Flutter 3.10+ / Dart 3.0+ — ingen rammeverksendringer
-- **Bakoverkompatibilitet**: Ingen breaking changes i API — frontend og backend må fungere sammen under hele refaktoreringen
+- **Bakoverkompatibilitet**: Ingen breaking changes i API
 - **Språk**: Alle brukersynlige tekster på norsk; kode og kommentarer på engelsk
-- **Eksisterende tester**: Alle eksisterende tester må fortsatt passere etter endringer
+- **Tester**: 542 tester må fortsatt passere etter endringer
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Refaktorering uten nye features | Holde scope fokusert; nye features i separat milestone | — Pending |
-| Norsk for all UI-tekst | Appen er for norske idrettslag; konsistent språk | — Pending |
-| Kode/kommentarer på engelsk | Dart/Flutter-konvensjon; lettere å søke i | — Pending |
+| Refaktorering uten nye features | Holde scope fokusert; nye features i separat milestone | ✓ Good — scope stayed clean |
+| Norsk for all UI-tekst | Appen er for norske idrettslag; konsistent språk | ✓ Good — 100% norsk UI |
+| Kode/kommentarer på engelsk | Dart/Flutter-konvensjon; lettere å søke i | ✓ Good — consistent |
+| Equatable for all models | Structural equality for testing + value comparison | ✓ Good — enabled 339 roundtrip tests |
+| Manual mocks over code generation | Supabase incompatible with mockito; better control | ✓ Good — 542 tests passing |
+| Safe parsing helpers over raw casts | Fail safely with error messages instead of crashing | ✓ Good — 347 usages, zero unsafe casts |
+| Service splitting with barrel exports | Split services while maintaining import paths | ✓ Good — 22 sub-services, zero broken imports |
+| Rate limiting with shelf_limiter | Auth 5/min, mutations 10/min, exports 1/min | ✓ Good — production-ready |
+| FCM retry with exponential backoff | 8 attempts, selective retry on transient errors | ✓ Good — reliable push delivery |
+| flutter_localizations for system dialogs | MaterialApp with nb_NO locale for native Norwegian | ✓ Good — DatePicker etc. in Norwegian |
 
 ---
-*Last updated: 2026-02-08 after initialization*
+*Last updated: 2026-02-10 after v1.0 milestone*
