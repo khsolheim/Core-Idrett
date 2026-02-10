@@ -72,6 +72,7 @@ Progress: [████████████] 100% (26 of 26 total plans acro
 | Phase 08 P02 | 19 | 1 tasks | 1 files |
 | Phase 08 P03 | 2 | 1 tasks | 1 files |
 | Phase 09 P02 | 51 | 1 tasks | 2 files |
+| Phase 09 P01 | 3 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,9 @@ Recent decisions affecting current work:
 - [Phase 08]: iOS foreground presentation configured - alert/badge/sound enabled for foreground notifications
 - [Phase 08]: ForegroundNotificationService initialization happens during FCM setup - ensures local notifications ready before messages arrive
 - [Phase 09]: flutter_localizations for system dialogs — MaterialApp configured with nb_NO locale and three GlobalLocalizations delegates
+- [Phase 09]: Walkover kept as loanword - accepted Norwegian sports terminology
+- [Phase 09]: Prestasjoner (accomplishments) chosen for achievement translation
+- [Phase 09]: Meldinger (messages) preferred over Chat for Norwegian UI
 
 ### Pending Todos
 
