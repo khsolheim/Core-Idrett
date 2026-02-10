@@ -51,17 +51,33 @@ Koden skal være lett å forstå, endre, og utvide — uten å krasje på uvente
 - ✓ Komplett norsk oversettelse — zero English i UI — v1.0 Phase 9
 - ✓ Final quality pass — 542 tester grønne, clean analyse — v1.0 Phase 10
 
-### Active
+### Active — v1.1 CI/CD + Kvalitetsvern
 
-(No active requirements — next milestone not started)
+- Pre-commit hooks for format + analyze quality gates (HOOKS-01..03)
+- GitHub Actions CI for backend + frontend on PR (CI-01..04)
+- Codecov coverage reporting with trend visibility (COV-01..03)
+- Backend Docker container with multi-stage build (DOCK-01..03)
+- Cloud Run deployment with Secret Manager (DEPLOY-01..03)
+- Flutter build pipeline for Android, Web, iOS (BUILD-01..04)
+
+Full requirements: `.planning/REQUIREMENTS.md`
 
 ### Out of Scope
 
-- Nye features (offline support, audit logging, export-kryptering) — ren refaktorering ferdig
+- Nye features (offline support, audit logging, export-kryptering)
 - Database-migrasjoner eller skjemaendringer — kun applikasjonskode
-- Code generation (freezed, json_serializable, riverpod_generator) — v2 kandidat
-- CI/CD pipeline og coverage reporting — v2 kandidat
+- Code generation (freezed, json_serializable, riverpod_generator)
 - Skaleringsarbeid (paginering, caching-strategier) — separat milestone
+- Staging environment — production only for now
+
+## Current Milestone: v1.1 CI/CD + Kvalitetsvern
+
+**Goal:** Beskytt kodekvaliteten med automatiserte sjekker og etabler full deployment pipeline.
+
+**Starting state:** GitHub repo, zero CI, no Docker, no GCP, not deployed.
+**Target state:** PR quality gates, coverage reporting, backend on Cloud Run, Flutter builds for Android/iOS/Web.
+
+Phases 11-14, ~11 plans. See `.planning/ROADMAP.md` for details.
 
 ## Context
 
@@ -103,6 +119,12 @@ Mønstre som følges:
 | Rate limiting with shelf_limiter | Auth 5/min, mutations 10/min, exports 1/min | ✓ Good — production-ready |
 | FCM retry with exponential backoff | 8 attempts, selective retry on transient errors | ✓ Good — reliable push delivery |
 | flutter_localizations for system dialogs | MaterialApp with nb_NO locale for native Norwegian | ✓ Good — DatePicker etc. in Norwegian |
+| Separate CI workflows per stack | Independent triggers, clearer logs | v1.1 — Phase 11 |
+| Codecov for coverage reporting | Free, good PR comments, trend visibility | v1.1 — Phase 11 |
+| `.githooks/` over husky/npm | No extra dependencies, pure shell | v1.1 — Phase 12 |
+| `dart compile exe` in Docker | Smaller container, faster Cloud Run startup | v1.1 — Phase 13 |
+| Single production environment | Staging adds complexity without enough value yet | v1.1 — Phase 13 |
+| Firebase Hosting for web | Free tier, SPA routing, same GCP project | v1.1 — Phase 14 |
 
 ---
-*Last updated: 2026-02-10 after v1.0 milestone*
+*Last updated: 2026-02-10 after v1.1 milestone initialization*
