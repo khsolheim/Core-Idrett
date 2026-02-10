@@ -49,6 +49,7 @@ Recent decisions affecting current work:
 - Use --no-fatal-warnings for dart analyze to allow 5 known deprecation warnings
 - Set fail_ci_if_error: false on Codecov to prevent blocking PRs if service is down
 - Use format_coverage with --report-on=lib/ to exclude test files from coverage
+- No Flutter version pinning in CI - use latest stable (project supports 3.10+, reduces maintenance)
 
 ### Pending Todos
 
@@ -62,7 +63,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (Executed 11-01-PLAN.md)
-Stopped at: Completed 11-01-PLAN.md (Backend CI workflow)
+Last session: 2026-02-10 (Executed 11-02-PLAN.md)
+Stopped at: Completed 11-02-PLAN.md (Frontend CI workflow)
 Resume file: None
-Next: Execute 11-02-PLAN.md (Frontend CI workflow)
+Next: Execute 11-03-PLAN.md (Codecov configuration)
