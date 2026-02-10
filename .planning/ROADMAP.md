@@ -31,12 +31,18 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 #### Phase 11: CI Pipeline + Coverage
 **Goal:** Automated testing and analysis on every PR with coverage visibility.
+**Plans:** 3 plans
 
 | Plan | Deliverable | Requirements |
 |------|-------------|--------------|
 | 11-01 | Backend CI workflow (`dart analyze` + `dart test --coverage`) | CI-01, COV-01 |
 | 11-02 | Frontend CI workflow (`flutter analyze` + `flutter test --coverage`) | CI-02, COV-02 |
 | 11-03 | Coverage upload (Codecov), branch protection, caching | CI-03, CI-04, COV-03 |
+
+Plans:
+- [ ] 11-01-PLAN.md — Backend CI workflow with analyze, test, and LCOV coverage
+- [ ] 11-02-PLAN.md — Frontend CI workflow with analyze, test, and coverage
+- [ ] 11-03-PLAN.md — Codecov configuration, branch protection, and verification
 
 Key decisions:
 - Separate workflows per stack (independent triggers, clearer logs)
@@ -118,4 +124,4 @@ Key decisions:
 
 ---
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-10 (v1.1 milestone initialized)*
+*Last updated: 2026-02-10 (Phase 11 planned)*
