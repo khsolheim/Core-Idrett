@@ -35,7 +35,7 @@ class AdminActionsSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Admin',
+                  'Administrator',
                   style: theme.textTheme.titleMedium,
                 ),
               ],

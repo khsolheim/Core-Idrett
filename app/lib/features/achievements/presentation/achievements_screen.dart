@@ -49,7 +49,7 @@ class AchievementsScreen extends ConsumerWidget {
             tabs: [
               Tab(text: 'Mine', icon: Icon(Icons.person, size: 20)),
               Tab(text: 'Tilgjengelige', icon: Icon(Icons.stars, size: 20)),
-              Tab(text: 'Team', icon: Icon(Icons.group, size: 20)),
+              Tab(text: 'Lag', icon: Icon(Icons.group, size: 20)),
             ],
           ),
         ),

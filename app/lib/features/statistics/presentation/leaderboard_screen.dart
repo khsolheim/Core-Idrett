@@ -25,7 +25,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   late TabController _tabController;
 
   static const _categories = [
-    (LeaderboardCategory.total, 'Total', Icons.emoji_events),
+    (LeaderboardCategory.total, 'Totalt', Icons.emoji_events),
     (LeaderboardCategory.attendance, 'Oppmote', Icons.check_circle),
     (LeaderboardCategory.training, 'Trening', Icons.fitness_center),
     (LeaderboardCategory.match, 'Kamp', Icons.sports_soccer),

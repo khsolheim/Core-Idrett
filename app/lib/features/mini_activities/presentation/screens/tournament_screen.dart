@@ -102,7 +102,7 @@ class _TournamentContentState extends ConsumerState<_TournamentContent>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            const Tab(text: 'Bracket'),
+            const Tab(text: 'Kamptre'),
             const Tab(text: 'Kamper'),
             if (hasGroups) const Tab(text: 'Grupper'),
           ],
