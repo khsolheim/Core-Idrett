@@ -1,0 +1,32 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto       # Compare against base branch coverage (no fixed threshold)
+        threshold: 1%      # Allow up to 1% coverage drop without failing
+    patch:
+      default:
+        target: 70%        # New/changed code should have 70%+ coverage
+        threshold: 5%      # Some flexibility for hard-to-test code
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: true    # Only comment when coverage changes
+
+ignore:
+  - "**/*.g.dart"          # Generated files
+  - "**/*.freezed.dart"    # Freezed generated files
+  - "**/*.mocks.dart"      # Mock generated files
+  - "**/test/**"           # Test files themselves
+  - "**/integration_test/**"
+
+flags:
+  backend:
+    paths:
+      - backend/lib/
+    carryforward: true     # Keep coverage from previous runs if workflow didn't trigger
+  frontend:
+    paths:
+      - app/lib/
+    carryforward: true
