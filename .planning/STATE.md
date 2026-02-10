@@ -10,24 +10,24 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 ## Current Position
 
 Phase: 11 of 14 (CI Pipeline + Coverage)
-Plan: 0 of 3 (Not started)
-Status: Ready for planning
-Last activity: 2026-02-10 — v1.1 milestone initialized
+Plan: 2 of 3 (In progress)
+Status: Executing phase 11
+Last activity: 2026-02-10 — Completed 11-02-PLAN.md
 
-Progress: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0 of 11 total plans across phases 11-14)
+Progress: [🟦🟦⬜⬜⬜⬜⬜⬜⬜⬜⬜] 18% (2 of 11 total plans across phases 11-14)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 2
+- Average duration: 1m 17s
+- Total execution time: 2m 34s
 
 **By Phase:**
 
 | Phase | Plans | Total Time | Avg/Plan |
 |-------|-------|------------|----------|
-| 11    | 0/3   | —          | —        |
+| 11    | 2/3   | 2m 34s     | 1m 17s   |
 | 12    | 0/2   | —          | —        |
 | 13    | 0/3   | —          | —        |
 | 14    | 0/3   | —          | —        |
@@ -46,6 +46,9 @@ Recent decisions affecting current work:
 - Single production environment — staging adds complexity without enough value yet
 - Firebase Hosting for web — free tier, SPA routing, same GCP project
 - 5 known analyze warnings allowed — filter with documented allowlist
+- Use --no-fatal-warnings for dart analyze to allow 5 known deprecation warnings
+- Set fail_ci_if_error: false on Codecov to prevent blocking PRs if service is down
+- Use format_coverage with --report-on=lib/ to exclude test files from coverage
 
 ### Pending Todos
 
@@ -59,7 +62,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (v1.1 milestone initialized)
-Stopped at: Milestone planning artifacts created
+Last session: 2026-02-10 (Executed 11-01-PLAN.md)
+Stopped at: Completed 11-01-PLAN.md (Backend CI workflow)
 Resume file: None
-Next: `/gsd:plan-phase 11` to create Phase 11 execution plans
+Next: Execute 11-02-PLAN.md (Frontend CI workflow)
