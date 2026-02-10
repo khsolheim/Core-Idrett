@@ -146,7 +146,7 @@ class AchievementProgressCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        def?.name ?? 'Achievement',
+                        def?.name ?? 'Prestasjon',
                         style: theme.textTheme.titleSmall,
                       ),
                       if (def?.description != null)
@@ -209,7 +209,7 @@ class EarnedAchievementCard extends StatelessWidget {
             ),
           ),
         ),
-        title: Text(def?.name ?? 'Achievement'),
+        title: Text(def?.name ?? 'Prestasjon'),
         subtitle: Text(
           'Oppnadd ${_formatDate(achievement.awardedAt)}',
           style: theme.textTheme.bodySmall,
@@ -265,7 +265,7 @@ class AchievementDefinitionCard extends StatelessWidget {
           ),
         ),
         title: Text(
-          definition.isSecret && !isEarned ? 'Hemmelig achievement' : definition.name,
+          definition.isSecret && !isEarned ? 'Hemmelig prestasjon' : definition.name,
           style: TextStyle(
             color: isEarned ? theme.colorScheme.outline : null,
           ),
@@ -325,7 +325,7 @@ class TeamAchievementCard extends StatelessWidget {
           ],
         ),
         subtitle: Text(
-          '${def?.name ?? "Achievement"} - ${_formatDate(achievement.awardedAt)}',
+          '${def?.name ?? "Prestasjon"} - ${_formatDate(achievement.awardedAt)}',
         ),
         trailing: achievement.pointsAwarded > 0
             ? Text(

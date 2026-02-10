@@ -100,7 +100,7 @@ class _CreateEditAchievementSheetState
               children: [
                 Expanded(
                   child: Text(
-                    isEditing ? 'Rediger achievement' : 'Ny achievement',
+                    isEditing ? 'Rediger prestasjon' : 'Ny prestasjon',
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold),
                   ),
@@ -156,7 +156,7 @@ class _CreateEditAchievementSheetState
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(isEditing ? 'Lagre endringer' : 'Opprett achievement'),
+                    : Text(isEditing ? 'Lagre endringer' : 'Opprett prestasjon'),
               ),
             ),
             const SizedBox(height: 16),
@@ -223,7 +223,7 @@ class _CreateEditAchievementSheetState
     // Validate cooldown for repeatable achievements
     if (_isRepeatable) {
       if (cooldownDays == null || cooldownDays < 1) {
-        ErrorDisplayService.showWarning('Ventetid må være minst 1 dag for gjentakbare achievements');
+        ErrorDisplayService.showWarning('Ventetid må være minst 1 dag for gjentakbare prestasjoner');
         return;
       }
     }
@@ -263,9 +263,9 @@ class _CreateEditAchievementSheetState
         setState(() => _loading = false);
         if (result != null) {
           Navigator.pop(context);
-          ErrorDisplayService.showSuccess('Achievement oppdatert');
+          ErrorDisplayService.showSuccess('Prestasjon oppdatert');
         } else {
-          ErrorDisplayService.showWarning('Kunne ikke oppdatere achievement');
+          ErrorDisplayService.showWarning('Kunne ikke oppdatere prestasjon');
         }
       }
     } else {
@@ -291,9 +291,9 @@ class _CreateEditAchievementSheetState
         setState(() => _loading = false);
         if (result != null) {
           Navigator.pop(context);
-          ErrorDisplayService.showSuccess('Achievement opprettet');
+          ErrorDisplayService.showSuccess('Prestasjon opprettet');
         } else {
-          ErrorDisplayService.showWarning('Kunne ikke opprette achievement');
+          ErrorDisplayService.showWarning('Kunne ikke opprette prestasjon');
         }
       }
     }

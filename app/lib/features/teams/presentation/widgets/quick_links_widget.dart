@@ -30,7 +30,7 @@ class QuickLinksWidget extends StatelessWidget {
         ),
         QuickLinkChip(
           icon: Icons.emoji_events,
-          label: 'Achievements',
+          label: 'Prestasjoner',
           onTap: () => context.pushNamed('achievements', pathParameters: {'teamId': teamId}),
         ),
         QuickLinkChip(

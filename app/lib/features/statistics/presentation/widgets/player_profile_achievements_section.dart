@@ -29,7 +29,7 @@ class PlayerProfileAchievementsSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Achievements',
+          'Prestasjoner',
           style: theme.textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
@@ -49,8 +49,8 @@ class PlayerProfileAchievementsSection extends ConsumerWidget {
                         padding: EdgeInsets.all(16),
                         child: EmptyStateWidget(
                           icon: Icons.emoji_events_outlined,
-                          title: 'Ingen achievements',
-                          subtitle: 'Ingen achievements å vise ennå',
+                          title: 'Ingen prestasjoner',
+                          subtitle: 'Ingen prestasjoner å vise ennå',
                         ),
                       );
                     }

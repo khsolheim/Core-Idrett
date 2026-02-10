@@ -193,8 +193,8 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.emoji_events),
-                title: const Text('Achievements'),
-                subtitle: const Text('Se badges og milepaeler'),
+                title: const Text('Prestasjoner'),
+                subtitle: const Text('Se merker og milepaeler'),
                 onTap: () {
                   Navigator.pop(context);
                   context.pushNamed('achievements', pathParameters: {'teamId': widget.teamId});
@@ -204,8 +204,8 @@ class _TeamDetailScreenState extends ConsumerState<TeamDetailScreen> {
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.workspace_premium),
-                  title: const Text('Administrer achievements'),
-                  subtitle: const Text('Opprett og rediger achievements'),
+                  title: const Text('Administrer prestasjoner'),
+                  subtitle: const Text('Opprett og rediger prestasjoner'),
                   onTap: () {
                     Navigator.pop(context);
                     context.pushNamed(

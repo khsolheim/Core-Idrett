@@ -29,7 +29,7 @@ class AchievementAdminScreen extends ConsumerWidget {
 
     if (!isAdmin) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Achievements Admin')),
+        appBar: AppBar(title: const Text('Prestasjoner')),
         body: const Center(
           child: Text('Du har ikke tilgang til denne siden'),
         ),
@@ -38,12 +38,12 @@ class AchievementAdminScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Administrer Achievements'),
+        title: const Text('Administrer prestasjoner'),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateSheet(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text('Ny achievement'),
+        label: const Text('Ny prestasjon'),
       ),
       body: definitionsAsync.when2(
         onRetry: () => ref.invalidate(achievementDefinitionsProvider((
@@ -56,7 +56,7 @@ class AchievementAdminScreen extends ConsumerWidget {
           if (definitions.isEmpty) {
             return const EmptyStateWidget(
               icon: Icons.emoji_events_outlined,
-              title: 'Ingen egendefinerte achievements',
+              title: 'Ingen egendefinerte prestasjoner',
               subtitle: 'Trykk + for å opprette en ny',
             );
           }
@@ -163,7 +163,7 @@ class AchievementAdminScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Slett achievement?'),
+        title: const Text('Slett prestasjon?'),
         content: Text(
           'Er du sikker på at du vil slette "${definition.name}"? '
           'Spillere som allerede har oppnådd denne vil beholde den.',
@@ -190,9 +190,9 @@ class AchievementAdminScreen extends ConsumerWidget {
           .deleteDefinition(teamId, definition.id);
 
       if (success) {
-        ErrorDisplayService.showSuccess('Achievement slettet');
+        ErrorDisplayService.showSuccess('Prestasjon slettet');
       } else {
-        ErrorDisplayService.showWarning('Kunne ikke slette achievement');
+        ErrorDisplayService.showWarning('Kunne ikke slette prestasjon');
       }
     }
   }
@@ -208,10 +208,10 @@ class AchievementAdminScreen extends ConsumerWidget {
 
     if (result != null) {
       ErrorDisplayService.showSuccess(
-        definition.isActive ? 'Achievement deaktivert' : 'Achievement aktivert',
+        definition.isActive ? 'Prestasjon deaktivert' : 'Prestasjon aktivert',
       );
     } else {
-      ErrorDisplayService.showWarning('Kunne ikke oppdatere achievement');
+      ErrorDisplayService.showWarning('Kunne ikke oppdatere prestasjon');
     }
   }
 }

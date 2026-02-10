@@ -33,12 +33,12 @@ class AchievementsScreen extends ConsumerWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Achievements'),
+          title: const Text('Prestasjoner'),
           actions: [
             if (isAdmin)
               IconButton(
                 icon: const Icon(Icons.settings),
-                tooltip: 'Administrer achievements',
+                tooltip: 'Administrer prestasjoner',
                 onPressed: () => context.pushNamed(
                   'achievements-admin',
                   pathParameters: {'teamId': teamId},
@@ -91,8 +91,8 @@ class _MyAchievementsTab extends ConsumerWidget {
         if (achievements.isEmpty && inProgress.isEmpty) {
           return const EmptyStateWidget(
             icon: Icons.emoji_events_outlined,
-            title: 'Ingen achievements enna',
-            subtitle: 'Delta i aktiviteter for a tjene achievements',
+            title: 'Ingen prestasjoner enna',
+            subtitle: 'Delta i aktiviteter for a tjene prestasjoner',
           );
         }
 
@@ -273,7 +273,7 @@ class _TeamAchievementsTab extends ConsumerWidget {
         if (achievements.isEmpty) {
           return const EmptyStateWidget(
             icon: Icons.group_outlined,
-            title: 'Ingen achievements pa laget enna',
+            title: 'Ingen prestasjoner pa laget enna',
           );
         }
 
