@@ -1,0 +1,52 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: dart pub get
+
+      - name: Analyze code
+        working-directory: ./backend
+        run: dart analyze --no-fatal-warnings
+
+      - name: Run tests with coverage
+        working-directory: ./backend
+        run: dart test --coverage=coverage
+
+      - name: Convert coverage to LCOV
+        working-directory: ./backend
+        run: dart run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib/
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./backend/coverage/lcov.info
+          flags: backend
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
