@@ -179,10 +179,11 @@ Plans:
   3. All placeholder text and input hints show Norwegian text
   4. Manual UI walkthrough finds zero English strings in user-facing flows
   5. Grep search for common English UI words returns zero results in lib/features
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 09-01: [Plan details TBD during planning]
+- [ ] 09-01-PLAN.md — Translate remaining English UI strings (Achievements, Seeding, Chat, opt-out, Admin) to Norwegian
+- [ ] 09-02-PLAN.md — Add flutter_localizations and configure MaterialApp Norwegian locale for system dialogs
 
 ### Phase 10: Final Quality Pass
 **Goal**: Cross-cutting validation ensuring all quality goals achieved
@@ -215,9 +216,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Feature Test Coverage | 3/3 | ✓ Complete | 2026-02-09 |
 | 7. Code Consistency Patterns | 4/4 | ✓ Complete | 2026-02-09 |
 | 8. Push Notification Hardening | 3/3 | ✓ Complete | 2026-02-10 |
-| 9. Translation Completion | 0/0 | Not started | - |
+| 9. Translation Completion | 0/2 | Not started | - |
 | 10. Final Quality Pass | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-10 (Phase 8 complete)*
+*Last updated: 2026-02-10 (Phase 9 planned)*
