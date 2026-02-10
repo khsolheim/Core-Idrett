@@ -20,7 +20,7 @@ class RankedLeaderboardEntry extends Equatable {
   // Joined fields
   final String? userName;
   final String? userAvatarUrl;
-  RankedLeaderboardEntry({
+  const RankedLeaderboardEntry({
     required this.id,
     required this.leaderboardId,
     required this.userId,
@@ -99,7 +99,7 @@ class MonthlyUserStats extends Equatable {
   final int penaltyPoints;
   final double? attendanceRate;
   final DateTime updatedAt;
-  MonthlyUserStats({
+  const MonthlyUserStats({
     required this.id,
     required this.teamId,
     required this.userId,
@@ -186,7 +186,7 @@ class ManualPointAdjustment extends Equatable {
   final String? userName;
   final String? userAvatarUrl;
   final String? createdByName;
-  ManualPointAdjustment({
+  const ManualPointAdjustment({
     required this.id,
     required this.teamId,
     required this.userId,

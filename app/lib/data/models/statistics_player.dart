@@ -13,7 +13,7 @@ class MatchStats extends Equatable {
   final int redCards;
   final String? userName;
   final String? userAvatarUrl;
-  MatchStats({
+  const MatchStats({
     required this.id,
     required this.instanceId,
     required this.userId,
@@ -71,7 +71,7 @@ class PlayerRating extends Equatable {
   final DateTime updatedAt;
   final String? userName;
   final String? userAvatarUrl;
-  PlayerRating({
+  const PlayerRating({
     required this.id,
     required this.userId,
     required this.teamId,
@@ -135,7 +135,7 @@ class SeasonStats extends Equatable {
   final int totalDraws;
   final String? userName;
   final String? userAvatarUrl;
-  SeasonStats({
+  const SeasonStats({
     required this.id,
     required this.userId,
     required this.teamId,
@@ -201,7 +201,7 @@ class PlayerStatistics extends Equatable {
   final int totalActivities;
   final int attendedActivities;
   final double attendancePercentage;
-  PlayerStatistics({
+  const PlayerStatistics({
     required this.userId,
     required this.teamId,
     required this.userName,
@@ -255,7 +255,7 @@ class LeaderboardEntry extends Equatable {
   final int wins;
   final int losses;
   final int draws;
-  LeaderboardEntry({
+  const LeaderboardEntry({
     required this.rank,
     required this.userId,
     required this.userName,
@@ -309,7 +309,7 @@ class AttendanceRecord extends Equatable {
   final int attended;
   final int missed;
   final double percentage;
-  AttendanceRecord({
+  const AttendanceRecord({
     required this.userId,
     required this.userName,
     this.userAvatarUrl,

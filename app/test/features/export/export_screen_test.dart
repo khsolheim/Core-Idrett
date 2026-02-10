@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
 import 'package:core_idrett/features/export/presentation/export_screen.dart';
 import 'package:core_idrett/features/export/presentation/widgets/widgets.dart';

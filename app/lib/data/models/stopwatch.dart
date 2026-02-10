@@ -119,7 +119,7 @@ class StopwatchSession extends Equatable {
   // Nested data
   final List<StopwatchTime>? times;
   final String? creatorName;
-  StopwatchSession({
+  const StopwatchSession({
     required this.id,
     this.miniActivityId,
     this.teamId,
@@ -273,7 +273,7 @@ class StopwatchTime extends Equatable {
   // Joined data
   final String? userName;
   final String? userProfileImageUrl;
-  StopwatchTime({
+  const StopwatchTime({
     required this.id,
     required this.sessionId,
     required this.userId,
@@ -375,7 +375,7 @@ class StopwatchSessionWithTimes extends Equatable {
   final StopwatchTime? fastestTime;
   final StopwatchTime? slowestTime;
   final double? averageTimeMs;
-  StopwatchSessionWithTimes({
+  const StopwatchSessionWithTimes({
     required this.session,
     required this.times,
     this.fastestTime,

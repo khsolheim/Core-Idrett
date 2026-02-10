@@ -4,7 +4,6 @@
 import 'mini_activity_statistics_enums.dart';
 import 'package:equatable/equatable.dart';
 import 'mini_activity_statistics_core.dart';
-import 'package:equatable/equatable.dart';
 
 /// Source of points for a leaderboard entry
 class LeaderboardPointSource extends Equatable {
@@ -19,7 +18,7 @@ class LeaderboardPointSource extends Equatable {
 
   // Joined data
   final String? sourceName;
-  LeaderboardPointSource({
+  const LeaderboardPointSource({
     required this.id,
     required this.leaderboardEntryId,
     required this.userId,
@@ -106,7 +105,7 @@ class PlayerStatsAggregate extends Equatable {
   final List<HeadToHeadStats> headToHeadRecords;
   final List<MiniActivityTeamHistory> recentHistory;
   final List<LeaderboardPointSource> recentPointSources;
-  PlayerStatsAggregate({
+  const PlayerStatsAggregate({
     this.overallStats,
     this.seasonStats,
     this.headToHeadRecords = const [],
@@ -183,7 +182,7 @@ class TeamMiniActivityStats extends Equatable {
   final int activeMiniActivities;
   final DateTime? lastActivityAt;
   final List<MiniActivityPlayerStats> topPlayers;
-  TeamMiniActivityStats({
+  const TeamMiniActivityStats({
     required this.teamId,
     this.totalMiniActivities = 0,
     this.totalParticipations = 0,

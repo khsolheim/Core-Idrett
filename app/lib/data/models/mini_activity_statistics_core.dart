@@ -23,7 +23,7 @@ class MiniActivityPlayerStats extends Equatable {
   final String? userName;
   final String? userProfileImageUrl;
   final String? seasonName;
-  MiniActivityPlayerStats({
+  const MiniActivityPlayerStats({
     required this.id,
     required this.userId,
     required this.teamId,
@@ -171,7 +171,7 @@ class HeadToHeadStats extends Equatable {
   final String? user2Name;
   final String? user1ProfileImageUrl;
   final String? user2ProfileImageUrl;
-  HeadToHeadStats({
+  const HeadToHeadStats({
     required this.id,
     required this.teamId,
     required this.user1Id,
@@ -323,7 +323,7 @@ class MiniActivityTeamHistory extends Equatable {
   // Joined data
   final String? userName;
   final String? miniActivityName;
-  MiniActivityTeamHistory({
+  const MiniActivityTeamHistory({
     required this.id,
     required this.userId,
     required this.miniActivityId,

@@ -10,7 +10,7 @@ class NotificationPreferences extends Equatable {
   final bool newFine;
   final bool fineDecision;
   final bool teamMessage;
-  NotificationPreferences({
+  const NotificationPreferences({
     required this.id,
     required this.userId,
     this.teamId,
@@ -83,7 +83,7 @@ class DeviceToken extends Equatable {
   final String platform;
   final DateTime createdAt;
   final DateTime lastUsedAt;
-  DeviceToken({
+  const DeviceToken({
     required this.id,
     required this.userId,
     required this.token,

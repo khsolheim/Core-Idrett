@@ -156,7 +156,7 @@ class AchievementCriteria extends Equatable {
   final String? activityType;
   final String? timeframe;
   final Map<String, dynamic>? customData;
-  AchievementCriteria({
+  const AchievementCriteria({
     required this.type,
     this.threshold,
     this.percentage,

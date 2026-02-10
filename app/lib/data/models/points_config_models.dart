@@ -24,7 +24,7 @@ class TeamPointsConfig extends Equatable {
   final bool excludeValidAbsenceFromPercentage;
   final NewPlayerStartMode newPlayerStartMode;
   final DateTime createdAt;
-  TeamPointsConfig({
+  const TeamPointsConfig({
     required this.id,
     required this.teamId,
     this.seasonId,
@@ -168,7 +168,7 @@ class AttendancePoints extends Equatable {
   final String? userAvatarUrl;
   final String? activityName;
   final DateTime? activityDate;
-  AttendancePoints({
+  const AttendancePoints({
     required this.id,
     required this.teamId,
     required this.userId,
@@ -247,7 +247,7 @@ class UserAttendanceStats extends Equatable {
   final int socialPoints;
   final int competitionPoints;
   final int bonusPoints;
-  UserAttendanceStats({
+  const UserAttendanceStats({
     required this.userId,
     required this.teamId,
     this.totalPoints = 0,

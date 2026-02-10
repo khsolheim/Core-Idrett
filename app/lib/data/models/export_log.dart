@@ -9,7 +9,7 @@ class ExportLog extends Equatable {
   final Map<String, dynamic>? parameters;
   final DateTime createdAt;
   final String? userName;
-  ExportLog({
+  const ExportLog({
     required this.id,
     required this.teamId,
     required this.userId,
@@ -121,7 +121,7 @@ class ExportData extends Equatable {
   final List<String> columns;
   final List<Map<String, dynamic>> data;
   final Map<String, dynamic>? summary;
-  ExportData({
+  const ExportData({
     required this.type,
     required this.columns,
     required this.data,

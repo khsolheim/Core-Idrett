@@ -8,7 +8,7 @@ class MiniActivityTeam extends Equatable {
   final String? name;
   final int? finalScore;
   final List<MiniActivityParticipant>? participants;
-  MiniActivityTeam({
+  const MiniActivityTeam({
     required this.id,
     this.name,
     this.finalScore,
@@ -71,7 +71,7 @@ class MiniActivityParticipant extends Equatable {
   final int points;
   final String? userName;
   final String? userAvatarUrl;
-  MiniActivityParticipant({
+  const MiniActivityParticipant({
     required this.id,
     required this.userId,
     required this.points,
@@ -132,7 +132,7 @@ class MiniActivityAdjustment extends Equatable {
   final String? reason;
   final String createdBy;
   final DateTime createdAt;
-  MiniActivityAdjustment({
+  const MiniActivityAdjustment({
     required this.id,
     required this.miniActivityId,
     this.teamId,
@@ -207,7 +207,7 @@ class MiniActivityHandicap extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? userName;
-  MiniActivityHandicap({
+  const MiniActivityHandicap({
     required this.id,
     required this.miniActivityId,
     required this.userId,
@@ -261,7 +261,7 @@ class MiniActivityHistoryEntry extends Equatable {
   final DateTime createdAt;
   final String? winnerTeamId;
   final List<MiniActivityHistoryTeam> teams;
-  MiniActivityHistoryEntry({
+  const MiniActivityHistoryEntry({
     required this.id,
     required this.name,
     required this.createdAt,
@@ -315,7 +315,7 @@ class MiniActivityHistoryTeam extends Equatable {
   final String id;
   final String? name;
   final int? finalScore;
-  MiniActivityHistoryTeam({
+  const MiniActivityHistoryTeam({
     required this.id,
     this.name,
     this.finalScore,

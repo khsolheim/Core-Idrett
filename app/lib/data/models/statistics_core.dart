@@ -11,7 +11,7 @@ class Season extends Equatable {
   final DateTime? endDate;
   final bool isActive;
   final DateTime createdAt;
-  Season({
+  const Season({
     required this.id,
     required this.teamId,
     required this.name,
@@ -64,7 +64,7 @@ class Leaderboard extends Equatable {
   final int sortOrder;
   final DateTime createdAt;
   final List<NewLeaderboardEntry>? entries;
-  Leaderboard({
+  const Leaderboard({
     required this.id,
     required this.teamId,
     this.seasonId,
@@ -122,7 +122,7 @@ class NewLeaderboardEntry extends Equatable {
   final String? userName;
   final String? userAvatarUrl;
   final int? rank;
-  NewLeaderboardEntry({
+  const NewLeaderboardEntry({
     required this.id,
     required this.leaderboardId,
     required this.userId,
@@ -172,7 +172,7 @@ class TestTemplate extends Equatable {
   final String unit;
   final bool higherIsBetter;
   final DateTime createdAt;
-  TestTemplate({
+  const TestTemplate({
     required this.id,
     required this.teamId,
     required this.name,
@@ -223,7 +223,7 @@ class TestResult extends Equatable {
   final String? userAvatarUrl;
   final String? testName;
   final String? testUnit;
-  TestResult({
+  const TestResult({
     required this.id,
     required this.testTemplateId,
     required this.userId,

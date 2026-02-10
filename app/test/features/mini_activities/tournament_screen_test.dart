@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:core_idrett/features/mini_activities/presentation/screens/tournament_screen.dart';
-import 'package:core_idrett/features/mini_activities/providers/tournament_provider.dart';
 import 'package:core_idrett/data/models/tournament.dart';
 
 import '../../helpers/test_app.dart';

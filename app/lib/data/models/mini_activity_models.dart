@@ -3,7 +3,6 @@
 import 'mini_activity_enums.dart';
 import 'package:equatable/equatable.dart';
 import 'mini_activity_support.dart';
-import 'package:equatable/equatable.dart';
 
 class ActivityTemplate extends Equatable {
   final String id;
@@ -22,7 +21,7 @@ class ActivityTemplate extends Equatable {
   final int drawPoints;
   final int lossPoints;
   final String? leaderboardId;
-  ActivityTemplate({
+  const ActivityTemplate({
     required this.id,
     required this.teamId,
     required this.name,
@@ -148,7 +147,7 @@ class MiniActivity extends Equatable {
   final bool handicapEnabled;
   final DateTime? archivedAt;
   final String? winnerTeamId; // Manually set winner (null = draw or no result yet)
-  MiniActivity({
+  const MiniActivity({
     required this.id,
     this.instanceId,
     this.templateId,

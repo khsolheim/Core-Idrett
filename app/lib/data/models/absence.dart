@@ -58,7 +58,7 @@ class AbsenceCategory extends Equatable {
   final bool countsAsValid;
   final int sortOrder;
   final DateTime createdAt;
-  AbsenceCategory({
+  const AbsenceCategory({
     required this.id,
     required this.teamId,
     required this.name,
@@ -137,7 +137,7 @@ class AbsenceRecord extends Equatable {
   final String? activityName;
   final DateTime? activityDate;
   final String? approvedByName;
-  AbsenceRecord({
+  const AbsenceRecord({
     required this.id,
     required this.userId,
     required this.instanceId,
@@ -259,7 +259,7 @@ class AbsenceSummary extends Equatable {
   final int approvedCount;
   final int rejectedCount;
   final List<AbsenceRecord> pendingAbsences;
-  AbsenceSummary({
+  const AbsenceSummary({
     required this.teamId,
     this.pendingCount = 0,
     this.approvedCount = 0,

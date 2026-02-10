@@ -21,7 +21,7 @@ class AchievementDefinition extends Equatable {
   final bool isRepeatable;
   final int? repeatCooldownDays;
   final DateTime createdAt;
-  AchievementDefinition({
+  const AchievementDefinition({
     required this.id,
     this.teamId,
     required this.code,
@@ -143,7 +143,7 @@ class UserAchievement extends Equatable {
   final AchievementDefinition? definition;
   final String? userName;
   final String? userAvatarUrl;
-  UserAchievement({
+  const UserAchievement({
     required this.id,
     required this.userId,
     required this.achievementId,
@@ -219,7 +219,7 @@ class AchievementProgress extends Equatable {
   // Joined fields
   final AchievementDefinition? definition;
   final String? userName;
-  AchievementProgress({
+  const AchievementProgress({
     required this.id,
     this.userId,
     required this.achievementId,
@@ -296,7 +296,7 @@ class UserAchievementsSummary extends Equatable {
   final int totalBonusPoints;
   final List<UserAchievement> recentAchievements;
   final List<AchievementProgress> inProgress;
-  UserAchievementsSummary({
+  const UserAchievementsSummary({
     required this.userId,
     this.totalAchievements = 0,
     this.bronzeCount = 0,

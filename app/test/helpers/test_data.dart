@@ -355,8 +355,6 @@ class TestMessageFactory {
 
 /// Factory for creating ChatConversation test data
 class TestConversationFactory {
-  static int _counter = 0;
-
   static ChatConversation create({
     ConversationType type = ConversationType.team,
     String? teamId,
@@ -367,7 +365,6 @@ class TestConversationFactory {
     DateTime? lastMessageAt,
     int unreadCount = 0,
   }) {
-    _counter++;
     return ChatConversation(
       type: type,
       teamId: teamId,
@@ -380,7 +377,7 @@ class TestConversationFactory {
     );
   }
 
-  static void reset() => _counter = 0;
+  static void reset() {}
 }
 
 /// Factory for creating TeamDocument test data

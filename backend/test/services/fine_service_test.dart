@@ -2,7 +2,6 @@ import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:core_idrett_backend/db/database.dart';
 import 'package:core_idrett_backend/db/supabase_client.dart';
-import 'package:core_idrett_backend/models/fine.dart';
 import 'package:core_idrett_backend/services/fine/fine_crud_service.dart';
 import 'package:core_idrett_backend/services/fine/fine_summary_service.dart';
 import 'package:core_idrett_backend/services/user_service.dart';

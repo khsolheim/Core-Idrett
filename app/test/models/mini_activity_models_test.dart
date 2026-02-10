@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:core_idrett/data/models/mini_activity_models.dart';
 import 'package:core_idrett/data/models/mini_activity_enums.dart';
-import 'package:core_idrett/data/models/mini_activity_support.dart';
 
 void main() {
   group('ActivityTemplate', () {

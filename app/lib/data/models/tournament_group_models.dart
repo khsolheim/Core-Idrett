@@ -16,7 +16,7 @@ class TournamentGroup extends Equatable {
   // Nested data
   final List<GroupStanding>? standings;
   final List<GroupMatch>? matches;
-  TournamentGroup({
+  const TournamentGroup({
     required this.id,
     required this.tournamentId,
     required this.name,
@@ -111,7 +111,7 @@ class GroupStanding extends Equatable {
 
   // Joined data
   final String? teamName;
-  GroupStanding({
+  const GroupStanding({
     required this.id,
     required this.groupId,
     required this.teamId,
@@ -222,7 +222,7 @@ class GroupMatch extends Equatable {
   // Joined data
   final String? teamAName;
   final String? teamBName;
-  GroupMatch({
+  const GroupMatch({
     required this.id,
     required this.groupId,
     this.teamAId,
@@ -324,7 +324,7 @@ class QualificationRound extends Equatable {
 
   // Nested data
   final List<QualificationResult>? results;
-  QualificationRound({
+  const QualificationRound({
     required this.id,
     required this.tournamentId,
     required this.name,
@@ -415,7 +415,7 @@ class QualificationResult extends Equatable {
 
   // Joined data
   final String? userName;
-  QualificationResult({
+  const QualificationResult({
     required this.id,
     required this.qualificationRoundId,
     required this.userId,

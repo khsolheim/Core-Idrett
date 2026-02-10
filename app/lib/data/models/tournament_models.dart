@@ -4,7 +4,6 @@
 import 'tournament_enums.dart';
 import 'package:equatable/equatable.dart';
 import 'tournament_group_models.dart';
-import 'package:equatable/equatable.dart';
 
 /// Main Tournament class
 class Tournament extends Equatable {
@@ -22,7 +21,7 @@ class Tournament extends Equatable {
   // Nested data (loaded separately)
   final List<TournamentRound>? rounds;
   final List<TournamentGroup>? groups;
-  Tournament({
+  const Tournament({
     required this.id,
     required this.miniActivityId,
     required this.tournamentType,
@@ -133,7 +132,7 @@ class TournamentRound extends Equatable {
 
   // Nested data
   final List<TournamentMatch>? matches;
-  TournamentRound({
+  const TournamentRound({
     required this.id,
     required this.tournamentId,
     required this.roundNumber,
@@ -230,7 +229,7 @@ class TournamentMatch extends Equatable {
   final List<MatchGame>? games;
   final String? teamAName;
   final String? teamBName;
-  TournamentMatch({
+  const TournamentMatch({
     required this.id,
     required this.tournamentId,
     this.roundId,
@@ -372,7 +371,7 @@ class MatchGame extends Equatable {
   final String? winnerId;
   final MatchStatus status;
   final DateTime createdAt;
-  MatchGame({
+  const MatchGame({
     required this.id,
     required this.matchId,
     required this.gameNumber,
