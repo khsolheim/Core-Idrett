@@ -100,7 +100,7 @@ void main() {
 
       // Verify TabBar is shown with tabs
       expect(find.byType(TabBar), findsOneWidget);
-      expect(find.text('Bracket'), findsOneWidget);
+      expect(find.text('Kamptre'), findsOneWidget);
       expect(find.text('Kamper'), findsOneWidget);
     });
 
@@ -269,7 +269,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify all three tabs are shown for group tournaments
-      expect(find.text('Bracket'), findsOneWidget);
+      expect(find.text('Kamptre'), findsOneWidget);
       expect(find.text('Kamper'), findsOneWidget);
       expect(find.text('Grupper'), findsOneWidget);
     });

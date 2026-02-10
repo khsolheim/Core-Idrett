@@ -128,7 +128,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
       expect(find.text('Prøv igjen'), findsOneWidget);
     });
 

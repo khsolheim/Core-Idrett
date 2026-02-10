@@ -44,9 +44,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Narrow layout shows AppBar with title 'Chat'
+      // Narrow layout shows AppBar with title 'Meldinger'
       expect(find.byType(AppBar), findsOneWidget);
-      expect(find.text('Chat'), findsOneWidget);
+      expect(find.text('Meldinger'), findsOneWidget);
     });
 
     testWidgets('shows search field', (tester) async {
@@ -78,8 +78,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.textContaining('Kunne ikke laste samtaler'), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+      expect(find.text('Prøv igjen'), findsOneWidget);
     });
 
     testWidgets('shows retry button on error', (tester) async {
@@ -95,7 +95,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Prov igjen'), findsOneWidget);
+      expect(find.text('Prøv igjen'), findsOneWidget);
     });
 
     testWidgets('shows FAB for new conversation', (tester) async {

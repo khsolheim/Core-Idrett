@@ -41,7 +41,7 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
       if (team != null) {
         context.pop();
       } else {
-        ErrorDisplayService.showSuccess('Kunne ikke opprette lag. Prøv igjen.');
+        ErrorDisplayService.showWarning('Kunne ikke opprette lag. Prøv igjen.');
       }
     }
   }

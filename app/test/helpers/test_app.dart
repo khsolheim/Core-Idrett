@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:core_idrett/core/theme.dart';
 import 'package:core_idrett/core/router.dart';
+import 'package:core_idrett/core/services/error_display_service.dart';
 import 'package:core_idrett/data/models/user.dart';
 import 'package:core_idrett/data/models/team.dart';
 
@@ -41,6 +42,7 @@ class TestApp extends StatelessWidget {
       overrides: overrides.cast(),
       child: MaterialApp(
         home: child,
+        scaffoldMessengerKey: ErrorDisplayService.scaffoldKey,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
       ),
@@ -80,6 +82,7 @@ Widget createTestWidget(
     overrides: overrides.cast(),
     child: MaterialApp(
       home: widget,
+      scaffoldMessengerKey: ErrorDisplayService.scaffoldKey,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
     ),
