@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 8 of 10 (Push Notification Hardening)
-Plan: 2 of 3 (Complete)
-Status: In Progress
-Last activity: 2026-02-09 — Plan 08-02 complete, FCM token retry and persistence with exponential backoff
+Plan: 3 of 3 (Complete)
+Status: Complete
+Last activity: 2026-02-09 — Plan 08-03 complete, foreground notification display integrated
 
-Progress: [███████████░] 96% (23 of 24 total plans across phases 01-08)
+Progress: [████████████] 100% (24 of 24 total plans across phases 01-08)
 
 ## Performance Metrics
 
@@ -34,7 +34,7 @@ Progress: [███████████░] 96% (23 of 24 total plans acros
 | 05    | 3/4   | ~12m       | ~4m      |
 | 06    | 3/3   | ~30m       | ~10m     |
 | 07    | 4/4   | ~20m       | ~5m      |
-| 08    | 2/3   | ~29m       | ~14.5m   |
+| 08    | 3/3   | ~31m       | ~10.3m   |
 
 **Recent Trend:**
 - Plan 01-01: Backend Equatable + test infra (30 min)
@@ -63,10 +63,12 @@ Progress: [███████████░] 96% (23 of 24 total plans acros
 - Trend: Phase 7 complete — code consistency patterns established across backend and frontend, -194 net LOC through standardization
 - Plan 08-01: Push notification foundation services (10 min, installed flutter_local_notifications + retry + flutter_secure_storage, Firebase initialization with graceful failure, NotificationLocalDataSource for secure token persistence, ForegroundNotificationService for local notifications, Firebase config deferred by user)
 - Plan 08-02: FCM token retry and persistence (19 min, exponential backoff with 8 attempts, selective retry on network/timeout/server errors, fire-and-forget with unawaited, stale token recovery on startup, epoch 0 for failed registrations)
+- Plan 08-03: Foreground notification display (2 min, ForegroundNotificationService integrated into FcmTokenNotifier, iOS foreground presentation options configured, notifications display in all app states, Phase 08 complete)
 
-*Updated 2026-02-09 after plan 08-02 complete*
+*Updated 2026-02-09 after plan 08-03 complete*
 | Phase 08 P01 | 10 | 2 tasks | 6 files |
 | Phase 08 P02 | 19 | 1 tasks | 1 files |
+| Phase 08 P03 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -148,6 +150,8 @@ Recent decisions affecting current work:
 - [Phase 08]: FCM retry with exponential backoff - 8 attempts, 400ms-60s delay with 0.25 jitter, selective retry on network/timeout/server errors only
 - [Phase 08]: Fire-and-forget token registration - unawaited() ensures registration never blocks app startup or UI thread
 - [Phase 08]: Failed registrations save token with epoch 0 - triggers automatic reregistration on next startup via stale token recovery
+- [Phase 08]: iOS foreground presentation configured - alert/badge/sound enabled for foreground notifications
+- [Phase 08]: ForegroundNotificationService initialization happens during FCM setup - ensures local notifications ready before messages arrive
 
 ### Pending Todos
 
