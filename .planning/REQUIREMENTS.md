@@ -29,50 +29,50 @@ Requirements for this refactoring milestone. Each maps to roadmap phases.
 
 ### File Splitting — Frontend Widgets
 
-- [ ] **FSPLIT-01**: message_widgets.dart (482 LOC) split into focused widget files
-- [ ] **FSPLIT-02**: test_detail_screen.dart (476 LOC) split into screen + extracted widgets
-- [ ] **FSPLIT-03**: export_screen.dart (470 LOC) split into screen + extracted widgets
-- [ ] **FSPLIT-04**: activity_detail_screen.dart (456 LOC) split into screen + extracted widgets
-- [ ] **FSPLIT-05**: mini_activity_detail_content.dart (436 LOC) split into focused widget files
-- [ ] **FSPLIT-06**: stats_widgets.dart (429 LOC) split into focused widget files
-- [ ] **FSPLIT-07**: edit_team_members_tab.dart (423 LOC) split into focused widget files
-- [ ] **FSPLIT-08**: dashboard_info_widgets.dart (420 LOC) split into focused widget files
+- [x] **FSPLIT-01**: message_widgets.dart (482 LOC) split into focused widget files ✓ Phase 5
+- [x] **FSPLIT-02**: test_detail_screen.dart (476 LOC) split into screen + extracted widgets ✓ Phase 5
+- [x] **FSPLIT-03**: export_screen.dart (470 LOC) split into screen + extracted widgets ✓ Phase 5
+- [x] **FSPLIT-04**: activity_detail_screen.dart (456 LOC) split into screen + extracted widgets ✓ Phase 5
+- [x] **FSPLIT-05**: mini_activity_detail_content.dart (436 LOC) split into focused widget files ✓ Phase 5
+- [x] **FSPLIT-06**: stats_widgets.dart (429 LOC) split into focused widget files ✓ Phase 5
+- [x] **FSPLIT-07**: edit_team_members_tab.dart (423 LOC) split into focused widget files ✓ Phase 5
+- [x] **FSPLIT-08**: dashboard_info_widgets.dart (420 LOC) split into focused widget files ✓ Phase 5
 
 ### Test Coverage
 
 - [x] **TEST-01**: Backend test infrastructure created (test helpers, mock database, test data factories) ✓ Phase 1
 - [x] **TEST-02**: Backend model serialization tests for all models (fromJson/toJson roundtrip) ✓ Phase 1
-- [ ] **TEST-03**: Backend export service tests covering all 7 export types
-- [ ] **TEST-04**: Backend tournament service tests covering bracket generation (single-elim, round-robin, 3/5/8/16 participants)
-- [ ] **TEST-05**: Backend fine service tests covering payment reconciliation, idempotency, balance calculations
-- [ ] **TEST-06**: Backend statistics service tests covering edge cases (zero attendance, empty scores, season boundaries)
-- [ ] **TEST-07**: Frontend export screen widget tests
-- [ ] **TEST-08**: Frontend tournament screen widget tests
+- [x] **TEST-03**: Backend export service tests covering all 7 export types ✓ Phase 6
+- [x] **TEST-04**: Backend tournament service tests covering bracket generation (single-elim, round-robin, 3/5/8/16 participants) ✓ Phase 6
+- [x] **TEST-05**: Backend fine service tests covering payment reconciliation, idempotency, balance calculations ✓ Phase 6
+- [x] **TEST-06**: Backend statistics service tests covering edge cases (zero attendance, empty scores, season boundaries) ✓ Phase 6
+- [x] **TEST-07**: Frontend export screen widget tests ✓ Phase 6
+- [x] **TEST-08**: Frontend tournament screen widget tests ✓ Phase 6
 
 ### Security & Bug Fixes
 
-- [ ] **SEC-01**: Admin role check consolidated — remove dual-check (user_is_admin vs user_role), use single authoritative source
-- [ ] **SEC-02**: Rate limiting added to auth endpoints (login, register, password reset)
-- [ ] **SEC-03**: Rate limiting added to data mutation endpoints (message send, fine create, export)
-- [ ] **SEC-04**: FCM token registration retry logic with exponential backoff
-- [ ] **SEC-05**: FCM token persisted with last-sync timestamp for reliable recovery
-- [ ] **SEC-06**: Foreground push notification display implemented (local notification or in-app banner)
-- [ ] **SEC-07**: fine_boss permission checks added to all fine mutation endpoints
+- [x] **SEC-01**: Admin role check consolidated — remove dual-check (user_is_admin vs user_role), use single authoritative source ✓ Phase 4
+- [x] **SEC-02**: Rate limiting added to auth endpoints (login, register, password reset) ✓ Phase 4
+- [x] **SEC-03**: Rate limiting added to data mutation endpoints (message send, fine create, export) ✓ Phase 4
+- [x] **SEC-04**: FCM token registration retry logic with exponential backoff ✓ Phase 8
+- [x] **SEC-05**: FCM token persisted with last-sync timestamp for reliable recovery ✓ Phase 8
+- [x] **SEC-06**: Foreground push notification display implemented (local notification or in-app banner) ✓ Phase 8
+- [x] **SEC-07**: fine_boss permission checks added to all fine mutation endpoints ✓ Phase 4
 
 ### Consistency — Code Patterns
 
-- [ ] **CONS-01**: All backend handlers follow identical auth check pattern (getUserId → null check → requireTeamMember → role check)
-- [ ] **CONS-02**: All backend error responses use consistent Norwegian messages via response_helpers
-- [ ] **CONS-03**: All frontend screens with async data use when2() + EmptyStateWidget consistently
-- [ ] **CONS-04**: All frontend error feedback uses ErrorDisplayService.showWarning() — no raw SnackBars
-- [ ] **CONS-05**: All API endpoints return consistent response shapes (data envelope, error codes)
-- [ ] **CONS-06**: All frontend widgets follow consistent spacing/padding patterns from theme
+- [x] **CONS-01**: All backend handlers follow identical auth check pattern (getUserId → null check → requireTeamMember → role check) ✓ Phase 7
+- [x] **CONS-02**: All backend error responses use consistent Norwegian messages via response_helpers ✓ Phase 7
+- [x] **CONS-03**: All frontend screens with async data use when2() + EmptyStateWidget consistently ✓ Phase 7
+- [x] **CONS-04**: All frontend error feedback uses ErrorDisplayService.showWarning() — no raw SnackBars ✓ Phase 7
+- [x] **CONS-05**: All API endpoints return consistent response shapes (data envelope, error codes) ✓ Phase 7
+- [x] **CONS-06**: All frontend widgets follow consistent spacing/padding patterns from theme ✓ Phase 7
 
 ### Translation
 
-- [ ] **I18N-01**: All remaining English UI labels, buttons, and headers translated to Norwegian
-- [ ] **I18N-02**: All remaining English error messages and feedback text translated to Norwegian
-- [ ] **I18N-03**: All remaining English placeholder text and hints translated to Norwegian
+- [x] **I18N-01**: All remaining English UI labels, buttons, and headers translated to Norwegian ✓ Phase 9
+- [x] **I18N-02**: All remaining English error messages and feedback text translated to Norwegian ✓ Phase 9
+- [x] **I18N-03**: All remaining English placeholder text and hints translated to Norwegian ✓ Phase 9
 
 ## v2 Requirements
 
@@ -131,42 +131,42 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BSPLIT-06 | Phase 3 | ✓ Complete |
 | BSPLIT-07 | Phase 3 | ✓ Complete |
 | BSPLIT-08 | Phase 3 | ✓ Complete |
-| SEC-01 | Phase 4 | Pending |
-| SEC-02 | Phase 4 | Pending |
-| SEC-03 | Phase 4 | Pending |
-| SEC-07 | Phase 4 | Pending |
-| FSPLIT-01 | Phase 5 | Pending |
-| FSPLIT-02 | Phase 5 | Pending |
-| FSPLIT-03 | Phase 5 | Pending |
-| FSPLIT-04 | Phase 5 | Pending |
-| FSPLIT-05 | Phase 5 | Pending |
-| FSPLIT-06 | Phase 5 | Pending |
-| FSPLIT-07 | Phase 5 | Pending |
-| FSPLIT-08 | Phase 5 | Pending |
-| TEST-03 | Phase 6 | Pending |
-| TEST-04 | Phase 6 | Pending |
-| TEST-05 | Phase 6 | Pending |
-| TEST-06 | Phase 6 | Pending |
-| TEST-07 | Phase 6 | Pending |
-| TEST-08 | Phase 6 | Pending |
-| CONS-01 | Phase 7 | Pending |
-| CONS-02 | Phase 7 | Pending |
-| CONS-03 | Phase 7 | Pending |
-| CONS-04 | Phase 7 | Pending |
-| CONS-05 | Phase 7 | Pending |
-| CONS-06 | Phase 7 | Pending |
-| SEC-04 | Phase 8 | Pending |
-| SEC-05 | Phase 8 | Pending |
-| SEC-06 | Phase 8 | Pending |
-| I18N-01 | Phase 9 | Pending |
-| I18N-02 | Phase 9 | Pending |
-| I18N-03 | Phase 9 | Pending |
+| SEC-01 | Phase 4 | ✓ Complete |
+| SEC-02 | Phase 4 | ✓ Complete |
+| SEC-03 | Phase 4 | ✓ Complete |
+| SEC-07 | Phase 4 | ✓ Complete |
+| FSPLIT-01 | Phase 5 | ✓ Complete |
+| FSPLIT-02 | Phase 5 | ✓ Complete |
+| FSPLIT-03 | Phase 5 | ✓ Complete |
+| FSPLIT-04 | Phase 5 | ✓ Complete |
+| FSPLIT-05 | Phase 5 | ✓ Complete |
+| FSPLIT-06 | Phase 5 | ✓ Complete |
+| FSPLIT-07 | Phase 5 | ✓ Complete |
+| FSPLIT-08 | Phase 5 | ✓ Complete |
+| TEST-03 | Phase 6 | ✓ Complete |
+| TEST-04 | Phase 6 | ✓ Complete |
+| TEST-05 | Phase 6 | ✓ Complete |
+| TEST-06 | Phase 6 | ✓ Complete |
+| TEST-07 | Phase 6 | ✓ Complete |
+| TEST-08 | Phase 6 | ✓ Complete |
+| CONS-01 | Phase 7 | ✓ Complete |
+| CONS-02 | Phase 7 | ✓ Complete |
+| CONS-03 | Phase 7 | ✓ Complete |
+| CONS-04 | Phase 7 | ✓ Complete |
+| CONS-05 | Phase 7 | ✓ Complete |
+| CONS-06 | Phase 7 | ✓ Complete |
+| SEC-04 | Phase 8 | ✓ Complete |
+| SEC-05 | Phase 8 | ✓ Complete |
+| SEC-06 | Phase 8 | ✓ Complete |
+| I18N-01 | Phase 9 | ✓ Complete |
+| I18N-02 | Phase 9 | ✓ Complete |
+| I18N-03 | Phase 9 | ✓ Complete |
 
 **Coverage:**
-- v1 requirements: 45 total
+- v1 requirements: 45 total, 45 Complete, 0 Pending (100% coverage)
 - Mapped to phases: 45
 - Unmapped: 0 (100% coverage)
 
 ---
 *Requirements defined: 2026-02-08*
-*Last updated: 2026-02-08 after roadmap creation*
+*Last updated: 2026-02-10 after Phase 9 completion*
