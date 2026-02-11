@@ -8,6 +8,11 @@
 -- Safety: The backend uses service_role (bypasses RLS entirely).
 --         Only the mobile app's realtime subscription needs anon access,
 --         and only to activity_responses.
+--
+-- Note: Only tables/views that exist in production are included.
+--       Migrations 009 (documents), 015 (tournaments), 016 (match recording),
+--       017 (stopwatch), 018 (v_player_win_rates), and 019 (fine rules)
+--       were never applied to production.
 
 -- ============================================================
 -- STEP 1: Fix SECURITY DEFINER views → SECURITY INVOKER
@@ -22,10 +27,9 @@ ALTER VIEW v_user_attendance          SET (security_invoker = on);
 ALTER VIEW v_leaderboard_ranked       SET (security_invoker = on);
 ALTER VIEW v_monthly_trends           SET (security_invoker = on);
 ALTER VIEW v_manual_point_adjustments SET (security_invoker = on);
-ALTER VIEW v_player_win_rates         SET (security_invoker = on);
 
 -- ============================================================
--- STEP 2: Enable RLS on ALL public tables
+-- STEP 2: Enable RLS on ALL public tables (45 tables)
 -- ============================================================
 -- ALTER TABLE ... ENABLE ROW LEVEL SECURITY is idempotent.
 -- With no policies, this blocks all anon/authenticated access via PostgREST.
@@ -53,7 +57,6 @@ ALTER TABLE mini_activity_point_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mini_activity_player_stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mini_activity_head_to_head ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mini_activity_team_history ENABLE ROW LEVEL SECURITY;
-ALTER TABLE mini_activity_fine_rules  ENABLE ROW LEVEL SECURITY;
 
 -- Fines
 ALTER TABLE fine_rules                ENABLE ROW LEVEL SECURITY;
@@ -96,29 +99,6 @@ ALTER TABLE absence_records           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE achievement_definitions   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_achievements         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE achievement_progress      ENABLE ROW LEVEL SECURITY;
-
--- Documents & Export
-ALTER TABLE documents                 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE export_logs               ENABLE ROW LEVEL SECURITY;
-
--- Tournaments
-ALTER TABLE tournaments               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tournament_rounds         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tournament_matches        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE match_games               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tournament_groups         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE group_standings           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE group_matches             ENABLE ROW LEVEL SECURITY;
-ALTER TABLE qualification_rounds      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE qualification_results     ENABLE ROW LEVEL SECURITY;
-
--- Match Recording
-ALTER TABLE match_periods             ENABLE ROW LEVEL SECURITY;
-ALTER TABLE match_events              ENABLE ROW LEVEL SECURITY;
-
--- Stopwatch
-ALTER TABLE stopwatch_sessions        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stopwatch_times           ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================
 -- STEP 3: Anon SELECT policy for realtime on activity_responses
