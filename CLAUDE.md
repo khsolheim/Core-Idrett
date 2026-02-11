@@ -47,7 +47,7 @@ flutter test integration_test/app_test.dart  # Run integration tests
 ```
 
 ### Database
-SQL migrations are in `/database/migrations/` (files 001-027). Apply sequentially via Supabase dashboard or the setup script in `/database/setup.sh`.
+SQL migrations are in `/database/migrations/` (files 001-030). Apply sequentially via Supabase dashboard or the setup script in `/database/setup.sh`. Note: some early migrations (009, 015-019) were never applied to production — the security/performance migrations (028-030) only target tables and views that exist in the live database.
 
 ## Architecture
 
